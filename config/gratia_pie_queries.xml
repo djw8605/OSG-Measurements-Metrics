@@ -9,13 +9,33 @@
     <attribute name="display_name"> Pie Chart </attribute>
 
     <query name="facility_hours" base="GratiaGenericQuery.simple_query">
+      <inputs>
+        <input kind="sql" type="float" name="min_hours"> 10 </input>
+      </inputs>
       <sql>
         <filler name="group"> CETable.facility_name </filler>
-        <filler name="column"> sum(EndTime-StartTime)/3600 </filler>
+        <filler name="column"> sum(WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(WallDuration)/3600 >= :min_hours </filler>
       </sql>
+      <attribute name="pivot_name"> Facility </attribute>
       <attribute name="column_names"> Computation Time </attribute>
       <attribute name="column_units"> Hours </attribute>
       <attribute name="title"> Computational Hours by Site </attribute>
+    </query>
+
+    <query name="vo_hours" base="GratiaGenericQuery.simple_query">
+      <inputs>
+        <input kind="sql" type="float" name="min_hours"> 10 </input>
+      </inputs>
+      <sql>
+        <filler name="group"> VOName </filler>
+        <filler name="column"> sum(WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(WallDuration)/3600 >= :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> VO </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Computational Hours by VO </attribute>
     </query>
 
   </class>

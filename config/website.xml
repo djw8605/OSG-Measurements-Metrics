@@ -3,6 +3,7 @@
 
   <import module="graphtool.web"> WebHost, StaticContent, HelloWorld </import>
   <import file="$CONFIG_ROOT/gratia_graphs.xml" />
+  <import file="$CONFIG_ROOT/text_queries.xml" />
 
   <class name="static" type="StaticContent">
     <directory name="content"> $GRAPHTOOL_ROOT/static_content </directory>
