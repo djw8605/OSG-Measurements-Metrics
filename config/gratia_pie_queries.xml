@@ -1,0 +1,23 @@
+<graphtool-config>
+
+  <import file="$CONFIG_ROOT/generic_queries.xml" />
+
+  <class type="SqlQueries" name="GratiaPieQueries">
+
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <attribute name="display_name"> Pie Chart </attribute>
+
+    <query name="facility_hours" base="GratiaGenericQuery.simple_query">
+      <sql>
+        <filler name="group"> CETable.facility_name </filler>
+        <filler name="column"> sum(EndTime-StartTime)/3600 </filler>
+      </sql>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Computational Hours by Site </attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>

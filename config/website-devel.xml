@@ -1,0 +1,21 @@
+
+<graphtool-config>
+
+  <import module="graphtool.web"> WebHost, StaticContent, HelloWorld </import>
+  <import file="$CONFIG_ROOT/gratia_graphs.xml" />
+
+  <class name="static" type="StaticContent">
+    <directory name="content"> $GRAPHTOOL_ROOT/static_content </directory>
+  </class>
+
+  <class name="web" type="WebHost">
+    <mount location="/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
+    <mount location="/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
+    <mount location="/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
+    <mount location="/xml" content="text/xml"> <instance name="query_xml" /> </mount>
+    <instance name="static" />
+    <config>$CONFIG_ROOT/development.conf</config>
+  </class>
+
+</graphtool-config>
+
