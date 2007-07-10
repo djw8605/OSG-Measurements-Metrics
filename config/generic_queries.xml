@@ -36,7 +36,7 @@
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
           CETable.facility_name regexp :facility AND
-          VOName regexp :vo
+          ReportableVOName regexp :vo
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>
@@ -62,6 +62,8 @@
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE </input> 
       </inputs>
       <sql>
         SELECT
@@ -77,7 +79,9 @@
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
           JobUsageRecord_Meta.SiteName regexp :facility AND
-          VOName regexp :vo
+          ReportableVOName regexp :vo AND
+          (NOT (JobUsageRecord_Meta.SiteName regexp :exclude-facility)) AND
+          (NOT (ReportableVOName regexp :exclude-vo))
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
