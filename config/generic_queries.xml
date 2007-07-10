@@ -69,13 +69,56 @@
           truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
           <slot name="column"/>
         FROM
+          JobUsageRecord
+        JOIN
+          JobUsageRecord_Meta on JobUsageRecord_Meta.dbid = JobUsageRecord.dbid
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          JobUsageRecord_Meta.SiteName regexp :facility AND
+          VOName regexp :vo
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+    </query>
+
+<!--
+    <query name="vo_query">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-3*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql"> .* </input>
+      </inputs>
+      <sql>
+        SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          <slot name="column"/>
+        FROM
           JobUsageSimple
         JOIN
           CEProbes ON JobUsageSimple.ProbeName = CEProbes.probename
         JOIN
           CETable ON CEProbes.facility_id = CETable.facility_id
         <slot name="JOIN"/>
-        WHERE
+        WHERE 
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
           CETable.facility_name regexp :facility AND
@@ -99,6 +142,7 @@
       <attribute name="column_names" />
       <attribute name="column_units" />
     </query>
+-->
 
   </class>
 

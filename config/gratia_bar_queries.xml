@@ -10,7 +10,7 @@
 
     <query name="facility_hours_bar" base="GratiaGenericQuery.jobs_query">
       <sql>
-        <filler name="group"> CETable.facility_name </filler>
+        <filler name="group"> JobUsageRecord_Meta.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -25,7 +25,7 @@
 
     <query name="vo_hours_bar" base="GratiaGenericQuery.jobs_query">
       <sql>
-        <filler name="group"> VOName </filler>
+        <filler name="group"> ReportableVOName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
       </sql>
       <attribute name="pivot_name">VO</attribute>
