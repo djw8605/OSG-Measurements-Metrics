@@ -10,11 +10,11 @@
   </class>
 
   <class name="web" type="WebHost">
-    <mount location="/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
-    <mount location="/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
-    <mount location="/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
-    <mount location="/xml" content="text/xml"> <instance name="query_xml" /> </mount>
-    <instance name="static" />
+    <mount location="/gratia/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
+    <mount location="/gratia/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
+    <mount location="/gratia/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
+    <mount location="/gratia/xml" content="text/xml"> <instance name="query_xml" /> </mount>
+    <instance name="static" location="/gratia/static" />
     <config>$CONFIG_ROOT/prod.conf</config>
   </class>
 

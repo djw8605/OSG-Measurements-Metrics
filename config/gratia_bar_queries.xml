@@ -10,8 +10,9 @@
 
     <query name="facility_hours_bar" base="GratiaGenericQuery.jobs_query">
       <sql>
-        <filler name="group"> JobUsageRecord_Meta.SiteName </filler>
+        <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
       <attribute name="title">Hours Spent on Jobs By Facility</attribute>
@@ -25,8 +26,9 @@
 
     <query name="vo_hours_bar" base="GratiaGenericQuery.jobs_query">
       <sql>
-        <filler name="group"> ReportableVOName </filler>
+        <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">VO</attribute>
       <attribute name="title">Hours Spent on Jobs By VO</attribute>

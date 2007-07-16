@@ -71,17 +71,25 @@
           truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
           <slot name="column"/>
         FROM
-          JobUsageRecord
+          JobUsageRecord J
         JOIN
-          JobUsageRecord_Meta on JobUsageRecord_Meta.dbid = JobUsageRecord.dbid
+          JobUsageRecord_Meta M ON M.dbid = J.dbid
+        JOIN
+          VONameCorrection V ON J.VOName = V.VOName AND J.ReportableVOName = V.ReportableVOName
+        JOIN
+          VO ON V.void = VO.void
+        JOIN
+          Probe P ON M.ProbeName = P.ProbeName
+        JOIN
+          Site S ON P.siteid = S.siteid 
         <slot name="JOIN"/>
         WHERE
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
-          JobUsageRecord_Meta.SiteName regexp :facility AND
-          ReportableVOName regexp :vo AND
-          (NOT (JobUsageRecord_Meta.SiteName regexp :exclude-facility)) AND
-          (NOT (ReportableVOName regexp :exclude-vo))
+          S.SiteName regexp :facility AND
+          VO.VOName regexp :vo AND
+          (NOT (S.SiteName regexp :exclude-facility)) AND
+          (NOT (VO.VOName regexp :exclude-vo))
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
