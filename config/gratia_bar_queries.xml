@@ -24,6 +24,22 @@
       </results>
     </query>
 
+    <query name="vo_hours_summary" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> R.VOName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">Hours Spent on Jobs By VO</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="vo_hours_bar" base="GratiaGenericQuery.jobs_query">
       <sql>
         <filler name="group"> VO.VOName </filler>

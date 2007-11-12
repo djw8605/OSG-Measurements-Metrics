@@ -110,6 +110,56 @@
       <attribute name="column_units" />
     </query>
 
+    <query name="jobs_summary_query">
+      <inputs>
+        <input name="span" type="int">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-7*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="group"/>,
+          unix_timestamp(EndTime),
+          <slot name="column"/>
+        FROM
+          VOProbeSummary R
+        JOIN
+          Probe P on R.ProbeName = P.probename
+        JOIN
+          Site S on S.siteid = P.siteid
+        <slot name="JOIN"/>
+        WHERE
+          R.ResourceType = 'Batch' AND
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          S.SiteName regexp :facility AND
+          R.VOName regexp :vo AND
+          (NOT (S.SiteName regexp :exclude-facility)) AND
+          (NOT (R.VOName regexp :exclude-vo))
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          unix_timestamp(EndTime)
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+    </query>
+
 <!--
     <query name="vo_query">
       <inputs>
