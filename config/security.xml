@@ -1,0 +1,65 @@
+<graphtool-config>
+
+    <import module="graphtool.web.security">*</import>
+
+    <import file="DBSecurity.xml" />
+
+    <class type="Security" name="GratiaSecurity">
+
+        <attribute name="connection_manager"> GratiaSecurityDB </attribute>
+
+        <query name="vo_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> NONE </input>
+            </inputs>
+            <sql>
+                SELECT
+                    count(*)
+                FROM
+                    VOOwners
+                WHERE
+                    vo=:access AND
+                    dn=:dn
+            </sql>
+            <results function="security_parser" />
+        </query>
+
+        <query name="site_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    count(*)
+                FROM
+                    SiteOwners
+                WHERE
+                    site=:access AND
+                    dn=:dn
+            </sql>
+            <results function="security_parser" />
+        </query>
+
+        <query name="users">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    count(*) + IF(:dn == :access, 1, 0)
+                FROM
+                    Users
+                WHERE
+                    target_dn=:access AND
+                    dn=:dn
+            </sql>
+            <results function="security_parser" />
+        </query>
+
+
+    </class>
+
+</graphtool-config>

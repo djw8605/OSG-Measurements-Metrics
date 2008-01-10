@@ -1,9 +1,13 @@
 <graphtool-config>
 
+  <import module="gratia.database.query_handler">*</import>
+
   <import module="graphtool.database.queries">SqlQueries</import>
   <import module="graphtool.database.query_handler">*</import>
   <import module="time"/> 
   <import file="$HOME/DBParam.xml" />
+ 
+  <import file="$CONFIG_ROOT/security.xml" />
 
   <class type="SqlQueries" name="GratiaGenericQuery">
 
@@ -53,6 +57,53 @@
       <attribute name="title" />
       <attribute name="column_names" />
       <attribute name="column_units" />
+    </query>
+
+    <query name="simple_summary">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql"> .* </input>
+            <input name="vo" kind="sql"> .* </input>
+            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE </input>
+        </inputs>
+        <sql>
+            SELECT
+                <slot name="group"/>,
+                <slot name="column"/>
+            FROM
+                VOProbeSummary R
+            JOIN
+                Probe P on R.ProbeName = P.probename
+            JOIN
+                Site S on S.siteid = P.siteid
+            <slot name="join"/>
+            WHERE
+                R.EndTime &gt;= :starttime AND
+                R.EndTime &lt; :endtime AND
+                S.SiteName regexp :facility AND
+                R.VOName regexp :vo AND
+                R.ResourceType = 'Batch' AND
+                (NOT (S.SiteName regexp :exclude-facility)) AND
+                (NOT (R.VOName regexp :exclude-vo)) AND
+                R.WallDuration &lt; 1100000000
+                <slot name="where"/>
+            GROUP BY 
+                <slot name="group"/>
+            <slot name="having"/>
+        </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="results"> 1 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type">GratiaPie</attribute> 
+        <attribute name="pivot_name" />
+        <attribute name="title" />
+        <attribute name="column_names" />
+        <attribute name="column_units" />
     </query>
 
     <query name="jobs_query">
@@ -112,7 +163,7 @@
 
     <query name="jobs_summary_query">
       <inputs>
-        <input name="span" type="int">86400</input>
+        <input name="span" type="int" kind="sql">86400</input>
         <input name="starttime" type="datetime" kind="sql">time.time()-7*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
@@ -123,7 +174,7 @@
       <sql>
        SELECT
           <slot name="group"/>,
-          unix_timestamp(EndTime),
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
           <slot name="column"/>
         FROM
           VOProbeSummary R
@@ -139,17 +190,19 @@
           S.SiteName regexp :facility AND
           R.VOName regexp :vo AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
-          (NOT (R.VOName regexp :exclude-vo))
+          (NOT (R.VOName regexp :exclude-vo)) AND
+          WallDuration &lt; 1100000000
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
-          unix_timestamp(EndTime)
+          truncate( unix_timestamp(EndTime) / :span, 0 )
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
           <input name="pivots"> 0 </input>
           <input name="grouping"> 1 </input>
           <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
       <attribute name="graph_type">GratiaStackedBar</attribute>
@@ -205,6 +258,246 @@
       <attribute name="column_units" />
     </query>
 -->
+
+  </class>
+
+  <class type="SqlQueries" name="GratiaStorageQuery">
+
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <aggregate>
+      <connection> gratia-itb </connection>
+    </aggregate>
+
+    <query name="simple_query">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> .* </input>
+      </inputs>
+      <sql>
+        SELECT
+          <slot name="group"/>,
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
+          VO regexp :vo AND
+          SiteName regexp :facility
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>
+        <slot name="having"/> 
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaPie</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+    </query>
+
+    <query name="summary">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          SiteName regexp :facility AND
+          VO regexp :vo AND
+          (NOT (SiteName regexp :exclude-facility)) AND
+          (NOT (VO regexp :exclude-vo))
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 )
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+    </query>
+
+    <query name="site_summary">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> Unknown </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND 
+          SiteName=:facility AND
+          VO regexp :vo AND
+          (NOT (VO regexp :exclude-vo))
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 )
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+    </query>
+
+    <query name="user_summary">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+        <input name="dn" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          SiteName regexp :facility AND
+          VO regexp :vo AND
+          DN=:dn AND
+          (NOT (VO regexp :exclude-vo)) AND
+          (NOT (SiteName regexp :exclude-facility)) AND
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 )
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+    </query>
+
+    <query name="vo_summary">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> Unknown </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          SiteName regexp :facility AND
+          VO=:vo AND
+          (NOT (VO regexp :exclude-facility))
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 )
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+    </query>
 
   </class>
 

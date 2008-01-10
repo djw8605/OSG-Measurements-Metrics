@@ -8,6 +8,7 @@
 
     <attribute name="display_name"> Pie Chart </attribute>
 
+<!--
     <query name="facility_hours" base="GratiaGenericQuery.simple_query">
       <inputs>
         <input kind="sql" type="float" name="min_hours"> 10 </input>
@@ -37,6 +38,38 @@
       <attribute name="column_units"> Hours </attribute>
       <attribute name="title"> Computational Hours by VO </attribute>
     </query>
+-->
+
+    <query name="osg_vo_hours" base="GratiaGenericQuery.simple_summary">
+        <inputs>
+            <input kind="sql" type="float" name="min_hours"> 10 </input>
+        </inputs>
+      <sql>
+        <filler name="group"> R.VOName </filler>
+        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> VO </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Computational Hours by VO </attribute>
+    </query>
+
+    <query name="osg_facility_hours" base="GratiaGenericQuery.simple_summary">
+        <inputs>
+            <input kind="sql" type="float" name="min_hours"> 10 </input>
+        </inputs>
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> Facility </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Computational Hours by Facility </attribute>
+    </query>
+
 
   </class>
 

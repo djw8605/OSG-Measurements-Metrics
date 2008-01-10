@@ -14,6 +14,12 @@
     <mount location="/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
     <mount location="/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
     <mount location="/xml" content="text/xml"> <instance name="query_xml" /> </mount>
+    <mount location="/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
+    <mount location="/vo_xml" content="text/xml"> <instance name="vo_xml"/> </mount>
+    <mount location="/user_xml" content="text/xml"> <instance name="user_xml"/> </mount>
+    <mount location="/site_graphs" content="image/png"> <instance name="gratia_site_grapher"/> </mount>
+    <mount location="/vo_graphs" content="image/png"> <instance name="gratia_vo_grapher"/> </mount>
+    <mount location="/user_graphs" content="image/png"> <instance name="gratia_user_grapher"/> </mount>
     <instance name="static" />
     <config>$CONFIG_ROOT/development.conf</config>
   </class>

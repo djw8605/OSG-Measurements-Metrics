@@ -8,7 +8,43 @@
      
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
-    <query name="facility_hours_bar" base="GratiaGenericQuery.jobs_query">
+    <query name="vo_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> R.VOName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name"> VO </attribute>
+      <attribute name="title"> Hours Spent on Jobs By VO </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="graph_type"> GratiaStackedBar </attribute>
+    </query>
+
+    <query name="osg_wall_hours" base="GratiaGenericQuery.jobs_summary_query">
+        <inputs>
+            <input name="span" type="eval" kind="sql">7*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        </inputs>
+        <sql>
+            <filler name="group"> R.VOName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+        <attribute name="title"> Computation Hours Per Week </attribute>
+        <attribute name="pivot_name"> VO </attribute>
+        <attribute name="column_names"> Computation Time </attribute>
+        <attribute name="column_units"> Hours </attribute>
+        <attribute name="graph_type"> GratiaStackedBar </attribute>
+    </query>
+
+    <query name="facility_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
@@ -24,37 +60,155 @@
       </results>
     </query>
 
-    <query name="vo_hours_summary" base="GratiaGenericQuery.jobs_summary_query">
-      <sql>
-        <filler name="group"> R.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
-      </sql>
-      <attribute name="pivot_name">VO</attribute>
-      <attribute name="title">Hours Spent on Jobs By VO</attribute>
-      <attribute name="graph_type">GratiaStackedBar</attribute>
-      <results>
-        <inputs>
-          <input name="grouping_transform">make_int</input>
-        </inputs>
-      </results>
+
+    <!-- Grid-wide queries -->
+    <query name="user_transfer_volume" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> DN </filler>
+            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">Facility</attribute>
+        <attribute name="title">Volume of Gigabytes Transferred By User</attribute>
+        <attribute name="column_names">Transfer Volume</attribute>
+        <attribute name="column_units">GB</attribute>
     </query>
 
-    <query name="vo_hours_bar" base="GratiaGenericQuery.jobs_query">
-      <sql>
-        <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
-      </sql>
-      <attribute name="pivot_name">VO</attribute>
-      <attribute name="title">Hours Spent on Jobs By VO</attribute>
-      <attribute name="graph_type">GratiaStackedBar</attribute>
-      <results>
-        <inputs>
-          <input name="grouping_transform">make_int</input>
-        </inputs>
-      </results>
+    <query name="facility_transfer_volume" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> SiteName </filler>
+            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
+        </sql>
+        <attribute name="pivot_name">Facility</attribute>
+        <attribute name="title">Volume of Gigabytes Transferred By Facility</attribute>
+        <attribute name="column_names">Transfer Volume</attribute>
+        <attribute name="column_units">GB</attribute>
     </query>
+
+    <query name="facility_transfer_rate" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> SiteName </filler>
+            <filler name="column"> sum(BytesTransferred)/pow(1024, 2)/:span</filler>
+        </sql>
+        <attribute name="pivot_name">Facility</attribute>
+        <attribute name="title">Transfer Rate By Facility</attribute>
+        <attribute name="column_names">Transfer Rate</attribute>
+        <attribute name="column_units">MB/s</attribute>
+    </query>
+
+    <query name="vo_transfer_volume" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> VO </filler>
+            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
+        </sql>
+        <attribute name="pivot_name">VO</attribute>
+        <attribute name="title">Volume of Gigabytes Transferred By VO</attribute>
+        <attribute name="column_names">Transfer Volume</attribute>
+        <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="vo_transfer_rate" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> SiteName </filler>
+            <filler name="column"> sum(BytesTransferred)/pow(1024, 2)/:span</filler>
+        </sql>
+        <attribute name="pivot_name">VO</attribute>
+        <attribute name="title">Transfer Rate By VO</attribute>
+        <attribute name="column_names">Transfer Rate</attribute>
+        <attribute name="column_units">MB/s</attribute>
+    </query>
+
+    <query name="facility_quality" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> SiteName </filler>
+            <filler name="column"> 
+                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="results"> 2, 3 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> Transfer Quality by Facility </attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+    </query>
+
+    <query name="vo_quality" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> VO </filler>
+            <filler name="column">
+                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="results"> 2, 3 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> Transfer Quality by VO </attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+    </query>
+
+    <query name="user_quality" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> DN </filler>
+            <filler name="column">
+                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+                <input name="results"> 2, 3 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> Transfer Quality by User </attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+    </query>
+
+    <!-- VO queries -->
+
+    <!-- Site queries -->
+
+    <query name="site_user_quality" base="GratiaStorageQuery.site_summary">
+        <sql>
+            <filler name="group"> DN </filler>
+            <filler name="column">
+                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>  
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+                <input name="results"> 2, 3 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> Site Quality by User </attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+    </query>
+
+    <!-- User queries -->
 
   </class>
 

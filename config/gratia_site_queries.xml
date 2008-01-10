@@ -1,0 +1,34 @@
+<graphtool-config>
+    
+  <import file="$CONFIG_ROOT/generic_queries.xml" />
+        
+  <class type="SqlQueries" name="GratiaSiteBarQueries">
+        
+    <attribute name="display_name"> Bar Graphs </attribute>
+      
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <query name="site_user_quality" base="GratiaStorageQuery.site_summary">
+        <sql>
+            <filler name="group"> DN </filler>
+            <filler name="column">
+                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+                <input name="results"> 2, 3 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> $facility Quality by User </attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+    </query>
+          
+  </class>
+
+</graphtool-config>

@@ -8,6 +8,7 @@
 
     <attribute name="display_name"> Cumulative Graph </attribute>
 
+<!--
     <query name="hours_success_cumulative" base="GratiaGenericQuery.jobs_query">
       <sql>
         <filler name="group"> S.SiteName </filler>
@@ -43,10 +44,11 @@
       <attribute name="column_units"> Hours </attribute>
       <attribute name="graph_type"> GratiaCumulative </attribute>
     </query>
+-->
 
     <query name="vo_success_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
-        <filler name="group"> VO.VOName </filler>
+        <filler name="group"> R.VOName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -60,6 +62,47 @@
       <attribute name="column_names"> Computation Time </attribute>
       <attribute name="column_units"> Hours </attribute>
       <attribute name="graph_type"> GratiaCumulative </attribute>
+    </query>
+
+    <query name="facility_success_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name"> Facility </attribute>
+      <attribute name="title"> Cumulative Hours Spent on Jobs By Facility </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="graph_type"> GratiaCumulative </attribute>
+    </query>
+
+    <query name="osg_wall_cumulative" base="GratiaGenericQuery.jobs_summary_query">
+        <inputs>
+            <input name="span" type="eval" kind="sql">7*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        </inputs>
+        <sql>
+            <filler name="group"> R.VOName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+      <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+        <attribute name="title"> Cumulative Computation Hours </attribute>
+        <attribute name="pivot_name"> VO </attribute>
+        <attribute name="column_names"> Computation Time </attribute>
+        <attribute name="column_units"> Hours </attribute>
+        <attribute name="graph_type"> GratiaCumulative </attribute>
     </query>
 
   </class>

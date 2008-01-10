@@ -4,7 +4,9 @@
   <import file="$CONFIG_ROOT/gratia_pie_queries.xml" />
   <import file="$CONFIG_ROOT/gratia_bar_queries.xml" />
   <import file="$CONFIG_ROOT/gratia_cumulative_queries.xml" />
-
+  <import file="$CONFIG_ROOT/gratia_site_queries.xml"/>
+  <import file="$CONFIG_ROOT/gratia_user_queries.xml"/>
+  <import file="$CONFIG_ROOT/gratia_vo_queries.xml"/>
   <import module="gratia.graphs.gratia_graphs">*</import>
 
   <class type="Grapher" name="gratia_pie_grapher">
@@ -14,7 +16,33 @@
 
   <class type="Grapher" name="gratia_bar_grapher">
     <attribute name="display_name"> Bar Graphs </attribute>
+<!--
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+-->
     <queryobj> GratiaBarQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_site_grapher">
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+      <queryobj> GratiaSiteBarQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_vo_grapher">
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">vo_ownership</attribute>
+      <attribute name="access">vo</attribute>
+      <queryobj> GratiaVoBarQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_user_grapher">
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">user_ownership</attribute>
+      <attribute name="access">user</attribute>
+      <queryobj> GratiaUserBarQueries </queryobj>
   </class>
 
   <class type="Grapher" name="gratia_cumulative_grapher">

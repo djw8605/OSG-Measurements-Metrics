@@ -1,0 +1,17 @@
+<graphtool-config>
+
+  <import module="graphtool.database.connection_manager"> ConnectionManager </import>
+ 
+  <class name="GratiaSecurityDB" type="ConnectionManager">
+
+    <attribute name="default"> accessdb </attribute>
+
+    <connection name="accessdb">
+      <attribute name="Interface"> sqlite </attribute>
+      <attribute name="DatabaseFile"> access.db </attribute>
+    </connection>
+
+  </class>
+
+
+</graphtool-config>
