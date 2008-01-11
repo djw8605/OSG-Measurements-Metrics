@@ -1,0 +1,39 @@
+<html>
+
+<head>
+    <title>$title</title>
+</head>
+
+<body>
+    
+<!-- Unauthenticated user view -->
+#if not $is_authenticated
+    <p>
+        Welcome to the overview of the OSG monitoring and accounting website.
+        This page is designed to give outside users a view of what the OSG is
+        currently doing.  If you would like to focus on recent activity, <a href="$base_url/main">click here</a>
+    </p>
+#else 
+    <p>
+        Welcome, $name, to the overview page of the OSG monitoring and accounting website.
+        You have presented authentication credentials.  If you would like to focus
+        on recent activity, <a href="$base_url/main">click here</a>
+    </p>
+#end if
+
+<!-- Common, grid-wide view. -->
+
+    <h2>Job Activity<h2>
+    <p><img src="$static_url/today/osg_wall_hours.png"/></p>
+    <p><img src="$static_url/today/facility_hours_bar_smry.png"/></p>
+    <p><img src="$static_url/today/osg_wall_cumulative.png"/></p>
+    <p><img src="$static_url/today/facility_success_cumulative_smry.png"/></p>
+    <h2>Storage Activity</h2>
+    <h3> Transfer Rates </h3>
+    <p><img src="$static_url/today/facility_transfer_rate.png"/></p>
+    <h3> Transfer Quality </h3>
+    <p> <img src="$static_url/today/facility_quality.png"/></p>
+
+</body>
+
+</html>

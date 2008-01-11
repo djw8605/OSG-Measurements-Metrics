@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>Site Information for $facility</title>
+</head>
+<body>
+
+#if not $is_authenticated
+    <p>We're sorry, but you must be authenticated and authorized to view 
+       information about this specific site
+    </p>
+#elif not $is_site_owner or $facility not in $user_ownership
+    <p>We're sorry $name, but you are not authorized to view information about 
+       this site
+    </p>
+    <p>If you believe you have recieved this message in error, please contact 
+       the GOC.  The current certificate in your browser is labelled:
+    </p>
+    <p><b>$dn</b></p>
+#else
+    <!-- We're golden, spill our guts! -->
+    <h3>Focus:</h3>
+    #for view in ('user', 'vo', 'both')
+        #if $focus == view
+            $view
+        #else
+            <a href="$change_focus($view)"> $view </a>
+        #end if
+    #end for
+    #if $focus=='user' or $focus == 'both'
+        <h1>Site Information for $facility by User</h1>
+        <h2>Job Activity</h2>
+        <p><img src="$base_url/bar_graphs/site_user_job_quality"/></p>
+        <p><img src="$base_url/bar_graphs/site_user_hours"/></p>
+        <h2>Storage Activity</h2>
+        <p><img src="$base_url/bar_graphs/site_user_transfer_quality"/></p>
+        <p><img src="$base_url/bar_graphs/site_user_rate"/></p>
+    #end if
+    #if $focus=='vo' or $focus=='both'
+        <h1>Site Information for $facility by VO</h1>
+        <h2>Job Activity</h2>
+        <p><img src="$base_url/bar_graphs/site_vo_job_quality"/></p>
+        <p><img src="$base_url/bar_graphs/site_vo_hours"/></p>
+        <h2>Storage Activity</h2>
+        <p><img src="$base_url/bar_graphs/site_vo_transfer_quality"/></p>
+        <p><img src="$base_url/bar_graphs/site_vo_rate"/></p>
+    #end if
+    <h1>Refine View</h1>
+    #if $refine_error != None
+        <p>$refine_error</p>
+    #end if
+    <h1>Detailed Job and Transfer Table</h1>
+    <p>Job tables are not yet available.</p>
+    <table>
+    #for $transfer in $transfers
+        <tr>
+            <td>$transfer.$name</td>
+            <td>$transfer.$bytes_transferred</td>
+            <td>$transfer.$transfer_rate</td>
+            <td>$transfer.$src</td>
+            <td>$transfer.$dest</td>
+        </tr>
+    #end for
+    </table>
+#end if
+</body>
+</html>

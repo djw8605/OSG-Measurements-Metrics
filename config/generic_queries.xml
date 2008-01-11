@@ -329,6 +329,7 @@
         WHERE
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
           SiteName regexp :facility AND
           VO regexp :vo AND
           (NOT (SiteName regexp :exclude-facility)) AND
@@ -374,6 +375,7 @@
         WHERE
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND 
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
           SiteName=:facility AND
           VO regexp :vo AND
           (NOT (VO regexp :exclude-vo))
@@ -423,6 +425,7 @@
         WHERE
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
           SiteName regexp :facility AND
           VO regexp :vo AND
           DN=:dn AND
@@ -472,6 +475,7 @@
         WHERE
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
           SiteName regexp :facility AND
           VO=:vo AND
           (NOT (VO regexp :exclude-facility))

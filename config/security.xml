@@ -25,10 +25,25 @@
             <results function="security_parser" />
         </query>
 
+        <query name="list_vo_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    vo
+                FROM
+                    VOOwners
+                WHERE
+                    dn=:dn
+            </sql>
+            <results function="role_list" />
+        </query>
+
         <query name="site_ownership">
             <inputs>
                 <input name="dn" kind="sql"> Unknown </input>
-                <input name="access" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> NONE </input>
             </inputs>
             <sql>
                 SELECT
@@ -36,10 +51,25 @@
                 FROM
                     SiteOwners
                 WHERE
-                    site=:access AND
-                    dn=:dn
+                    dn=:dn AND
+                    site=:access
             </sql>
             <results function="security_parser" />
+        </query>
+
+        <query name="list_site_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    site
+                FROM
+                    SiteOwners
+                WHERE
+                    dn=:dn
+            </sql>
+            <results function="role_list" />
         </query>
 
         <query name="users">
@@ -49,14 +79,30 @@
             </inputs>
             <sql>
                 SELECT
-                    count(*) + IF(:dn == :access, 1, 0)
+                    count(*) + IF(:access=:dn, 1, 0)
                 FROM
                     Users
                 WHERE
-                    target_dn=:access AND
-                    dn=:dn
+                    dn=:dn AND 
+                    target_dn=:access
             </sql>
             <results function="security_parser" />
+        </query>
+
+        <query name="list_users">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    target_dn
+                FROM
+                    Users
+                WHERE
+                    dn=:dn
+            </sql>
+            <results function="role_list" />
         </query>
 
 

@@ -50,6 +50,15 @@ def generate(cp):
                 raise
         dest = os.path.join(dest, '%s' + suffix)
         generateImages(cp, timestamp, src, dest, replace=(replace or curDate==today))
+        if curDate == today:
+            dest = os.path.join(orig_dest, 'today')
+            try:
+                os.makedirs(dest)
+            except OSError, e:
+                if e.errno != 17:
+                    raise
+            dest = os.path.join(dest, '%s' + suffix)
+            generateImages(cp, timestamp, src, dest, replace=True)
         curDate = curDate + one_day
 
 if __name__ == '__main__':

@@ -1,0 +1,114 @@
+<html>
+<head>
+<title>$title</title>
+</head>
+<body>
+    <h1>OSG Storage</h1>
+
+<!-- Unauthenticated user view -->
+#if not $is_authenticated
+    <p> This is the central page for viewing storage activity on the OSG. </p>
+    <p> This page is designed for active users, managers, and site admins
+        on the OSG.  To get a broader overview, <a href="$base_url/overview">click here</a>
+    </p>
+#end if
+
+<!-- Common, grid-wide view. -->
+
+    <h2>Today's Activity<h2>
+    <h3> Transfer Rates </h3>
+    <p><img src="$base_url/bar_graphs/facility_transfer_rate$filter_url"/></p>
+    <h3> Transfer Quality </h3>
+    <p> <img src="$base_url/bar_graphs/facility_quality$filter_url"/></p>
+
+    <h3> Space Available </h3>
+    <p> We're sorry, but this graph is not available. </p>
+
+    <h3> Transfer Volume </h3>
+    <p> <img src="$base_url/bar_graphs/facility_transfer_volume$filter_url"/> </p>
+
+<!-- Controls for filtering sites / VOs / dates / etc -->
+    <h2> Refine view </h2>
+    <form>
+        <h3> Time span </h3>
+        <p> Please specify either an absolute date or time interval </p>
+        <p> Absolute time interval (format: "YYYY-MM-DD HH:MM:SS")<br/>
+            <label for="starttime">Start time:</label>
+            <input type="text" name="starttime"/> <br/>
+            <label for="endtime">End time:</label>
+            <input type="text" name="endtime"/> <br/>
+            <label for="span"> Bar width </label>
+            <select name="span">
+                <option value="3600">Hour</option>
+                <option value="86400">Day</option>
+                <option value="604800">Week</option>
+            </select>
+        </p>
+        <p> Relative to the present <br/>
+            <label for="relativetime">Select time interval</label> $select($relTime, 'absolute')
+            <select name="relativetime">
+                #for $val in (('absolute', "Use absolute date range"), ('86400', "24 Hours"), ('172800', "48 Hours"), ("259200", "72 Hours"), ("604800", "7 Days"))
+                    #if $relTime == $val[0]
+                        <option value="$val[0]" selected="true">$val[1]</option>
+                    #else
+                        <option value="$val[0]">$val[1]</option>
+                    #end if
+                #end for
+            </select>
+        </p>
+        <h3> Data filter </h3>
+        <p>
+            <label for="facility">Facility: </label>
+            <input type="text" name="facility" value="$filter_dict.facility"/> <br/>
+            <label for="vo">VO: </label>
+            <input type="text" name="vo" value="$filter_dict.vo"/> <br/>
+            <label for="exclude-facility">Exclude facility: </label>
+            <input type="text" name="exclude-facility" value="$filter_dict['exclude-facility']"/> <br/>
+            <label for="exclude-vo">Exclude VO: </label>
+            <input type="text" name="exclude-vo" value="$filter_dict['exclude-vo']"/> <br/>
+        </p>
+        <input type="submit" value="Refine"> <input type="reset">
+    </form>
+
+<!-- Note for unauthenticated users -->
+#if not $is_authenticated
+  <p> If you were authenticated, you would have additional options, including:
+  </p>
+  <ul>
+    <li>Individual transfer results</li>
+    <li>Activity from users in your VO (for VO owners)</li>
+    <li>Activity from users at your site (for site admins)</li>
+  </ul>
+#end if
+
+<!-- Authenticated user actions -->
+#if $is_authenticated
+    <h1>Further Information</h1>
+    <p>Welcome, $name, to the OSG storage accounting and monitoring page</p>
+    <p>If you would like a yearly overview, <a href="$base_url/">click here</a></p>
+#end if
+#if $auth_count > 1
+    <p>From here, you may take the following actions:
+    <ul>
+        #if $is_vo_owner
+            #for $vo in $vo_ownership
+                <li><a href="$base_url/vo_owner?vo=$vo">View VO <b>$vo</b></a></li>
+            #end for
+        #end if
+        #if $is_site_owner
+            #for $site in $site_ownership
+                <li><a href="$base_url/site_owner?facility=$site">View Site <b>$site</b></a></li>
+            #end for
+        #end if
+        #if $is_view_other_users
+            #for $user in $user_ownership
+                <li><a href="$base_url/user?dn=$urlquote(user, safe='')">View User <b>$displayName(user)</b></a></li>
+            #end for
+        #end if
+        #if $is_super_user
+            <li></li>
+        #end if
+    </ul>
+#end if
+</body>
+</html>
