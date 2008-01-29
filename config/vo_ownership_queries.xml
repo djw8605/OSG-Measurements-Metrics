@@ -1,0 +1,32 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/>
+
+  <import file="$CONFIG_ROOT/vo_ownership.xml" />
+
+  <class type="SqlQueries" name="RegistrationQueries">
+
+    <attribute name="connection_manager"> RegistrationDB </attribute>
+
+    <aggregate>
+      <connection> regdb </connection>
+    </aggregate>
+
+    <query name="ownership_query">
+      <sql>
+        SELECT * from vo_to_rs
+      </sql>
+      <results module="gratia.database.query_handler" function="fake_parser">
+        <inputs>
+          <input name="columns">VO Name, Site Name</input>
+        </inputs>
+      </results>
+    </query>
+
+  </class>
+
+</graphtool-config>

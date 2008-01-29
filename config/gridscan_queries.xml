@@ -1,0 +1,103 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/>
+
+  <import file="$CONFIG_ROOT/DBSecurity.xml" />
+
+  <class type="SqlQueries" name="GridScanQueries">
+
+    <attribute name="connection_manager"> GridScanDB </attribute>
+
+    <aggregate>
+      <connection> gridscandb </connection>
+    </aggregate>
+
+    <query name="gridscan_smry">
+      <inputs>
+        <input name="span" type="eval" kind="sql">86400*7</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-365*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
+        <input name="level" type="float" kind="sql"> .75 </input>
+      </inputs>
+      <sql>
+select
+  time,
+  count(distinct sitename)
+from
+(select 
+  sitename,
+  round(strftime('%s', time)/:span)*:span as time,
+  sum(case pass=1 when 1 then 1 else 0 end) as passing,
+  sum(case pass=1 when 0 then 1 else 0 end) as failing
+from GridScan
+group by
+  sitename,
+  round(strftime('%s', time)/:span)*:span,
+) as foo
+where
+  passing + failing > 0 AND
+  passing >= (passing + failing) * :level AND
+  time &gt;= :starttime AND
+  time &lt; :endtime
+group by
+  time
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivot_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaBar</attribute>
+      <attribute name="pivot_name">Time</attribute>
+      <attribute name="title">Count of Sites Passing GridScan</attribute>
+      <attribute name="column_names">Count</attribute>
+      <attribute name="column_units">Sites</attribute>
+    </query>
+
+    <query name="gridscan_quality">
+      <inputs>
+        <input name="span" type="eval" kind="sql">86400*7</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-365*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> % </input>
+      </inputs>
+        <sql>
+select
+  sitename,
+  round(strftime('%s', time)/:span)*:span as time,
+  sum(case pass=1 when 1 then 1 else 0 end) as passing,
+  sum(case pass=1 when 0 then 1 else 0 end) as failing
+from GridScan
+where
+  sitename like :facility AND
+  time &gt;= :starttime AND
+  time &lt; :endtime
+group by
+  sitename,
+  round(strftime('%s', time)/:span)*:span
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2, 3 </input>
+                <input name="grouping_transform">make_int</input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> GridScan Quality Map </attribute>
+        <attribute name="column_names"> Successful, Failed </attribute>
+        <attribute name="column_units"> Attempts, Attempts </attribute>
+        <attribute name="pivot_name">Facility</attribute>
+        <attribute name="grouping_name">Time</attribute>
+    </query>
+
+
+  </class>
+
+</graphtool-config>
