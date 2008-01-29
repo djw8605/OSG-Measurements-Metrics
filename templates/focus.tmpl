@@ -1,0 +1,10 @@
+
+    <h3>Focus:</h3>
+    #for view in $focus.values
+        #if $focus.value == view
+            $view &nbsp;
+        #else
+            <a href="$change_focus($view, $base_url)">[$view]</a> &nbsp;
+        #end if
+    #end for
+

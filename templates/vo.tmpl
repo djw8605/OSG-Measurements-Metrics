@@ -1,0 +1,75 @@
+#from urllib import quote
+
+<html>
+<head>
+    <title>VO Information for $vo</title>
+</head>
+
+<!-- Image maps -->
+#include $image_maps
+
+#if $vo == None
+    <p>
+        We're sorry, but no vo was specified to this page.  This should
+        not have happened - please report this to the webmaster.
+    </p>
+#elif not $is_authenticated
+    <p>We're sorry, but you must be authenticated and authorized to view
+       information about this specific vo.
+    </p>
+#elif not $is_vo_owner or $vo not in $vo_ownership
+    <p>We're sorry $name, but you are not authorized to view information about
+       this site.
+    </p>
+    <p>If you believe you have recieved this message in error, please contact
+       the GOC.  The current certificate in your browser is labelled:    </p>
+    <p><b>$dn</b></p>
+    #if len($vo_ownership) > 0
+        <p> The vo you are authorized to view are: </p>
+        <ul>
+            #for $vo in $vo_ownership
+                <li><a href="$base_url/vo_owner?vo=$quote($vo, safe='')">$vo</a></li>
+            #end for
+        </ul>
+    #else
+        <p>You are not authorized as a VO owner.</p>
+    #end if
+#else
+    <h3>Focus:</h3>
+    #for view in ('user', 'vo', 'both')
+        #if $focus == view
+            $view &nbsp;
+        #else
+            <a href="$change_focus($view, $base_url + '/site_owner')">[$view]</a> &nbsp;
+        #end if
+    #end for
+
+    #if $focus=='user' or $focus == 'both'
+        <h1>VO Information for $vo by User</h1>
+        <h2>Job Activity</h2>
+        <p><img src="$base_url/bar_graphs/vo_user_job_quality$filter_url"/></p>
+        <p><img src="$base_url/bar_graphs/vo_user_hours$filter_url"/></p>
+        <h2>Storage Activity</h2>
+        <p><img usemap="#vo_user_transfer_quality" src="$base_url/vo_graphs/vo_user_transfer_quality$filter_url"/></p>
+        <p><img usemap="#vo_user_transfer_rate" src="$base_url/vo_graphs/vo_user_transfer_rate$filter_url"/></p>
+    #end if
+    #if $focus=='facility' or $focus=='both'
+        <h1>VO Information for $vo by Facility</h1>
+        <h2>Job Activity</h2>
+        <p><img src="$base_url/bar_graphs/site_vo_job_quality$filter_url"/></p>
+        <p><img src="$base_url/bar_graphs/site_vo_hours$filter_url"/></p>
+        <h2>Storage Activity</h2>
+        <p><img usemap="#vo_site_transfer_quality" src="$base_url/vo_graphs/vo_site_transfer_quality$filter_url"/></p>
+        <p><img usemap="#vo_site_transfer_rate" src="$base_url/vo_graphs/vo_site_transfer_rate$filter_url"/></p>
+    #end if
+
+    #include $refine
+
+    <h1>Detailed Job and Transfer Table</h1>
+    <p>Job and Transfer table not yet available</p>
+
+#end if
+
+</body>
+</html>
+

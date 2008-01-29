@@ -1,0 +1,37 @@
+
+<html>
+
+<head>
+    <title>VO Activity over the last year</title>
+</head>
+
+<body>
+<h1>VO Activity over the last year</h1>
+</body>
+
+#if $current_vo != None
+<p><img src="$static_url/today/${current_vo}_walltime_usage.png"/></p
+#end if
+
+<table>
+#for $idx in $range(len($vos))
+#if $idx % 8 == 0
+    #if $idx != 0
+        </tr>
+    #end if
+    #if $idx+1 != len($vos)
+        <tr>
+    #end if
+#end if
+<td> <a href="$base_url/vo_overview?vo=$vos[$idx]"/>
+$vos[$idx] <br/> <img src="$static_url/today/${vos[$idx]}_walltime_usage.png" height="60" width="80"/>
+</a></td>
+#end for
+#if len($vos) % 8 != 0
+</tr>
+#end if
+</table>
+
+
+</html>
+

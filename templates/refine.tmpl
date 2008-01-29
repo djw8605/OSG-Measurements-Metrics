@@ -1,0 +1,66 @@
+
+<!-- Controls for filtering sites / VOs / dates / etc -->
+    <h2> Refine view </h2>
+    #if $refine_error != None
+        <p>$refine_error</p>
+    #end if
+    <form>
+        <h3> Time span </h3>
+        <p> Please specify either an absolute date or time interval </p>
+        <p> Absolute time interval (format: "YYYY-MM-DD HH:MM:SS")<br/>
+            <label for="starttime">Start time:</label>
+            <input type="text" name="starttime"/> <br/>
+            <label for="endtime">End time:</label>
+            <input type="text" name="endtime"/> <br/>
+            <label for="span"> Bar width </label>
+            <select name="span">
+                <option value="3600">Hour</option>
+                <option value="86400">Day</option>
+                <option value="604800">Week</option>
+            </select>
+        </p>
+        <p> Relative to the present <br/>
+            <label for="relativetime">Select time interval</label> 
+            <select name="relativetime">
+                #for $val in (('absolute', "Use absolute date range"), ('86400', "24 Hours"), ('172800', "48 Hours"), ("259200", "72 Hours"), ("604800", "7 Days"))
+                    #if $relTime == $val[0]
+                        <option value="$val[0]" selected="true">$val[1]</option>
+                    #else
+                        <option value="$val[0]">$val[1]</option>
+                    #end if
+                #end for
+            </select>
+        </p>
+        <h3> Data filter </h3>
+        <p>
+            #if $refine_facility
+                <label for="facility">Facility: </label>
+                <input type="text" name="facility" value="$filter_dict.facility"/> <br/>
+                <label for="exclude-facility">Exclude facility: </label>
+                <input type="text" name="exclude-facility" value="$filter_dict['exclude-facility']"/> <br/>
+            #else
+                <input type="hidden" name="facility" value="$filter_dict.facility"/>
+                <input type="hidden" name="exclude-facility" value="$filter_dict['exclude-facility']"/> <br/>
+            #end if
+            #if $refine_vo
+                <label for="vo">VO: </label>
+                <input type="text" name="vo" value="$filter_dict.vo"/> <br/>
+                <label for="exclude-vo">Exclude VO: </label>
+                <input type="text" name="exclude-vo" value="$filter_dict['exclude-vo']"/> <br/>
+            #else
+                <input type="hidden" name="vo" value="$filter_dict.vo"/> <br/>
+                <input type="hidden" name="exclude-vo" value="$filter_dict['exclude-vo']"/> <br/>
+            #end if
+            #if $refine_dn
+                <label for="user">User: </label>
+                <input type="text" name="user" value="$filter_dict.user"/> <br/>
+                <label for="exclude-dn">Exclude User: </label>
+                <input type="text" name="exclude-dn" value="$filter_dict['exclude-dn']"/> <br/>
+            #else
+                <input type="hidden" name="user" value="$filter_dict.user"/> <br/>
+                <input type="hidden" name="exclude-dn" value="$filter_dict['exclude-dn']"/> <br/>
+            #end if
+        </p>
+        <input type="submit" value="Refine"> <input type="reset">
+    </form>
+
