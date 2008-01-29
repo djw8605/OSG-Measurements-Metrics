@@ -1,4 +1,6 @@
 
+from graphtool.database.query_handler import results_parser
+
 def displayName(*args, **kw):
     dn = args[0]
     parts = dn.split('/')
@@ -22,4 +24,35 @@ def displayName(*args, **kw):
     for parts in display.split():
         proper += parts[0].upper() + parts[1:].lower() + ' '
     return proper[:-1]
- 
+
+def fake_parser(results, **kw):
+    return results, kw
+
+def table_parser(results, columns="column1, column2", **kw):
+    columns = [i.strip() for i in columns.split(',')]
+    column_len = len(columns)
+    retval = []
+    for row in results:
+        entry = {}
+        for i in range(column_len):
+            entry[columns[i]] = row[i]
+    return retval, kw
+
+def opportunistic_usage_parser(sql_results, vo="Unknown", globals=globals(), **kw):
+    vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    ownership = []
+    for v, site in vo_listing:
+        if vo.lower() == v.lower():
+            ownership.append(site)
+    #print ownership
+    def pivot_transform(arg, **kw):
+        if arg in ownership:
+            return None
+        return arg
+    try:
+        kw.pop('pivot_transform')
+    except:
+        pass
+    return results_parser(sql_results, pivot_transform=pivot_transform,\
+        globals=globals, vo=vo, **kw)
+    

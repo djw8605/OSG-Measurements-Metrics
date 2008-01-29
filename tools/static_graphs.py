@@ -2,16 +2,38 @@
 
 import sys, os, datetime, time, urllib2, ConfigParser
 from graphtool.tools.common import parseOpts
+from gratia.graphs.animated_thumbnail import animated_gif
+from xml.dom.minidom import parse
 
-def generateImages(cp, timestamp, src, dest, replace=False):
+def skip_section(section):
+    if section == 'General' or section == 'variables':
+        return True
+    if section.startswith('animated_thumbnail'):
+        return True
+    return False
+
+def generateImages(cp, timestamp, src, dest, replace=False, variables={}):
 
     for section in cp.sections():
-        if section == 'General':
+        if skip_section(section):
             continue
-        filename = dest % section
-        if not replace and os.path.exists(filename):
-            continue
+        has_generated=False
         image_path = cp.get(section, 'image')
+        for varname, vals in variables.items():
+            rep = ':' + varname
+            if rep in section:
+                has_generated=True
+                for val in vals:
+                    my_section = section.replace(rep, val)
+                    my_image_path = image_path.replace(rep, val)
+                    filename = dest % my_section
+                    generateImage(filename, my_image_path, timestamp, src, dest, replace)
+        if not has_generated:            
+            filename = dest % section
+            generateImage(filename, image_path, timestamp, src, dest, replace)
+       
+
+def generateImage(filename, image_path, timestamp, src, dest, replace):
         source = src + image_path
         source = source.replace(':today', str(timestamp))
         try:
@@ -34,6 +56,8 @@ def generate(cp):
     utcOffset = cp.getint("General", "UTCOffset")
     suffix = cp.get("General", "Suffix")
     replace = cp.getboolean("General", "Replace")
+
+    variables = parse_variables(cp)
     
     today_date = datetime.date.today()
     today = datetime.datetime(today_date.year, today_date.month, today_date.day)
@@ -49,7 +73,9 @@ def generate(cp):
             if e.errno != 17:
                 raise
         dest = os.path.join(dest, '%s' + suffix)
-        generateImages(cp, timestamp, src, dest, replace=(replace or curDate==today))
+        #generateImages(cp, timestamp, src, dest, replace=(replace or \
+        #    curDate==today), variables=variables)
+        #generateImages(cp, timestamp, src, dest, replace=replace, variables=variables)
         if curDate == today:
             dest = os.path.join(orig_dest, 'today')
             try:
@@ -58,8 +84,54 @@ def generate(cp):
                 if e.errno != 17:
                     raise
             dest = os.path.join(dest, '%s' + suffix)
-            generateImages(cp, timestamp, src, dest, replace=True)
+            generateImages(cp, timestamp, src, dest, replace=True, variables=variables)
         curDate = curDate + one_day
+
+def parse_variables(cp):
+    if not cp.has_section('variables'):
+        return {}
+    retval = {}
+    for option in cp.options('variables'):
+        url = cp.get('variables', option)
+        retval[option] = get_variable_values(url)
+    return retval
+
+def get_variable_values(url):
+    retval = []
+    try:
+        xmldoc = urllib2.urlopen(url)
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception, e:
+        print >> sys.stderr, "Exception occurred while getting variable values: %s" % str(e)
+        return retval
+    dom = parse(xmldoc)
+    for pivot in dom.getElementsByTagName('pivot'):
+        pivot_str = pivot.getAttribute('name')
+        if len(pivot_str) > 0:
+            retval.append(pivot_str)
+    return retval
+
+def generate_thumbnails(cp):
+    dest = cp.get('General', 'Dest') + '/today'
+    for section in cp.sections():
+        if not section.startswith('animated_thumbnail'):
+            continue
+        try:
+            height = cp.getint(section, 'height')
+        except:
+            height = 10000
+        try:
+            width = cp.getint(section, 'width')
+        except:
+            width = 1000
+        try:
+            grey = cp.getboolean(section, 'grey')
+        except:
+            grey = False
+        source = [os.path.join(dest, i.strip()) for i in cp.get(section, 'source').split(',')]
+        output = os.path.join(dest, cp.get(section, 'output'))
+        animated_gif(output, source, (width, height), greyscale=grey)
 
 if __name__ == '__main__':
 
@@ -74,4 +146,5 @@ if __name__ == '__main__':
     cp.read([config_file])
 
     generate(cp)
+    generate_thumbnails(cp)
 

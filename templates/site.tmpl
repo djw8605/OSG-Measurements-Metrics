@@ -1,66 +1,102 @@
+#from urllib import quote
+
 <html>
 <head>
 <title>Site Information for $facility</title>
 </head>
 <body>
 
-#if not $is_authenticated
-    <p>We're sorry, but you must be authenticated and authorized to view 
-       information about this specific site
+<!-- Image maps -->
+#include $image_maps
+
+#if $facility == None
+    <p>
+        We're sorry, but no facility was specified to this page.  This should 
+        not have happened - please report this to the webmaster. 
     </p>
-#elif not $is_site_owner or $facility not in $user_ownership
+#elif not ($is_authenticated or $facility == "Nebraska")
+    <p>We're sorry, but you must be authenticated and authorized to view 
+       information about site $facility:
+    </p>
+#elif ((not $is_site_owner) or ($facility not in $site_ownership)) and ($facility != "Nebraska")
     <p>We're sorry $name, but you are not authorized to view information about 
-       this site
+       this site.
     </p>
     <p>If you believe you have recieved this message in error, please contact 
        the GOC.  The current certificate in your browser is labelled:
     </p>
     <p><b>$dn</b></p>
+    #if len($site_ownership) > 0
+        <p> The facilities you are authorized to view are: </p>
+        <ul>
+            #for $site in $site_ownership
+                <li><a href="$base_url/site_owner?facility=$quote($site, safe='')">$site</a></li>
+            #end for
+        </ul>
+    #else
+        <p>You are not authorized as a site owner.</p>
+    #end if
 #else
     <!-- We're golden, spill our guts! -->
-    <h3>Focus:</h3>
-    #for view in ('user', 'vo', 'both')
-        #if $focus == view
-            $view
-        #else
-            <a href="$change_focus($view)"> $view </a>
-        #end if
-    #end for
-    #if $focus=='user' or $focus == 'both'
+    #include $focus.tmpl
+
+    #if $focus.value=='user' or $focus.value == 'both'
         <h1>Site Information for $facility by User</h1>
         <h2>Job Activity</h2>
-        <p><img src="$base_url/bar_graphs/site_user_job_quality"/></p>
-        <p><img src="$base_url/bar_graphs/site_user_hours"/></p>
+        <!--
+        <p><img usemap="#site_user_job_quality" src="$base_url/site_graphs/site_user_job_quality$filter_url"/></p>
+        <p><img usemap="#site_user_job_hours" src="$base_url/site_graphs/site_user_job_hours$filter_url"/></p>
+        -->
         <h2>Storage Activity</h2>
-        <p><img src="$base_url/bar_graphs/site_user_transfer_quality"/></p>
-        <p><img src="$base_url/bar_graphs/site_user_rate"/></p>
+        <p><img usemap="#site_user_transfer_quality" src="$base_url/site_graphs/site_user_transfer_quality$filter_url"/></p>
+        <p><img usemap="#site_user_transfer_rate" src="$base_url/site_graphs/site_user_transfer_rate$filter_url"/></p>
     #end if
-    #if $focus=='vo' or $focus=='both'
+    #if $focus.value == 'vo' or $focus.value == 'both'
         <h1>Site Information for $facility by VO</h1>
         <h2>Job Activity</h2>
-        <p><img src="$base_url/bar_graphs/site_vo_job_quality"/></p>
-        <p><img src="$base_url/bar_graphs/site_vo_hours"/></p>
+        <p><img usemap="#site_vo_job_quality" src="$base_url/site_graphs/site_vo_job_quality$filter_url"/></p>
+        <p><img usemap="#site_vo_job_hours" src="$base_url/site_graphs/site_vo_hours$filter_url"/></p>
         <h2>Storage Activity</h2>
-        <p><img src="$base_url/bar_graphs/site_vo_transfer_quality"/></p>
-        <p><img src="$base_url/bar_graphs/site_vo_rate"/></p>
+        <p><img usemap="#site_vo_transfer_quality" src="$base_url/site_graphs/site_vo_transfer_quality$filter_url"/></p>
+        <p><img usemap="#site_vo_transfer_rate" src="$base_url/site_graphs/site_vo_transfer_rate$filter_url"/></p>
     #end if
-    <h1>Refine View</h1>
-    #if $refine_error != None
-        <p>$refine_error</p>
-    #end if
+    <!-- Refine our view, if desired. -->
+    #include $refine
+
+
     <h1>Detailed Job and Transfer Table</h1>
     <p>Job tables are not yet available.</p>
     <table>
+    <tr>
+        <th>Start Time</th>
+        <th>User</th>
+        <th>Bytes Transferred</th>
+        <th>Transfer Rate</th>
+        <th>Source</th>
+        <th>Destination</th>
+    </tr>
     #for $transfer in $transfers
         <tr>
-            <td>$transfer.$name</td>
-            <td>$transfer.$bytes_transferred</td>
-            <td>$transfer.$transfer_rate</td>
-            <td>$transfer.$src</td>
-            <td>$transfer.$dest</td>
+            <td>$transfer.start</td>
+            <td>$transfer.name</td>
+            <td>$transfer.bytes_transferred</td>
+            <td>$transfer.transfer_rate</td>
+            <td>$transfer.src</td>
+            <td>$transfer.dest</td>
         </tr>
     #end for
     </table>
+
+    #if len($external) > 0
+        <h1> External Monitoring </h1>
+        <ul>
+            #for name, status in $external.items()
+                <li>$name: <a href="$status[1]">$status[0]</a></li>
+            #end for
+        </ul>
+    #end if
+
 #end if
+
 </body>
 </html>

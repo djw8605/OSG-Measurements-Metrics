@@ -1,12 +1,39 @@
 <graphtool-config>
 
   <import file="$CONFIG_ROOT/generic_queries.xml" />
+  <import file="$CONFIG_ROOT/vo_ownership_queries.xml"/>
 
   <class type="SqlQueries" name="GratiaBarQueries">
 
     <attribute name="display_name"> Bar Graphs </attribute>
-     
     <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <!--<aggregate>
+      <connection> gratia </connection>
+    </aggregate>-->
+
+    <query name="vo_table">
+        <sql>
+            SELECT distinct VOName, 1 from VO
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+            </inputs>
+        </results>
+    </query>
+
+    <query name="vo_corrected_table">
+        <sql>
+            select distinct VO.VOName, 1 from VO join VONameCorrection on (VO.void = VONameCorrection.void);
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+            </inputs>
+        </results>
+        <filler name="graph_type"/>
+    </query>
 
     <query name="vo_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
@@ -60,6 +87,91 @@
       </results>
     </query>
 
+    <query name="vo_facility_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">$vo CPU Hours By Facility</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="vo_opp_hours_bar" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">$vo CPU Hours By Facility</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results module="gratia.database.query_handler" function="opportunistic_usage_parser">
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="vo_opp_hours_bar2" base="GratiaGenericQuery.jobs_summary_query">
+      <sql> 
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">$vo CPU Hours</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results module="gratia.database.query_handler" function="opportunistic_usage_parser2">
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+        
+    <query name="exitcode_bar">
+        <inputs>
+            <input name="span" kind="sql" type="int">604800</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-365*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="vo" kind="sql"> .* </input>
+        </inputs>
+        <sql>
+            select 
+             unix_timestamp(STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W')),
+             ExitCode,
+             sum(Njobs)
+            from VOJobStatusSummary VS
+            join VONameCorrection VC on (VS.VOcorrid = VC.corrid)
+            join VO on (VC.void = VO.void)
+            where
+             STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W') &gt; :starttime AND
+             STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W') &lt;= :endtime AND
+             VO.VOName regexp :vo
+            group by
+             STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W'),
+             ExitCode
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 1 </input>
+                <input name="grouping"> 0 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">Exit Code</attribute>
+        <attribute name="grouping_name">Time</attribute>
+        <attribute name="title">Exit Code Count for $vo</attribute>
+        <attribute name="column_names">Exit Code Count</attribute>
+        <attribute name="column_units">Jobs</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
 
     <!-- Grid-wide queries -->
     <query name="user_transfer_volume" base="GratiaStorageQuery.summary">
@@ -113,7 +225,7 @@
 
     <query name="vo_transfer_rate" base="GratiaStorageQuery.summary">
         <sql>
-            <filler name="group"> SiteName </filler>
+            <filler name="group"> VO </filler>
             <filler name="column"> sum(BytesTransferred)/pow(1024, 2)/:span</filler>
         </sql>
         <attribute name="pivot_name">VO</attribute>
@@ -140,6 +252,7 @@
         <attribute name="title"> Transfer Quality by Facility </attribute>
         <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
         <attribute name="column_units"> Files, Files </attribute>
+        <attribute name="pivot_name">Facility</attribute>
     </query>
 
     <query name="vo_quality" base="GratiaStorageQuery.summary">

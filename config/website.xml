@@ -13,6 +13,7 @@
     <mount location="/gratia/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
     <mount location="/gratia/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
     <mount location="/gratia/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
+    <mount location="/gratia/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>
     <mount location="/gratia/xml" content="text/xml"> <instance name="query_xml" /> </mount>
     <mount location="/gratia/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
     <mount location="/gratia/site_graphs" content="image/png"> <instance name="gratia_site_grapher"/> </mount>

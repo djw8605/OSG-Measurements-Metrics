@@ -8,7 +8,7 @@
       
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
-    <query name="site_user_quality" base="GratiaStorageQuery.site_summary">
+    <query name="site_user_transfer_quality" base="GratiaStorageQuery.site_summary">
         <sql>
             <filler name="group"> DN </filler>
             <filler name="column">
@@ -27,8 +27,165 @@
         <attribute name="title"> $facility Quality by User </attribute>
         <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
         <attribute name="column_units"> Files, Files </attribute>
+        <attribute name="pivot_name"> User </attribute>
     </query>
           
+    <query name="site_user_transfer_rate" base="GratiaStorageQuery.site_summary">
+        <sql>
+            <filler name="group"> DN </filler>
+            <filler name="column">
+                sum(BytesTransferred) / pow(1024, 2) / :span
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> GratiaStackedBar </attribute>
+        <attribute name="title"> $facility Transfer Rate by User </attribute>
+        <attribute name="column_names"> Transfer Rate </attribute>
+        <attribute name="column_units"> MB/s </attribute>
+        <attribute name="pivot_name"> User </attribute>
+    </query>
+
+    <query name="site_vo_transfer_rate" base="GratiaStorageQuery.site_summary">
+        <sql>
+            <filler name="group"> VO </filler>
+            <filler name="column">
+                sum(BytesTransferred) / pow(1024, 2) / :span
+            </filler>
+        </sql>
+        <attribute name="graph_type"> GratiaStackedBar </attribute>
+        <attribute name="title"> $facility Transfer Rate by VO </attribute>
+        <attribute name="column_names"> Transfer Rate </attribute>
+        <attribute name="column_units"> MB/s </attribute>
+        <attribute name="pivot_name"> VO </attribute>
+    </query>
+
+    <query name="site_vo_transfer_quality" base="GratiaStorageQuery.site_summary">
+        <sql>
+            <filler name="group"> VO </filler>
+            <filler name="column">
+                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+                <input name="results"> 2, 3 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> $facility Quality by VO </attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+        <attribute name="pivot_name"> VO </attribute>
+    </query>
+
+    <query name="site_table" base="GratiaStorageQuery.site_simple">
+        <sql>
+            <filler name="column">
+                StartTime, DN, BytesTransferred, BytesTransferred/ConnectionTime, Source, Destination
+            </filler>
+        </sql>
+        <results module="gratia.database.query_handler" function="table_parser">
+            <inputs>
+                <input name="columns">start, name, bytes_transferred, transfer_rate, src, dest</input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"/>
+        <attribute name="title"> $facility Transfer Table </attribute>
+    </query>
+
+    <query name="site_user_job_quality" base="GratiaGenericQuery.jobs_query">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-6*3600</input>
+        </inputs>
+        <sql>
+            <filler name="group">CommonName</filler>
+            <filler name="column">
+                sum(CASE J.Status WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE J.Status WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="grouping_transform">make_int</input>
+            </inputs>
+        </results>
+        <attribute name="graph_type">QualityMap</attribute>
+        <attribute name="title">$facility Quality by User</attribute>
+        <attribute name="fixed-height">False</attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+        <attribute name="pivot_name">User</attribute>
+    </query>
+
+    <query name="site_user_job_hours" base="GratiaGenericQuery.jobs_query">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-6*3600</input>
+        </inputs>
+        <sql>
+            <filler name="group">CommonName</filler>
+            <filler name="column"> WallDuration/3600 </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="grouping_transform">make_int</input>
+            </inputs>
+        </results>
+        <attribute name="title">$facility Job Hours by User</attribute>
+        <attribute name="column_names"> Wall Duration </attribute>
+        <attribute name="column_units"> Hours </attribute>
+        <attribute name="pivot_name">User</attribute>
+    </query>
+
+    <query name="site_vo_job_quality" base="GratiaGenericQuery.jobs_query">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-6*3600</input>
+        </inputs>
+        <sql>
+            <filler name="group">VO.VOName</filler>
+            <filler name="column">
+                sum(CASE J.Status WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE J.Status WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="grouping_transform">make_int</input>
+            </inputs>
+        </results>
+        <attribute name="graph_type">QualityMap</attribute>
+        <attribute name="title">$facility Quality by VO</attribute>
+        <attribute name="fixed-height">False</attribute>
+        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
+        <attribute name="column_units"> Files, Files </attribute>
+        <attribute name="pivot_name">User</attribute>
+    </query>
+
+    <query name="site_vo_job_hours" base="GratiaGenericQuery.jobs_query">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-6*3600</input>
+        </inputs>
+        <sql>
+            <filler name="group">VO.VOName</filler>
+            <filler name="column"> WallDuration/3600 </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="grouping_transform">make_int</input>
+            </inputs>
+        </results>
+        <attribute name="title">$facility Job Hours by VO</attribute>
+        <attribute name="column_names"> Wall Duration </attribute>
+        <attribute name="column_units"> Hours </attribute>
+        <attribute name="pivot_name">User</attribute>
+    </query>
+
   </class>
 
 </graphtool-config>

@@ -7,17 +7,27 @@ import types
 
 from graphtool.graphs.graph import prefs
 
-prefs['watermark'] = '$CONFIG_ROOT/osg_logo_4c_white.png'
+#prefs['watermark'] = '$CONFIG_ROOT/osg_logo_4c_white.png'
+prefs['watermark'] = 'False'
 
-class GratiaStackedBar(SummarizePivotGroupGraph, TimeGraph, StackedBarGraph):
+class GratiaColors:
+
+    pass
+    #hex_colors = [ "#ff3333", "#ffff99", "#66ff00", "#9966ff", "#ff9900", "#996633",
+    #               "#666699", "#33ccff", "#99cccc", "#ff33ff", "#990099", "#ffcc99",
+    #               "#3366ff", "#33cccc" ]
+
+
+
+class GratiaStackedBar(GratiaColors, SummarizePivotGroupGraph, TimeGraph, StackedBarGraph):
   pass
 
-class GratiaBar( TimeGraph, StackedBarGraph ):
+class GratiaBar(GratiaColors, TimeGraph, BarGraph):
   pass
 
-class GratiaCumulative(SummarizePivotGroupGraph, CumulativeGraph):
+class GratiaCumulative(GratiaColors, SummarizePivotGroupGraph, CumulativeGraph):
   pass
 
-class GratiaPie( SummarizePivotGraph, TimeGraph, PieGraph ):
+class GratiaPie(GratiaColors, SummarizePivotGraph, TimeGraph, PieGraph ):
   pass
 

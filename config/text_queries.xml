@@ -6,6 +6,7 @@
   <import file="$CONFIG_ROOT/gratia_site_queries.xml" />
   <import file="$CONFIG_ROOT/gratia_user_queries.xml" />
   <import file="$CONFIG_ROOT/gratia_vo_queries.xml" />
+  <import file="$CONFIG_ROOT/gridscan_queries.xml" />
 
   <import module="graphtool.tools.query_output">XmlGenerator</import>
 
@@ -14,6 +15,7 @@
     <queryobj> GratiaPieQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>
     <queryobj> GratiaCumulativeQueries </queryobj>
+    <queryobj> GridScanQueries </queryobj>
   </class>
 
   <class type="XmlGenerator" name="site_xml">

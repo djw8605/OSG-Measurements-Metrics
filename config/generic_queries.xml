@@ -355,6 +355,42 @@
       <attribute name="column_units" />
     </query>
 
+    <query name="site_simple">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> Unknown </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="user" kind="sql"> .* </input>
+        <input name="exclude-dn" kind="sql"> NONE </input>
+        <input name="limit" type="int" kind="sql"> 20 </input>
+        <input name="offset" type="int" kind="sql"> 0 </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
+          SiteName=:facility AND
+          VO regexp :vo AND
+          (NOT (VO regexp :exclude-vo)) AND
+          DN regexp :user AND
+          (NOT (DN regexp :exclude-dn))
+          <slot name="where"/>
+        LIMIT :limit OFFSET :offset
+      </sql>
+      <results module="gratia.database.query_handler" function="table_parser" />
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+    </query>
+
     <query name="site_summary">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
@@ -363,6 +399,7 @@
         <input name="facility" kind="sql"> Unknown </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="user" kind="sql"> .* </input>
       </inputs>
       <sql>
        SELECT
@@ -378,7 +415,8 @@
           EndTime &gt;= curdate() - INTERVAL 5 DAY AND
           SiteName=:facility AND
           VO regexp :vo AND
-          (NOT (VO regexp :exclude-vo))
+          (NOT (VO regexp :exclude-vo)) AND
+          DN regexp :user
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
@@ -398,9 +436,6 @@
       <attribute name="title" />
       <attribute name="column_names" />
       <attribute name="column_units" />
-      <attribute name="security">GratiaSecurity</attribute>
-      <attribute name="authtype">site_ownership</attribute>
-      <attribute name="access">facility</attribute>
     </query>
 
     <query name="user_summary">
