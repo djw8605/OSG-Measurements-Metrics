@@ -25,6 +25,7 @@ class Gratia(XmlConfig):
         self.overview = self.template('overview.tmpl')(self.overview)
         self.vo_overview = self.template('vo_overview.tmpl')(self.vo_overview)
         self.vo_opp = self.template('vo_opp.tmpl')(self.vo_opp)
+        self.vo_opp2 = self.template('vo_opp2.tmpl')(self.vo_opp2)
         self.vo_exitcode = self.template('vo_exitcode.tmpl')(self.vo_exitcode)
         self.site_owner = self.template('site.tmpl')(self.site_owner)
         self._cp_config ={}

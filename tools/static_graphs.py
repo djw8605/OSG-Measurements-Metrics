@@ -12,9 +12,11 @@ def skip_section(section):
         return True
     return False
 
-def generateImages(cp, timestamp, src, dest, replace=False, variables={}):
+def generateImages(cp, timestamp, src, dest, replace=False, variables={}, entry=None):
 
     for section in cp.sections():
+        if entry != None and section != entry:
+            continue
         if skip_section(section):
             continue
         has_generated=False
@@ -48,7 +50,7 @@ def generateImage(filename, image_path, timestamp, src, dest, replace):
         except Exception, e:
             print >> sys.stderr, "Exception occurred while making static copy: %s" % str(e)
 
-def generate(cp):
+def generate(cp, entry=None):
 
     src = cp.get("General", "Source")
     orig_dest = cp.get("General", "Dest")
@@ -84,7 +86,8 @@ def generate(cp):
                 if e.errno != 17:
                     raise
             dest = os.path.join(dest, '%s' + suffix)
-            generateImages(cp, timestamp, src, dest, replace=True, variables=variables)
+            generateImages(cp, timestamp, src, dest, replace=True, \
+                variables=variables, entry=entry)
         curDate = curDate + one_day
 
 def parse_variables(cp):
@@ -144,7 +147,10 @@ if __name__ == '__main__':
 
     cp = ConfigParser.ConfigParser()
     cp.read([config_file])
-
-    generate(cp)
-    generate_thumbnails(cp)
+    
+    if 'entry' in kwArgs:
+        generate(cp, entry=kwArgs['entry'])
+    else:
+        generate(cp)
+        generate_thumbnails(cp)
 

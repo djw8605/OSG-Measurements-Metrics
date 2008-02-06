@@ -56,3 +56,22 @@ def opportunistic_usage_parser(sql_results, vo="Unknown", globals=globals(), **k
     return results_parser(sql_results, pivot_transform=pivot_transform,\
         globals=globals, vo=vo, **kw)
     
+def opportunistic_usage_parser2(sql_results, vo="Unknown", globals=globals(), **kw):
+    vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    ownership = []
+    for v, site in vo_listing:
+        if vo.lower() == v.lower():
+            ownership.append(site)
+    #print ownership
+    def pivot_transform(arg, **kw):
+        if arg in ownership:
+            return "Owned"
+        return "Opportunistic"
+    try:
+        kw.pop('pivot_transform')
+    except:
+        pass
+    return results_parser(sql_results, pivot_transform=pivot_transform,\
+        globals=globals, vo=vo, **kw)
+
+
