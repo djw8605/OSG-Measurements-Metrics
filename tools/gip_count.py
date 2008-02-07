@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from gratia.gip.ldap import query_bdii, read_ldap, config_file
-import os, ConfigParser, optparse, re
 
 def create_count_dict(entries):
     cluster_info = {}
@@ -27,7 +26,8 @@ def main():
     cluster_info = create_count_dict(entries)
     for cluster, cpu in cluster_info.items():
         print cluster, cpu
-    print sum(cluster_info.values())
+    print "----------------------------"
+    print "OSG sum:", sum(cluster_info.values())
 
 if __name__ == '__main__':
     main()
