@@ -3,8 +3,8 @@
 
   <import module="graphtool.web"> WebHost, StaticContent, HelloWorld </import>
   <import module="gratia.web">Gratia</import>
-  <import file="$CONFIG_ROOT/gratia_graphs.xml" />
-  <import file="$CONFIG_ROOT/text_queries.xml" />
+  <import module="gratia.config" data_file="gratia_graphs.xml" />
+  <import module="gratia.config" data_file="text_queries.xml" />
 
   <class name="GratiaWeb" type="Gratia">
       <attribute name="security">GratiaSecurity</attribute>
@@ -32,7 +32,7 @@
     <mount location="/user_graphs" content="image/png"> <instance name="gratia_user_grapher"/> </mount>
     <instance name="static" />
     <instance name="GratiaWeb" location="/"/>
-    <config>$CONFIG_ROOT/development.conf</config>
+    <config module="gratia.config">development.conf</config>
   </class>
 
 </graphtool-config>

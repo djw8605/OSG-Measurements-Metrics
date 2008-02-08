@@ -5,9 +5,9 @@
   <import module="graphtool.database.queries">SqlQueries</import>
   <import module="graphtool.database.query_handler">*</import>
   <import module="time"/> 
-  <import file="$HOME/DBParam.xml" />
+  <import file="$HOME/dbinfo/DBParam.xml" />
  
-  <import file="$CONFIG_ROOT/security.xml" />
+  <import module="gratia.config" data_file="security.xml" />
 
   <class type="SqlQueries" name="GratiaGenericQuery">
 

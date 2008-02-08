@@ -2,11 +2,11 @@
 <graphtool-config>
 
   <import module="graphtool.web"> WebHost, StaticContent, HelloWorld </import>
-  <import file="$CONFIG_ROOT/gratia_graphs.xml" />
-  <import file="$CONFIG_ROOT/text_queries.xml" />
+  <import module="gratia.config" data_file="gratia_graphs.xml" />
+  <import module="gratia.config" data_file="text_queries.xml" />
 
   <class name="static" type="StaticContent">
-    <directory name="content"> $GRAPHTOOL_ROOT/static_content </directory>
+    <module name="content"> </module>
   </class>
 
   <class name="web" type="WebHost">
@@ -18,7 +18,7 @@
     <mount location="/gratia/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
     <mount location="/gratia/site_graphs" content="image/png"> <instance name="gratia_site_grapher"/> </mount>
     <instance name="static" location="/gratia/static" />
-    <config>$CONFIG_ROOT/prod.conf</config>
+    <config module="gratia.config">prod.conf</config>
   </class>
 
 </graphtool-config>

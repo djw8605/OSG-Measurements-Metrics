@@ -1,6 +1,6 @@
 <graphtool-config>
 
-  <import file="$CONFIG_ROOT/generic_queries.xml" />
+  <import module="gratia.config" data_file="generic_queries.xml" />
 
   <class type="SqlQueries" name="GratiaPieQueries">
 

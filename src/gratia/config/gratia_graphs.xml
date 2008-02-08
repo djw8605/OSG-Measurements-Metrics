@@ -1,13 +1,13 @@
 <graphtool-config>
 
   <import module="graphtool.graphs.graph"> Grapher </import>
-  <import file="$CONFIG_ROOT/gratia_pie_queries.xml" />
-  <import file="$CONFIG_ROOT/gratia_bar_queries.xml" />
-  <import file="$CONFIG_ROOT/gratia_site_queries.xml"/>
-  <import file="$CONFIG_ROOT/gratia_cumulative_queries.xml" />
-  <import file="$CONFIG_ROOT/gratia_user_queries.xml"/>
-  <import file="$CONFIG_ROOT/gratia_vo_queries.xml"/>
-  <import file="$CONFIG_ROOT/gridscan_queries.xml"/>
+  <import module="gratia.config" data_file="gratia_pie_queries.xml" />
+  <import module="gratia.config" data_file="gratia_bar_queries.xml" />
+  <import module="gratia.config" data_file="gratia_site_queries.xml"/>
+  <import module="gratia.config" data_file="gratia_cumulative_queries.xml" />
+  <import module="gratia.config" data_file="gratia_user_queries.xml"/>
+  <import module="gratia.config" data_file="gratia_vo_queries.xml"/>
+  <import module="gratia.config" data_file="gridscan_queries.xml"/>
   <import module="gratia.graphs.gratia_graphs">*</import>
 
   <class type="Grapher" name="gratia_pie_grapher">
