@@ -98,6 +98,9 @@ def datetime_from_listing(name):
     return datetime.datetime(*time.strptime(d+t, '%Y%m%d%H%M%S')[0:6])
 
 def main():
+    if not sqlite_present:
+        print >> sys.stderr, "SQLite not present."
+        sys.exit(1)
     sites = site_listing()
     conn = connect_sqlite()
     for site, id in sites.items():
@@ -113,8 +116,5 @@ def main():
             insert_test(conn, site, d, status)
 
 if __name__ == '__main__':
-    if not sqlite_present:
-        print >> sys.stderr, "SQLite not present."
-        sys.exit(1)
-
     main()
+

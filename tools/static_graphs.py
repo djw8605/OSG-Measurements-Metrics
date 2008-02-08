@@ -136,8 +136,7 @@ def generate_thumbnails(cp):
         output = os.path.join(dest, cp.get(section, 'output'))
         animated_gif(output, source, (width, height), greyscale=grey)
 
-if __name__ == '__main__':
-
+def main():
     kwArgs, passed, given = parseOpts(sys.argv[1:])
     
     config_file = kwArgs.get('config', 'static_generator.cfg')
@@ -153,4 +152,7 @@ if __name__ == '__main__':
     else:
         generate(cp)
         generate_thumbnails(cp)
+
+if __name__ == '__main__':
+    main()
 
