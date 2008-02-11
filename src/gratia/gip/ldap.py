@@ -1,17 +1,28 @@
 
-import os, ConfigParser, optparse, re
+import os
+import ConfigParser
+import optparse
+import re
 
-def config_file(additional_files=[]):
+from pkg_resources import resource_stream
+
+def config_file(*additional_files):
     """
     Load up the config file.  It's taken from the command line, option -c
     or --config; default is gip.conf
     """
+    additional_files = list(additional_files)
     p = optparse.OptionParser()
     p.add_option('-c', '--config', dest='config', help='Configuration file.',
-        default='$GRAPHTOOL_USER_ROOT/config/gip.conf')
+        default="")
     (options, args) = p.parse_args()
     cp = ConfigParser.ConfigParser()
     files = additional_files + [i.strip() for i in options.config.split(',')]
+    try:
+        defaults_fp = resource_stream("gratia.config", "gip.conf")
+        cp.readfp(defaults_fp)
+    except:
+        pass
     files = [os.path.expandvars(i) for i in files]
     cp.read(files)
     return cp

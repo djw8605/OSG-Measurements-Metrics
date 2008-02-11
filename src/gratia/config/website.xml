@@ -6,7 +6,7 @@
   <import module="gratia.config" data_file="text_queries.xml" />
 
   <class name="static" type="StaticContent">
-    <module name="content"> </module>
+    <module name="content"> graphtool.static_content </module>
   </class>
 
   <class name="web" type="WebHost">

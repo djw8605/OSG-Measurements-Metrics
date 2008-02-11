@@ -22,7 +22,7 @@ def getGipDBConn(cp):
         info["user"] = user
     port = cp_get(cp, "gip_db", "dbport", None)
     if port != None:
-        info["port"] = port
+        info["port"] = int(port)
     info["db"] = cp_get(cp, "gip_db", "db", "gip")
     passwd = cp_get(cp, "gip_db", "dbpasswd", None)
     if passwd != None:
@@ -57,7 +57,7 @@ insert into vo_info values
 """
 
 def main():
-    cp = config_file(["$GRAPHTOOL_USER_ROOT/config/gip_password.conf"])
+    cp = config_file("$HOME/dbinfo/gip_password.conf")
     fp = query_bdii(cp, "(objectClass=GlueVOView)")
     vo_entries = read_ldap(fp)
     fp = query_bdii(cp, "(objectClass=GlueCE)")
