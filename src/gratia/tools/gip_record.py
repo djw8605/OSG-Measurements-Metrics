@@ -5,35 +5,7 @@ import datetime
 import MySQLdb
 
 from gratia.gip.ldap import query_bdii, read_ldap, config_file
-
-def cp_get(cp, section, option, default):
-    try:
-        return cp.get(section, option)
-    except:
-        return default
-
-def getGipDBConn(cp):
-    info = {}
-    host = cp_get(cp, "gip_db", "dbhost", "localhost")
-    if host != "localhost":
-        info["host"] = host
-    user = cp_get(cp, "gip_db", "dbuser", None)
-    if user != None:
-        info["user"] = user
-    port = cp_get(cp, "gip_db", "dbport", None)
-    if port != None:
-        info["port"] = int(port)
-    info["db"] = cp_get(cp, "gip_db", "db", "gip")
-    passwd = cp_get(cp, "gip_db", "dbpasswd", None)
-    if passwd != None:
-        info["passwd"] = passwd
-    return MySQLdb.connect(**info)
-
-def findCE(vo_entry, ce_entries):
-    for ce_entry in ce_entries:
-        if ce_entry.dn[0] == vo_entry.glue["ChunkKey"]:
-            return ce_entry
-    raise ValueError("Corresponding CE not found for VO entry:\n%s" % vo_entry)
+from gratia.gip.common import cp_get, getGipDBConn, findCE
 
 insert_vo_info = """
 insert into vo_info values

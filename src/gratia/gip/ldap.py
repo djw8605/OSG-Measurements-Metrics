@@ -81,7 +81,7 @@ def read_ldap(fp):
                 buffer += '\n' + line
     return entries
 
-def query_bdii(cp, query="(objectClass=GlueCE)"):
+def query_bdii(cp, query="(objectClass=GlueCE)", binding="o=grid"):
     endpoint = cp.get('bdii', 'endpoint')
     r = re.compile('ldap://(.*):([0-9]*)')
     m = r.match(endpoint)
@@ -90,8 +90,12 @@ def query_bdii(cp, query="(objectClass=GlueCE)"):
     info = {}
     info['hostname'], info['port'] = m.groups()
     info['query'] = query
-    fp = os.popen('ldapsearch -h %(hostname)s -p %(port)s -xLLL -b o=grid' \
-        " '%(query)s'" % info)
+    info["binding"] = binding
+    fp = os.popen('ldapsearch -h %(hostname)s -p %(port)s -xLLL '
+        "-b %(binding)s '%(query)s'" % info)
     return fp
 
+def read_bdii(cp, query="", binding="o=grid"):
+    fp = query_bdii(cp, query=query, binding=binding)
+    return read_ldap(fp)
 
