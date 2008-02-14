@@ -34,6 +34,7 @@ setup(name="OSG Gratia Viewer",
               'gratia_web = gratia.tools.gratia_web:main',
               'gridscan_download = gratia.tools.gridscan_download:main',
               'static_graphs = gratia.tools.static_graphs:main',
+              'site_normalization = gratia.tools.site_normalization:main',
           ],
           'setuptools.installation' : [
               'eggsecutable = gratia.tools.gratia_web:main'
