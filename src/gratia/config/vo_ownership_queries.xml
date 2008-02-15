@@ -6,7 +6,7 @@
   <import module="graphtool.database.query_handler">*</import>
   <import module="time"/>
 
-  <import file="$HOME/dbinfo/vo_ownership.xml" />
+  <import file="$HOME/dbinfo/DBParam.xml" />
 
   <class type="SqlQueries" name="RegistrationQueries">
 

@@ -1,10 +1,18 @@
 
+import os
+import urllib
+import urllib2
+import re
+import sys
+
+import cherrypy
+from Cheetah.Template import Template
+from xml.dom.minidom import parse
+from pkg_resources import resource_stream
+
 from graphtool.base.xml_config import XmlConfig
 from gratia.database.query_handler import displayName
 from graphtool.web.security import DenyAll
-from Cheetah.Template import Template
-from xml.dom.minidom import parse
-import cherrypy, os, urllib, urllib2, re, sys
 
 # Helper functions
 
@@ -32,8 +40,9 @@ class Gratia(XmlConfig):
         self.index = self.overview
 
     def template(self, name=None):
-        template_file = os.path.join(self.template_dir, name)
-        tclass = Template.compile(file=template_file)
+        #template_file = os.path.join(self.template_dir, name)
+        template_fp = resource_stream("gratia.templates", name)
+        tclass = Template.compile(file=template_fp)
         def template_decorator(func):
             def func_wrapper(*args, **kw):
                 data = func(*args, **kw)
