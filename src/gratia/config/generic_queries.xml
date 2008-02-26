@@ -8,6 +8,7 @@
   <import file="$HOME/dbinfo/DBParam.xml" />
  
   <import module="gratia.config" data_file="security.xml" />
+  <import module="gratia.config" data_file="vo_ownership_queries.xml"/>
 
   <class type="SqlQueries" name="GratiaGenericQuery">
 
@@ -115,6 +116,7 @@
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
         <input name="exclude-facility" kind="sql"> NONE </input> 
+        <input name="user" kind="sql"> .* </input> 
       </inputs>
       <sql>
         SELECT
@@ -140,7 +142,8 @@
           S.SiteName regexp :facility AND
           VO.VOName regexp :vo AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
-          (NOT (VO.VOName regexp :exclude-vo))
+          (NOT (VO.VOName regexp :exclude-vo)) AND
+          (:user='.*' OR J.KeyInfoContent regexp :user)
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,

@@ -4,11 +4,13 @@ import urllib
 import urllib2
 import re
 import sys
+import types
+from threading import Condition, Thread, currentThread
 
 import cherrypy
 from Cheetah.Template import Template
 from xml.dom.minidom import parse
-from pkg_resources import resource_stream
+from pkg_resources import resource_stream, resource_filename
 
 from graphtool.base.xml_config import XmlConfig
 from gratia.database.query_handler import displayName
@@ -27,8 +29,8 @@ class Gratia(XmlConfig):
         else:
             self.security_obj = DenyAll()
 
-        self.metadata['template_dir'] = '$GRAPHTOOL_USER_ROOT/templates'
-        self.template_dir = os.path.expandvars(self.metadata.get('template_dir', '.'))
+        #self.metadata['template_dir'] = '$GRAPHTOOL_USER_ROOT/templates'
+        #self.template_dir = os.path.expandvars(self.metadata.get('template_dir', '.'))
         self.main = self.template('main.tmpl')(self.main)
         self.overview = self.template('overview.tmpl')(self.overview)
         self.vo_overview = self.template('vo_overview.tmpl')(self.vo_overview)
@@ -39,10 +41,17 @@ class Gratia(XmlConfig):
         self._cp_config ={}
         self.index = self.overview
 
+    def getTemplateFilename(self, template):
+        template_name = template.replace(".", "_").replace("-", "_") + "_filename"
+        if not hasattr(self, template_name):
+            filename = resource_filename("gratia.templates", template)
+            setattr(self, template_name, filename)
+        return getattr(self, template_name)
+
     def template(self, name=None):
         #template_file = os.path.join(self.template_dir, name)
         template_fp = resource_stream("gratia.templates", name)
-        tclass = Template.compile(file=template_fp)
+        tclass = Template.compile(source=template_fp.read())
         def template_decorator(func):
             def func_wrapper(*args, **kw):
                 data = func(*args, **kw)
@@ -62,10 +71,42 @@ class Gratia(XmlConfig):
         def drilldown(pivot, group, base_url, filter_dict):
             filter_dict[option] = pivot
             filter_url = urllib.urlencode(filter_dict)
-            return base_url + url + '?' + filter_url
+            return os.path.join(base_url, url) + '?' + filter_url
         return drilldown
 
-    def generate_pg_map(self, func, kw, drilldown_url, drilldown_option):
+    def generate_pg_map(self, token, maps, func, kw, drilldown_url, 
+            drilldown_option):
+        def worker(self, token, maps, func, kw, drilldown_url, 
+                drilldown_option):
+            #print "Start worker!", currentThread().getName()
+            try:
+                map = self.__generate_pg_map(func, kw, drilldown_url,
+                    drilldown_option)
+                token['condition'].acquire()
+                maps.append(map)
+                token['condition'].release()
+            finally:
+                token['condition'].acquire()
+                token['counter'] -= 1
+                token['condition'].notify()
+                token['condition'].release()
+                #print "Finish worker!", currentThread().getName()
+        try:
+            token['condition'].acquire()
+            token['counter'] += 1
+            token['condition'].notify()
+            token['condition'].release()
+            args = (self, token, maps, func, kw, drilldown_url, 
+                    drilldown_option)
+            Thread(target=worker, args=args).start()
+        except:
+            token['condition'].acquire()
+            token['counter'] -= 1
+            token['condition'].notify()
+            token['condition'].release()
+
+
+    def __generate_pg_map(self, func, kw, drilldown_url, drilldown_option):
         map = {}
         map['kind'] = 'pivot-group'
         results, metadata = func(**kw)
@@ -80,8 +121,10 @@ class Gratia(XmlConfig):
         map['pivot_name'] = metadata['pivot_name']
         data = {}
         map['data'] = data
-        map['drilldown'] = self.generate_drilldown(drilldown_option, drilldown_url)
-        coords = metadata['grapher'].get_coords(metadata['query'], metadata, **metadata['given_kw'])
+        map['drilldown'] = self.generate_drilldown(drilldown_option, 
+            drilldown_url)
+        coords = metadata['grapher'].get_coords(metadata['query'], metadata, 
+            **metadata['given_kw'])
         for pivot, groups in results.items():
             data_groups = {}
             data[pivot] = data_groups
@@ -89,7 +132,10 @@ class Gratia(XmlConfig):
                 coord_groups = coords[pivot]
                 for group, val in groups.items():
                     if group in coord_groups:
-                        coord = str(coord_groups[group]).replace('(', '').replace(')', '')
+                        coord = str(coord_groups[group]).replace('(', '').\
+                            replace(')', '')
+                        if type(val) == types.FloatType and abs(val) > 1:
+                            val = "%.2f" % val
                         data_groups[group] = (coord, val)
         return map
 
@@ -178,17 +224,36 @@ class Gratia(XmlConfig):
         data['filter_dict'] = filter_dict
         if data['filter_url'] != '': 
             data['filter_url'] = '?' + data['filter_url']
-        data['refine'] = os.path.join(self.template_dir, 'refine.tmpl')
+        data['refine'] = self.getTemplateFilename('refine.tmpl')
         data['refine_error'] = None
 
-    def image_map(self, data, obj_name, func_name, drilldown_url, drilldown_option):
-        maps = data.get('maps', [])
-        data['maps'] = maps
-        map = self.generate_pg_map(getattr(self.globals[obj_name], func_name), data['query_kw'], \
-            drilldown_url, drilldown_option)
-        maps.append(map)
-        #if 'image_maps' not in data:
-        data['image_maps'] = os.path.join(self.template_dir, 'image_map.tmpl')
+    def start_image_maps(self):
+        return {'condition': Condition(), 'counter': 0}
+
+    def finish_image_maps(self, token):
+        c = token['condition']
+        #print "Main thread waiting"
+        c.acquire()
+        while token['counter'] > 0:
+            #print "Live image generator count:", token['counter']
+            c.wait()
+        c.release()
+
+    def image_map(self, token, data, obj_name, func_name, drilldown_url, 
+                  drilldown_option):
+ 
+        token['condition'].acquire()
+        try:
+            maps = data.get('maps', [])
+            data['maps'] = maps
+        finally:
+            token['condition'].release()
+        self.generate_pg_map(token, maps, getattr(self.globals[obj_name], 
+            func_name), data['query_kw'], drilldown_url, drilldown_option)
+        token['condition'].acquire() 
+        if 'image_maps' not in data:
+            data['image_maps'] = self.getTemplateFilename('image_map.tmpl')
+        token['condition'].release()
 
     def main(self, *args, **kw):
         data = dict(kw)
@@ -201,17 +266,27 @@ class Gratia(XmlConfig):
 
         # Handle the refine variables
         self.refine(data, filter_dict, dn=False)
-
+        token = self.start_image_maps()
         # Generate image maps:
-        if data['focus']['value'] == 'facility' or data['focus']['value'] == 'both':
-            self.image_map(data, 'GratiaBarQueries', 'facility_transfer_rate', 'main', 'facility')
-            self.image_map(data, 'GratiaBarQueries', 'facility_quality', 'main', 'facility')
-            self.image_map(data, 'GratiaBarQueries', 'facility_transfer_volume', 'main', 'facility')
+        if data['focus']['value'] == 'facility' or \
+                data['focus']['value'] == 'both':
+            self.image_map(token, data, 'GratiaBarQueries', 
+                           'facility_transfer_rate', 'main', 'facility')
+                           
+            self.image_map(token, data, 'GratiaBarQueries', 
+                           'facility_quality', 'main', 'facility')
+                           
+            self.image_map(token, data, 'GratiaBarQueries',
+                           'facility_transfer_volume', 'main', 'facility')
         else:
-            self.image_map(data, 'GratiaBarQueries', 'vo_transfer_rate', 'main', 'vo')
-            self.image_map(data, 'GratiaBarQueries', 'vo_quality', 'main', 'vo')
-            self.image_map(data, 'GratiaBarQueries', 'vo_transfer_volume', 'main', 'vo')
-
+            self.image_map(token, data, 'GratiaBarQueries', 'vo_transfer_rate',
+                           'main', 'vo')
+            self.image_map(token, data, 'GratiaBarQueries', 'vo_quality',
+                           'main', 'vo')
+            self.image_map(token, data, 'GratiaBarQueries', 
+                           'vo_transfer_volume', 'main', 'vo')
+                           
+        self.finish_image_maps(token)
 
         if data['is_authenticated']:
             data['title'] = "OSG Storage Main for %s" % data['name']
@@ -233,7 +308,7 @@ class Gratia(XmlConfig):
             return base_url + query
         data['change_focus'] = change_focus
         focus = {'value': focus, 'change': change_focus}
-        focus['tmpl'] = os.path.join(self.template_dir, 'focus.tmpl')
+        focus['tmpl'] = self.getTemplateFilename('focus.tmpl')
         focus['values'] = values
         data['focus'] = focus
 
@@ -251,25 +326,38 @@ class Gratia(XmlConfig):
         #Handle refine
         self.refine(data, filter_dict, facility=False)
 
+        token = self.start_image_maps()
         #Generate image maps
         if data['focus']['value'] == 'user' or data['focus']['value'] == 'both':
-            #self.image_map(data, 'GratiaSiteBarQueries', 'site_user_job_quality', 'site_owner', 'user')
-            #self.image_map(data, 'GratiaSiteBarQueries', 'site_user_job_hours', 'site_owner', 'user')
-            self.image_map(data, 'GratiaSiteBarQueries', 'site_user_transfer_quality', 'site_owner', 'user')
-            self.image_map(data, 'GratiaSiteBarQueries', 'site_user_transfer_rate', 'site_owner', 'user')
+            #self.image_map(token, data, 'GratiaSiteBarQueries', \
+            #    'site_user_job_quality', 'site_owner', 'user')
+            self.image_map(token, data, 'GratiaSiteBarQueries', 
+                'site_user_job_hours', 'site_owner', 'user')
+            self.image_map(token, data, 'GratiaSiteBarQueries', 
+                'site_user_transfer_quality', 'site_owner', 'user')
+            self.image_map(token, data, 'GratiaSiteBarQueries', 
+                'site_user_transfer_rate', 'site_owner', 'user')
         if data['focus']['value'] == 'vo' or data['focus']['value'] == 'both':
-            #self.image_map(data, 'GratiaSiteBarQueries', 'site_vo_job_quality', 'site_owner', 'user')
-            #self.image_map(data, 'GratiaSiteBarQueries', 'site_vo_job_hours', 'site_owner', 'user')
-            self.image_map(data, 'GratiaSiteBarQueries', 'site_vo_transfer_quality', 'site_owner', 'user')
-            self.image_map(data, 'GratiaSiteBarQueries', 'site_vo_transfer_rate', 'site_owner', 'user')
+            self.image_map(token, data, 'GratiaSiteBarQueries', 
+                 'site_vo_job_quality', 'site_owner', 'user')
+            self.image_map(token, data, 'GratiaSiteBarQueries', 
+                 'site_vo_job_hours', 'site_owner', 'user')
+            self.image_map(token, data, 'GratiaSiteBarQueries', 
+                'site_vo_transfer_quality', 'site_owner', 'user')
+            self.image_map(token, data, 'GratiaSiteBarQueries', 
+                'site_vo_transfer_rate', 'site_owner', 'user')
+        self.finish_image_maps(token)
 
         #Empty transfer list for now
-        #transfers, metadata = self.globals['GratiaSiteBarQueries'].site_table(data['query_kw'])
+        #transfers, metadata = self.globals['GratiaSiteBarQueries'].\
+        #    site_table(data['query_kw'])
         transfers = []
         for transfer in transfers:
             transfer['name'] = displayName(transfer['name'])
-            transfer['transfer_rate'] = to_mb(transfer['transfer_rate']) + ' MB/s'
-            transfer['bytes_transferred'] = to_mb(transfer['bytes_transferred']) + ' MB'
+            transfer['transfer_rate'] = to_mb(transfer['transfer_rate']) + \
+                ' MB/s'
+            transfer['bytes_transferred'] = to_mb( \
+                transfer['bytes_transferred']) + ' MB'
         data['transfers'] = transfers
 
         # External data

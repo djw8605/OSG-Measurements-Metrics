@@ -1,0 +1,370 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/>
+
+  <import file="$HOME/dbinfo/DBParam.xml" />
+
+  <class type="SqlQueries" name="GIPQueries">
+
+    <attribute name="display_name"> GIP Graphs </attribute>
+    <attribute name="connection_manager"> GIPConnMan </attribute>
+
+    <aggregate>
+      <connection> gip </connection>
+    </aggregate>
+
+    <query name="gip_vo_pie">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  vo,
+  avg(runningJobs)
+from
+  (select
+     time,
+     vo,
+     sum(runningJobs) as runningJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, vo
+  ) as foo
+group by
+  vo
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">Count of Running Jobs by VO</attribute>
+      <attribute name="column_names">Running Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_facility_pie">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  hostName,
+  avg(runningJobs)
+from
+  (select
+     time,
+     hostName,
+     sum(runningJobs) as runningJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, hostName
+  ) as foo
+group by
+  hostName
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">Count of Running Jobs by Facility</attribute>
+      <attribute name="column_names">Running Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_vo_waiting_pie">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  vo,
+  avg(waitingJobs)
+from
+  (select
+     time,
+     vo,
+     sum(waitingJobs) as waitingJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, vo
+  ) as foo
+group by
+  vo
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title"> Count of Waiting Jobs by VO</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_facility_waiting_pie">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  hostName,
+  avg(waitingJobs)
+from
+  (select
+     time,
+     hostName,
+     sum(waitingJobs) as waitingJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, hostName
+  ) as foo
+group by
+  hostName
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title"> Count of Waiting Jobs by Facility</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_vo">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  vo,
+  avg(runningJobs)
+from
+  (select
+     time,
+     vo,
+     sum(runningJobs) as runningJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND  time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, vo
+  ) as foo
+group by
+  time,
+  vo
+      </sql>
+      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Running Jobs by VO</attribute>
+      <attribute name="column_names">Running Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_vo_waiting">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  vo,
+  avg(waitingJobs)
+from
+  (select
+     time,
+     vo,
+     sum(waitingJobs) as waitingJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND  time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, vo
+  ) as foo
+group by
+  time,
+  vo
+      </sql>
+      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Waiting Jobs by VO</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_facility_waiting">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  hostName,
+  avg(waitingJobs)
+from
+  (select
+     time,
+     hostName,
+     sum(waitingJobs) as waitingJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND  time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, hostName
+  ) as foo
+group by
+  time,
+  hostName
+      </sql>
+      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Waiting Jobs by Facility</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_facility">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  hostName,
+  avg(runningJobs)
+from
+  (select
+     time,
+     hostName,
+     sum(runningJobs) as runningJobs
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND  time &lt; :endtime AND
+     vo regexp :vo AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, hostName
+  ) as foo
+group by
+  time,
+  hostName
+      </sql>
+      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Running Jobs by Facility</attribute>
+      <attribute name="column_names">Running Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>

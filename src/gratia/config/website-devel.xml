@@ -1,7 +1,7 @@
 
 <graphtool-config>
 
-  <import module="graphtool.web"> WebHost, StaticContent, HelloWorld </import>
+  <import module="graphtool.web"> WebHost, StaticContent </import>
   <import module="gratia.web">Gratia</import>
   <import module="gratia.config" data_file="gratia_graphs.xml" />
   <import module="gratia.config" data_file="text_queries.xml" />
@@ -11,11 +11,11 @@
       <attribute name="static_url">http://t2.unl.edu/store/gratia/</attribute>
       <attribute name="vos_url">http://t2.unl.edu/gratia/xml/vo_corrected_table</attribute>
       <attribute name="registered_vos_url">http://www.grid.iu.edu/osg-includes/vo_txt.php</attribute>
-      <attribute name="keep_vos">gpn, mipp, Unknown, ss, mm, hypercp, tigre, dteam</attribute>
+      <attribute name="keep_vos">gpn, mipp, Unknown, mm, hypercp, tigre, dteam</attribute>
   </class>
 
   <class name="static" type="StaticContent">
-    <directory name="content"> $GRAPHTOOL_ROOT/static_content </directory>
+    <module name="content"> graphtool.static_content </module>
   </class>
 
   <class name="web" type="WebHost">
@@ -23,6 +23,7 @@
     <mount location="/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
     <mount location="/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
     <mount location="/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>
+    <mount location="/gip_graphs" content="image/png"> <instance name="gip_grapher" /> </mount>
     <mount location="/xml" content="text/xml"> <instance name="query_xml" /> </mount>
     <mount location="/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
     <mount location="/vo_xml" content="text/xml"> <instance name="vo_xml"/> </mount>

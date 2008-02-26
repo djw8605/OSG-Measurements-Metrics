@@ -35,6 +35,23 @@
         <filler name="graph_type"/>
     </query>
 
+    <query name="si2k_score">
+        <inputs>
+            <input name="model" kind="sql">.*</input>
+        </inputs>
+        <sql>
+            select HostDescription, BenchmarkScore FROM gratia_psacct.CPUInfo
+            where HostDescription regexp :model
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="pivot_transform">model_parser</input>
+            </inputs>
+        </results>
+        <filler name="graph_type"/>
+    </query>
+
     <query name="vo_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> R.VOName </filler>

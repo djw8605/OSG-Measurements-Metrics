@@ -9,7 +9,7 @@
   <import file="$HOME/dbinfo/DBSecurity.xml" />
 
   <class type="SqlQueries" name="GridScanQueries">
-
+    <attribute name="display_name"> GridScan Graphs </attribute>
     <attribute name="connection_manager"> GridScanDB </attribute>
 
     <aggregate>

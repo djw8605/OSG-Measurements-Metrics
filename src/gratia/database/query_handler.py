@@ -1,4 +1,6 @@
 
+import re
+
 from graphtool.database.query_handler import results_parser
 
 def displayName(*args, **kw):
@@ -24,6 +26,13 @@ def displayName(*args, **kw):
     for parts in display.split():
         proper += parts[0].upper() + parts[1:].lower() + ' '
     return proper[:-1]
+
+model_re = re.compile("model='(.*)'")
+def model_parser(pivot, **kw):
+    m = model_re.search(pivot)
+    if m:
+        return m.groups()[0]
+    return None
 
 def fake_parser(results, **kw):
     return results, kw

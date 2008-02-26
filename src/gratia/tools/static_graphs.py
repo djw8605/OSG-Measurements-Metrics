@@ -22,8 +22,16 @@ def skip_section(section):
 
 def generateImages(cp, timestamp, src, dest, replace=False, variables={}, 
         entry=None):
-
-    for section in cp.sections():
+    # Make sure general-purpose graphs get made first
+    sections = cp.sections()
+    filtered_sections = []
+    for s in sections:
+        if s.find(":") < 0:
+            filtered_sections.append(s)
+    for s in sections:
+        if s.find(":") >= 0:
+            filtered_sections.append(s)
+    for section in filtered_sections:
         if entry != None and section != entry:
             continue
         if skip_section(section):
@@ -50,11 +58,13 @@ def generateImage(filename, image_path, timestamp, src, dest, replace):
         source = source.replace(':today', str(timestamp))
         try:
             print "Saving image %s to %s." % (source, filename)
+            stopwatch = -time.time()
             input = urllib2.urlopen(source)
             output = open(filename, 'w')
             output.write(input.read())
             input.close()
             output.close()
+            print " - Took %.2f seconds." % (stopwatch + time.time())
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception, e:
@@ -156,7 +166,7 @@ def main():
     config_files = kwArgs.get('config', '')
     config_files = [os.path.expandvars(i) for i in config_files \
                     if len(i.strip()) > 0]
-    for config_file in config_files.split(','):
+    for config_file in config_files:
         if not os.path.exists(config_file):
             print >> sys.stderr, "Config file %s not found." % config_file
             sys.exit(-1)

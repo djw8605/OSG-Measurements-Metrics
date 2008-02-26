@@ -102,7 +102,7 @@
 
     <query name="site_user_job_quality" base="GratiaGenericQuery.jobs_query">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-6*3600</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-24*3600</input>
         </inputs>
         <sql>
             <filler name="group">CommonName</filler>
@@ -126,7 +126,7 @@
 
     <query name="site_user_job_hours" base="GratiaGenericQuery.jobs_query">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-6*3600</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-24*3600</input>
         </inputs>
         <sql>
             <filler name="group">CommonName</filler>

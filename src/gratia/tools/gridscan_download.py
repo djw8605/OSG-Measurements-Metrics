@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, urllib, urllib2, datetime, time
+import sys, urllib, urllib2, datetime, time, os
 
 try:
     from pysqlite2 import dbapi2 as sqlite
@@ -52,7 +52,7 @@ list_tests_str = """
 """
 
 def connect_sqlite():
-    return sqlite.connect('gridscan.db')
+    return sqlite.connect(os.path.expandvars('$HOME/dbinfo/gridscan.db'))
     
 def insert_test(conn, site, timestamp, status):
     curs = conn.cursor()

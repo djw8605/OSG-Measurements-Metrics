@@ -1,9 +1,20 @@
 
 <graphtool-config>
 
-  <import module="graphtool.web"> WebHost, StaticContent, HelloWorld </import>
+  <import module="graphtool.web"> WebHost, StaticContent </import>
+  <import module="gratia.web">Gratia</import>
   <import module="gratia.config" data_file="gratia_graphs.xml" />
   <import module="gratia.config" data_file="text_queries.xml" />
+
+  <class name="GratiaWeb" type="Gratia">
+      <attribute name="base_url">/gratia</attribute>
+      <attribute name="base_url_noauth">/gratia</attribute>
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="static_url">http://t2.unl.edu/store/gratia/</attribute>
+      <attribute name="vos_url">http://t2.unl.edu/gratia/xml/vo_corrected_table</attribute>
+      <attribute name="registered_vos_url">http://www.grid.iu.edu/osg-includes/vo_txt.php</attribute>
+      <attribute name="keep_vos">gpn, mipp, Unknown, mm, hypercp, tigre, dteam</attribute>
+  </class>
 
   <class name="static" type="StaticContent">
     <module name="content"> graphtool.static_content </module>
@@ -14,11 +25,17 @@
     <mount location="/gratia/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
     <mount location="/gratia/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
     <mount location="/gratia/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>
+    <mount location="/gratia/gip_graphs" content="image/png"> <instance name="gip_grapher" /> </mount>
     <mount location="/gratia/xml" content="text/xml"> <instance name="query_xml" /> </mount>
     <mount location="/gratia/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
     <mount location="/gratia/site_graphs" content="image/png"> <instance name="gratia_site_grapher"/> </mount>
+    <mount location="/gratia/vo_xml" content="text/xml"> <instance name="vo_xml"/> </mount>
+    <mount location="/gratia/user_xml" content="text/xml"> <instance name="user_xml"/> </mount>
+    <mount location="/gratia/vo_graphs" content="image/png"> <instance name="gratia_vo_grapher"/> </mount>
+    <mount location="/gratia/user_graphs" content="image/png"> <instance name="gratia_user_grapher"/> </mount>
     <instance name="static" location="/gratia/static" />
     <config module="gratia.config">prod.conf</config>
+    <instance name="GratiaWeb" location="/gratia"/>
   </class>
 
 </graphtool-config>

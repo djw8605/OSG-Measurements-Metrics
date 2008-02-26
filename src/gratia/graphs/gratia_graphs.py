@@ -2,7 +2,7 @@
 from graphtool.graphs.graph import DBGraph, TimeGraph, \
     SummarizePivotGroupGraph, SummarizePivotGraph
 from graphtool.graphs.common_graphs import StackedBarGraph, BarGraph, \
-    CumulativeGraph, PieGraph, QualityMap
+    CumulativeGraph, PieGraph, QualityMap, StackedLineGraph
 import types
 
 from graphtool.graphs.graph import prefs
@@ -29,5 +29,8 @@ class GratiaCumulative(GratiaColors, SummarizePivotGroupGraph, CumulativeGraph):
   pass
 
 class GratiaPie(GratiaColors, SummarizePivotGraph, TimeGraph, PieGraph ):
+  pass
+
+class GratiaStackedLine(GratiaColors, SummarizePivotGroupGraph, TimeGraph, StackedLineGraph):
   pass
 
