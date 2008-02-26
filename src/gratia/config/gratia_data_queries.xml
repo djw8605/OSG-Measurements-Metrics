@@ -1,0 +1,68 @@
+<graphtool-config>
+
+  <import module="gratia.config" data_file="generic_queries.xml" />
+  <import module="gratia.config" data_file="vo_ownership_queries.xml"/>
+
+  <class type="SqlQueries" name="GratiaDataQueries">
+
+    <attribute name="display_name"> Data Queries </attribute>
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <query name="vo_table">
+        <sql>
+            SELECT distinct VOName, 1 from VO
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+            </inputs>
+        </results>
+    </query>
+
+    <query name="vo_corrected_table">
+        <sql>
+            select distinct VO.VOName, 1 from VO join VONameCorrection on (VO.void = VONameCorrection.void);
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+            </inputs>
+        </results>
+        <filler name="graph_type"/>
+    </query>
+
+    <query name="si2k_score">
+        <inputs>
+            <input name="model" kind="sql">.*</input>
+        </inputs>
+        <sql>
+            select HostDescription, BenchmarkScore FROM gratia_psacct.CPUInfo
+            where HostDescription regexp :model
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="pivot_transform">model_parser</input>
+            </inputs>
+        </results>
+        <filler name="graph_type"/>
+    </query>
+
+    <query name="gratia_data" base="GratiaGenericQueries.simple_summary">
+        <sql>
+            <filler name="group">R.VOName, S.SiteName</filler>
+            <filler name="column">sum(WallDuration)/3600000</filler>
+        </sql>
+        <results>
+            <input name="pivots">0, 1 </input>
+            <input name="results">2</input>
+        </results>
+        <attribute name="graph_type"/>
+        <attribute name="title">VO and Facility Usage Table</attribute>
+        <attribute name="column_names"> CPU Time </attribute>
+        <attribute name="column_units"> k Hours </attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>
