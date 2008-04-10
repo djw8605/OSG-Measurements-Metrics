@@ -55,6 +55,42 @@ group by
       <attribute name="column_units">Count</attribute>
     </query>
 
+    <query name="gip_free_cpu_realtime">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>   
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  hostName,
+  avg(freeCpus)
+from
+  (select 
+     time,
+     hostName,
+     sum(freeCpus) as freeCpus
+   from
+     ce_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)   group by
+     time, hostName
+  ) as foo
+group by
+  hostName
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">Count of Free CPUs by Facility</attribute>
+      <attribute name="column_names">Free CPUs</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+
     <query name="gip_facility_pie">
       <inputs>
         <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
@@ -363,6 +399,100 @@ group by
       <attribute name="title">Count of Running Jobs by Facility</attribute>
       <attribute name="column_names">Running Jobs</attribute>
       <attribute name="column_units">Count</attribute>
+    </query>
+
+    <query name="gip_free_cpus_history">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  hostName,
+  avg(freeCpus)
+from
+  (select
+     time,
+     hostName,
+     sum(freeCpus) as freeCpus
+   from
+     ce_info
+   where
+     time &gt;= :starttime AND  time &lt; :endtime AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, hostName
+  ) as foo
+group by
+  time,
+  hostName
+      </sql>
+      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Free CPUs by Facility</attribute>
+      <attribute name="column_names">Free CPUs</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="gip_total_cpus_history">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  hostName,
+  avg(totalCpus)
+from
+  (select
+     time,
+     hostName,
+     sum(totalCpus) as totalCpus
+   from
+     ce_info
+   where
+     time &gt;= :starttime AND  time &lt; :endtime AND
+     hostName regexp :facility AND
+     NOT (hostName regexp :excludefacility)
+   group by
+     time, hostName
+  ) as foo
+group by
+  time,
+  hostName
+      </sql>
+      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Total CPUs by Facility</attribute>
+      <attribute name="column_names">Total CPUs</attribute>
+      <attribute name="column_units"/>
     </query>
 
   </class>

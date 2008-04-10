@@ -1,7 +1,7 @@
 <graphtool-config>
 
   <import module="gratia.config" data_file="generic_queries.xml" />
-  <import module="gratia.config" data_file="vo_ownership_queries.xml"/>
+ <!-- <import module="gratia.config" data_file="vo_ownership_queries.xml"/>-->
 
   <class type="SqlQueries" name="GratiaDataQueries">
 
@@ -48,14 +48,17 @@
         <filler name="graph_type"/>
     </query>
 
-    <query name="gratia_data" base="GratiaGenericQueries.simple_summary">
+    <query name="gratia_data" base="GratiaGenericQuery.simple_summary">
         <sql>
             <filler name="group">R.VOName, S.SiteName</filler>
             <filler name="column">sum(WallDuration)/3600000</filler>
         </sql>
-        <results>
-            <input name="pivots">0, 1 </input>
-            <input name="results">2</input>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots">0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results">2</input>
+            </inputs>
         </results>
         <attribute name="graph_type"/>
         <attribute name="title">VO and Facility Usage Table</attribute>

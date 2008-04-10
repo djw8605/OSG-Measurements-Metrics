@@ -49,6 +49,19 @@ insert into vo_info values
 )
 """
 
+insert_ce_info = """
+insert into ce_info values (
+  %(time)s,
+  %(runningJobs)s,
+  %(totalCpus)s,
+  %(lrmsType)s,
+  %(lrmsVersion)s,
+  %(freeCpus)s,
+  %(hostName)s,
+  %(waitingJobs)s
+)
+"""
+
 compact_vo = """
 select 
     from_unixtime(truncate(unix_timestamp(time)/%(span)s, 0)*%(span)s), 
@@ -145,6 +158,45 @@ def compactor(conn, cp):
         curs.execute(insert_vo2, row)
     curs.execute(update_compactor_info, (n_daily, 'daily'))
 
+def do_ce_info(cp, ce_entries):
+    now = datetime.datetime.now()
+    free_cpus = {}
+    running_jobs = {}
+    waiting_jobs = {}
+    total_cpus = {}
+    info = {}
+
+    def update_info(info, cluster, attr, new_val):
+        info[cluster][attr] = max(info[cluster].get(attr, 0), new_val)
+
+    def add_info(info, cluster, attr, new_val):
+        info[cluster][attr] = info[cluster].get(attr, 0) + new_val
+
+    for entry in ce_entries:
+        cluster = entry.glue['CEHostingCluster']
+        cpus = int(entry.glue['CEInfoTotalCPUs'])
+        free = int(entry.glue['CEStateFreeJobSlots'])
+        waiting = int(entry.glue['CEStateWaitingJobs'])
+        running = int(entry.glue['CEStateRunningJobs'])
+        total = running+waiting
+        lrmsType = entry.glue["CEInfoLRMSType"]
+        lrmsVersion = entry.glue["CEInfoLRMSVersion"]
+        if cluster not in info:
+            info[cluster] = {'lrmsType'    : lrmsType,
+                             'lrmsVersion' : lrmsVersion,
+                             'hostName'    : cluster,
+                             'time'        : now}
+        update_info(info, cluster, 'totalCpus', cpus)
+        update_info(info, cluster, 'freeCpus',  free)
+        add_info(info, cluster, 'runningJobs', running)
+        add_info(info, cluster, 'waitingJobs', waiting)
+
+    conn = getGipDBConn(cp)
+    curs = conn.cursor()
+    for cluster, dbinfo in info.items():
+        curs.execute(insert_ce_info, dbinfo)
+    conn.commit()
+
 def main():
     cp = config_file("$HOME/dbinfo/gip_password.conf")
     fp = query_bdii(cp, "(objectClass=GlueVOView)")
@@ -161,7 +213,8 @@ def main():
             #print e
             #print entry
             continue
-        info = {"time"             : now,
+        try:
+             info = {"time"        : now,
                 "runningJobs"      : entry.glue["CEStateRunningJobs"],
                 "totalCpus"        : ce_entry.glue["CEInfoTotalCPUs"],
                 "freeJobSlots"     : entry.glue["CEStateFreeJobSlots"],
@@ -178,9 +231,13 @@ def main():
                 "hostName"         : ce_entry.glue["CEInfoHostName"],
                 "queue"            : ce_entry.glue["CEName"]
                }
+        except KeyError:
+            print ce_entry
+            continue
         curs.execute(insert_vo_info, info)
     conn.commit()
     compactor(conn, cp)
+    do_ce_info(cp, ce_entries)
 
 if __name__ == '__main__':
     main()

@@ -82,6 +82,24 @@
       <attribute name="graph_type"> GratiaCumulative </attribute>
     </query>
 
+    <query name="facility_count_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(Njobs) </filler>
+        <filler name="where"> AND Njobs > 0 </filler>
+      </sql>
+      <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name"> Facility </attribute>
+      <attribute name="title"> Cumulative Number of Jobs By Facility </attribute>
+      <attribute name="column_names"> Job Count </attribute>
+      <attribute name="column_units"/>
+      <attribute name="graph_type"> GratiaCumulative </attribute>
+    </query>
+
     <query name="osg_wall_cumulative" base="GratiaGenericQuery.jobs_summary_query">
         <inputs>
             <input name="span" type="eval" kind="sql">7*86400</input>

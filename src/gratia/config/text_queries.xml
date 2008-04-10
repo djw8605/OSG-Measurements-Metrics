@@ -4,6 +4,7 @@
   <import module="gratia.config" data_file="gratia_bar_queries.xml" />
   <import module="gratia.config" data_file="gratia_cumulative_queries.xml" />
   <import module="gratia.config" data_file="gratia_site_queries.xml" />
+  <import module="gratia.config" data_file="gratia_data_queries.xml" />
   <import module="gratia.config" data_file="gratia_user_queries.xml" />
   <import module="gratia.config" data_file="gratia_vo_queries.xml" />
   <import module="gratia.config" data_file="gridscan_queries.xml" />
@@ -15,7 +16,6 @@
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>
-    <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaCumulativeQueries </queryobj>
     <queryobj> GridScanQueries </queryobj>
     <queryobj> GIPQueries </queryobj>

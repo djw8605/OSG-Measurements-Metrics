@@ -10,8 +10,40 @@ from xml.dom.minidom import parse
 
 from pkg_resources import resource_stream
 
-from graphtool.tools.common import parseOpts
 from gratia.graphs.animated_thumbnail import animated_gif
+
+def parseOpts( args ):
+  # Stupid python 2.2 on SLC3 doesn't have optparser...
+  keywordOpts = {}
+  passedOpts = []
+  givenOpts = []
+  length = len(args)
+  optNum = 0
+  while ( optNum < length ):
+    opt = args[optNum]
+    hasKeyword = False
+    if len(opt) > 2 and opt[0:2] == '--':
+      keyword = opt[2:]
+      hasKeyword = True
+    elif opt[0] == '-':
+      keyword = opt[1:]
+      hasKeyword = True
+    if hasKeyword:
+      if keyword.find('=') >= 0:
+        keyword, value = keyword.split('=', 1)
+        keywordOpts[keyword] = value
+      elif optNum + 1 == length:
+        passedOpts.append( keyword )
+      elif args[optNum+1][0] == '-':
+        passedOpts.append( keyword )
+      else:
+        keywordOpts[keyword] = args[optNum+1]
+        optNum += 1
+    else:
+      givenOpts.append( args[optNum] )
+    optNum += 1
+  return keywordOpts, passedOpts, givenOpts
+
 
 def skip_section(section):
     if section == 'General' or section == 'variables':
@@ -163,7 +195,7 @@ def generate_thumbnails(cp):
 def main():
     kwArgs, passed, given = parseOpts(sys.argv[1:])
     
-    config_files = kwArgs.get('config', '')
+    config_files = kwArgs.get('config', '').split(',')
     config_files = [os.path.expandvars(i) for i in config_files \
                     if len(i.strip()) > 0]
     for config_file in config_files:
@@ -172,7 +204,10 @@ def main():
             sys.exit(-1)
 
     cp = ConfigParser.ConfigParser()
-    cp.readfp(resource_stream("gratia.config", "static_generator.cfg"))
+    try:
+        cp.readfp(resource_stream("gratia.config", "static_generator.cfg"))
+    except IOError:
+        pass
     cp.read(config_files)
     
     if 'entry' in kwArgs:
