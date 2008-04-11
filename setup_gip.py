@@ -4,7 +4,7 @@ ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages
 
-setup(name="GIP Analyzer",
+setup(name="OSG-Gratia-Viewer",
       version="0.1",
       author="Brian Bockelman",
       author_email="bbockelm@math.unl.edu",

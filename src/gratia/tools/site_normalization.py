@@ -18,11 +18,14 @@ def create_site_dict(ce_entries, cp):
 
     # Determine the site's advertised ownership.
     for ce in ce_entries:
-        # First, we join the CE to the cluster:
-        cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
-        # Then, join the cluster to the site:
-        site = join_FK(cluster, site_entries, "SiteUniqueID")
-        ownership[ce.glue["CEHostingCluster"]] = site.glue["SiteName"]
+        try:
+            # First, we join the CE to the cluster:
+            cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
+            # Then, join the cluster to the site:
+            site = join_FK(cluster, site_entries, "SiteUniqueID")
+            ownership[ce.glue["CEHostingCluster"]] = site.glue["SiteName"]
+        except:
+            pass
     
     return ownership
 
@@ -45,7 +48,11 @@ def main():
         for sc in sc_info[cluster]:
             ksi2k += sc.glue["KSI2K"]
             sc_cores += int(sc.glue["SubClusterLogicalCPUs"])
-        site = site_dict[cluster]
+        try:
+            site = site_dict[cluster]
+        except:
+            print "Problem with %s" % cluster
+            continue
         if site in sites:
             print site, (ksi2k*1000) / sc_cores
 

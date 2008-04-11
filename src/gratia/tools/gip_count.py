@@ -80,7 +80,10 @@ def main():
             print " - Correction factor: %s" % correction[cluster]
         if cluster in duplicate:
             print " - Duplicates of this cluster: %s" % duplicate[cluster]
-        print " - Ownership:", pretty_ownership(ownership[cluster])
+        try:
+            print " - Ownership:", pretty_ownership(ownership[cluster])
+        except:
+            pass
         print " - Core count:", cpu
         print " - KSI2K: %.1f" % ksi2k_ctr
         gk_ctr += 1

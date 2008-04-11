@@ -98,7 +98,10 @@ def ownership_info(ce_entries, cp):
         # First, we join the CE to the cluster:
         cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
         # Then, join the cluster to the site:
-        site = join_FK(cluster, site_entries, "SiteUniqueID")
+        try:
+            site = join_FK(cluster, site_entries, "SiteUniqueID")
+        except:
+            continue
         try:
             ownership[ce] = site.glue["SiteSponsor"]
             #print site.glue["SiteName"], site.glue["SiteSponsor"]
@@ -192,6 +195,8 @@ def correct_count(core_info, ksi2k_info, ownership, correction, duplicate):
                 cores, ksi2k)
         core_count += cores
         msi2k_count += ksi2k/1000.0
+        if cluster not in ownership:
+            continue
         for info in ownership[cluster]:
             vo, amt = info
             old_info = vo_info.get(vo, [0, 0])
