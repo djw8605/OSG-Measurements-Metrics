@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import datetime
 
 import MySQLdb
@@ -180,6 +181,9 @@ def do_ce_info(cp, ce_entries):
         running = int(entry.glue['CEStateRunningJobs'])
         total = running+waiting
         lrmsType = entry.glue["CEInfoLRMSType"]
+        if 'CEInfoLRMSVersion' not in entry.glue:
+            print >> sys.stderr, "Incomplete GIP info for %s" % entry
+            continue
         lrmsVersion = entry.glue["CEInfoLRMSVersion"]
         if cluster not in info:
             info[cluster] = {'lrmsType'    : lrmsType,
