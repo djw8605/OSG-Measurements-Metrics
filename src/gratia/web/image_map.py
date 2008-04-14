@@ -50,6 +50,9 @@ class ImageMap(Template):
         map = {}
         map['kind'] = 'pivot-group'
         results, metadata = func(**kw)
+        if metadata['kind'] == 'pivot':
+            return __generate_p_map(self, results, metadata, map, func, kw,
+                drilldown_url, drilldown_option)
         assert metadata['kind'] == 'pivot-group'
         map['name'] = metadata['name']
         column_names = str(metadata.get('column_names',''))
@@ -77,6 +80,31 @@ class ImageMap(Template):
                         if type(val) == types.FloatType and abs(val) > 1:
                             val = "%.2f" % val
                         data_groups[group] = (coord, val)
+        return map
+
+    def __generate_p_map(self, results, metadata, map, func, kw, drilldown_url,
+            drilldown_option):
+        map['kind'] = 'pivot'
+        map['name'] = metadata['name']
+        column_names = str(metadata.get('column_names',''))
+        column_units = str(metadata.get('column_units',''))
+        names = [ i.strip() for i in column_names.split(',') ]
+        units = [ i.strip() for i in column_units.split(',') ]
+        map['column_names'] = names
+        map['column_units'] = units
+        map['pivot_name'] = metadata['pivot_name']
+        data = {}
+        map['data'] = data
+        map['drilldown'] = self.generate_drilldown(drilldown_option,
+            drilldown_url)
+        coords = metadata['grapher'].get_coords(metadata['query'], metadata,
+            **metadata['given_kw'])
+        for pivot, val in results.items():
+            coord = coords[pivot]
+            coord = str(coord).replace('(', '').replace(')', '')
+            if type(val) == types.FloatType and abs(val) > 1:
+                val = "%.2f" % val
+            data[group] = (coord, val)
         return map
 
     def start_image_maps(self):
