@@ -62,7 +62,7 @@
 
     <query name="simple_summary">
         <inputs>
-            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-7*86400</input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
             <input name="facility" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
@@ -167,7 +167,7 @@
     <query name="jobs_summary_query">
       <inputs>
         <input name="span" type="int" kind="sql">86400</input>
-        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-7*86400</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>

@@ -1,8 +1,6 @@
 #from urllib import quote
 #from gratia.database.query_handler import displayName
 
-<!-- Image maps -->
-#include $image_maps
 
 
 
@@ -12,6 +10,8 @@
 
 #else
 
+<!-- Image maps -->
+#include $image_maps
 #if $facility.find('|') < 0
     <h1>Site Information for $facility</h1>
 #end if

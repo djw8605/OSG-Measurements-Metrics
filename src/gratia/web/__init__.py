@@ -26,6 +26,7 @@ class Gratia(ImageMap, Navigation):
         self.vo_exitcode = self.template('vo_exitcode.tmpl')(self.vo_exitcode)
         self.site_owner = self.template('site_owner.tmpl')(self.site_owner)
         self.site = self.template('site.tmpl')(self.site)
+        self.vo = self.template('vo.tmpl')(self.vo)
         self.bysite = self.template('bysite.tmpl')(self.bysite)
         self.byvo = self.template('byvo.tmpl')(self.byvo)
         self._cp_config ={}
@@ -255,7 +256,9 @@ class Gratia(ImageMap, Navigation):
 
         # Leave early if no facility specified.
         if data['facility'] == None:
-            return
+            data['title'] = 'No facility specified!'
+            data['image_maps'] = None
+            return data
 
         #User auth
         self.user_auth(data)
@@ -290,7 +293,9 @@ class Gratia(ImageMap, Navigation):
             
         # Leave early if no vo specified.
         if data['vo'] == None:
-            return
+            data['title'] = 'No VO specified!'
+            data['image_maps'] = None
+            return data
             
         #User auth
         self.user_auth(data)
@@ -304,7 +309,7 @@ class Gratia(ImageMap, Navigation):
         self.image_map(token, data, 'GratiaPieQueries',
             'osg_facility_count', 'site', 'vo')
         self.image_map(token, data, 'GratiaBarQueries',
-            'vo_facility_bar_smry', 'site', 'vo')
+            'facility_hours_bar_smry', 'site', 'vo')
         self.finish_image_maps(token)
 
         data['title'] = 'VO Information'

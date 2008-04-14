@@ -1,0 +1,25 @@
+#from urllib import quote
+#from gratia.database.query_handler import displayName
+
+#if $vo == None
+
+    <p>No VO specified!  Perhaps you got here by accident?  If you would like to view the grid-wide OSG information by VO, <a href="$base_url/byvo">click here</a>.</p>
+
+#else
+
+#include $image_maps
+
+#if $facility.find('|') < 0
+    <h1>Site Information for $facility</h1>
+#end if
+<h2>Computation Hours</h2>
+<p><img usemap="#facility_hours_bar_smry" src="$base_url/bar_graphs/vo_hours_bar_smry$filter_url"/></p>
+<p><img usemap="#osg_facility_hours" src="$base_url/pie_graphs/osg_vo_hours$filter_url"/></p>
+
+<h2>Job Count</h2>
+<p><img usemap="#osg_facility_count" src="$base_url/pie_graphs/osg_vo_count$filter_url"/></p>
+
+<!-- Controls for filtering sites / VOs / dates / etc -->
+#include $refine
+
+#end if
