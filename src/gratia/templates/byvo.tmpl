@@ -5,7 +5,7 @@
 #include $image_maps
 
 
-    <h1>OSG Job Accounting Information By Site</h1>
+    <h1>OSG Job Accounting Information By VO</h1>
 
 <!-- Unauthenticated user view -->
 #if not $is_authenticated
@@ -22,11 +22,11 @@
 <!-- Common, grid-wide view. -->
 
 <h2>Computation Hours</h2>
-<p><img usemap="#facility_hours_bar_smry" src="$base_url/bar_graphs/facility_hours_bar_smry$filter_url"/></p>
-<p><img usemap="#osg_facility_hours" src="$base_url/pie_graphs/osg_facility_hours$filter_url"/></p>
+<p><img usemap="#vo_hours_bar_smry" src="$base_url/bar_graphs/vo_hours_bar_smry$filter_url"/></p>
+<p><img usemap="#osg_vo_hours" src="$base_url/pie_graphs/osg_vo_hours$filter_url"/></p>
 
 <h2>Job Count</h2>
-<p><img usemap="#osg_facility_count" src="$base_url/pie_graphs/osg_facility_count$filter_url"/></p>
+<p><img usemap="#osg_vo_count" src="$base_url/pie_graphs/osg_vo_count$filter_url"/></p>
 
 <!-- Controls for filtering sites / VOs / dates / etc -->
 #include $refine

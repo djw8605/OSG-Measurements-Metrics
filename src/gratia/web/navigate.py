@@ -38,8 +38,10 @@ class Navigation(Authenticate, Template):
             data['navigation']['VO Membership'] = vos
 
     def gridNav(self, data):
-        info = {"Info By Site": "bysite",
-                "Info By VO":   "byvo"
+        info = {"Accounting Info By Site": "bysite",
+                "Accounting Info By VO":   "byvo",
+                "Monitoring Info By Site": "monbysite",
+                "Monitoring Info By VO":   "monbyvo",
                }
         data['navigation']['Grid-wide'] = info
 

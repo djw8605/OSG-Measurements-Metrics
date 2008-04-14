@@ -130,20 +130,43 @@ class Gratia(ImageMap, Navigation):
         token = self.start_image_maps()
         # Generate image maps:
         self.image_map(token, data, 'GratiaBarQueries',
-                           'facility_transfer_rate', 'main', 'facility')
-
-        #self.image_map(token, data, 'GratiaBarQueries',
-        #                   'facility_quality', 'main', 'facility')
-
-        #self.image_map(token, data, 'GratiaBarQueries',
-        #                   'facility_transfer_volume', 'main', 'facility')
+                           'facility_hours_bar_smry', 'site', 'facility')
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_facility_hours', 'site', 'facility')
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_facility_count', 'site', 'facility')
 
         self.finish_image_maps(token)
 
         if data['is_authenticated']:
-            data['title'] = "OSG Metrics Main By Site for %s" % data['name']
+            data['title'] = "OSG Job Accounting Information By Site for %s" % data['name']
         else:
-            data['title'] = "OSG Metrics Main By Site"
+            data['title'] = "OSG Job Accounting Information By Site"
+        return data
+
+    def byvo(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = dict(kw)
+        self.user_auth(data)
+        filter_dict = {}
+
+        # Handle the refine variables
+        self.refine(data, filter_dict, dn=False, hours=False)
+        token = self.start_image_maps()
+        # Generate image maps:
+        self.image_map(token, data, 'GratiaBarQueries',
+                           'vo_hours_bar_smry', 'vo', 'vo')
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_vo_hours', 'vo', 'vo')
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_vo_count', 'vo', 'vo')
+
+        self.finish_image_maps(token)
+
+        if data['is_authenticated']:
+            data['title'] = "OSG Job Accounting Information By VO for %s" % data['name']
+        else:
+            data['title'] = "OSG Job Accounting Information By VO"
         return data
 
     def focus(self, kw, data, page, default, values):
@@ -216,6 +239,32 @@ class Gratia(ImageMap, Navigation):
         external = {}
         data['external'] = external
         external['GridScan'] = self.fetch_gridscan(data.get('facility'))
+        external['GIP Validator'] = self.gip_validation(data['facility'])
+        return data
+
+    def site(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = kw
+        filter_dict = {}
+        data['facility'] = data.get('facility', None)
+
+        #User auth
+        self.user_auth(data)
+
+        #Handle refine
+        self.refine(data, filter_dict, facility=False)
+
+        token = self.start_image_maps()
+        #Generate image maps
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_vo_hours', 'site', 'vo')
+        self.image_map(token, data, 'GratiaBarQueries',
+            'vo_hours_bar_smry', 'site', 'vo')
+        self.finish_image_maps(token)
+
+        external = {}
+        data['external'] = external
+        external['GridScan'] = self.fetch_gridscan(data['facility'])
         external['GIP Validator'] = self.gip_validation(data['facility'])
         return data
 
