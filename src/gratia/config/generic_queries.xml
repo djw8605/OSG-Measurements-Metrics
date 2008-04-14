@@ -21,8 +21,8 @@
     <query name="simple_query">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
       </inputs>
@@ -62,8 +62,8 @@
 
     <query name="simple_summary">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-7*86400</input>
+            <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
             <input name="facility" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="exclude-vo" kind="sql"> NONE </input>
@@ -110,8 +110,8 @@
     <query name="jobs_query">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
@@ -167,8 +167,8 @@
     <query name="jobs_summary_query">
       <inputs>
         <input name="span" type="int" kind="sql">86400</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-7*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-7*86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
@@ -275,8 +275,8 @@
     <query name="simple_query">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
       </inputs>
@@ -314,8 +314,8 @@
     <query name="summary">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
@@ -360,8 +360,8 @@
 
     <query name="site_simple">
       <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> Unknown </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
@@ -397,8 +397,8 @@
     <query name="site_summary">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> Unknown </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
@@ -444,8 +444,8 @@
     <query name="user_summary">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> NONE </input>
@@ -496,8 +496,8 @@
     <query name="vo_summary">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> Unknown </input>
         <input name="exclude-facility" kind="sql"> NONE </input>

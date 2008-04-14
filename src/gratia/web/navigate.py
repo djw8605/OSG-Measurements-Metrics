@@ -1,4 +1,6 @@
 
+import urllib
+
 from template import Template
 from auth import Authenticate
 
@@ -38,10 +40,11 @@ class Navigation(Authenticate, Template):
             data['navigation']['VO Membership'] = vos
 
     def gridNav(self, data):
-        info = {"Accounting Info By Site": "bysite",
-                "Accounting Info By VO":   "byvo",
-                "Monitoring Info By Site": "monbysite",
-                "Monitoring Info By VO":   "monbyvo",
+        info = {"Accounting By Site": "bysite",
+                "Accounting By VO":   "byvo",
+                "Monitoring By Site": "monbysite",
+                "Monitoring By VO":   "monbyvo",
+                "Opportunistic Usage": "vo_opp",
                }
         data['navigation']['Grid-wide'] = info
 
@@ -49,9 +52,13 @@ class Navigation(Authenticate, Template):
         info = {}
         data['navigation']['Other'] = info
         for vo, members in self.vo_sets.items():
-            info['%s Set' % vo] = 'vo_info?set=%s' % vo
+            set_info = '|'.join(members)
+            set_info = urllib.quote(set_info, safe='')
+            info['%s Set' % vo] = 'vo?vo=%s' % set_info
         for site, members in self.site_sets.items():
-            info['%s Set' % site] = 'site_info?set=%s' % site
+            set_info = '|'.join(members)
+            set_info = urllib.quote(set_info, safe='')
+            info['%s Set' % site] = 'site?facility=%s' % set_info
         
     def defaultData(self, data):
         super(Navigation, self).defaultData(data)

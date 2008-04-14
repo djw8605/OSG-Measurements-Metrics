@@ -21,7 +21,20 @@
             #end for
         #end for
     #elif $map.kind == 'pivot'
-        <p> Pivot map! </p>
+        #for $pivot, $vals in $map.data.items()
+            <area href="$map.drilldown($pivot, None, $base_url, $given_kw)" 
+                shape="poly" coords="$vals[0]"
+                onmouseover="Tip('#slurp
+                <b>$map.pivot_name:</b> $pivot <br/> #slurp
+                #if len($map.column_names) != 1
+                    #for $i in $range(len($map.column_names))
+                        <b>$map.column_names[$i]</b> $vals[1][$i] $map.column_units[$i] <br/> #slurp
+                    #end for
+                #else
+                    <b>$map.column_names[0]</b> $vals[1] $map.column_units[0] <br/> #slurp
+                #end if
+                ')" />
+        #end for
     #else
         <p> Unknown map kind! </p>
     #end if

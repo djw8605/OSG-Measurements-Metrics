@@ -51,7 +51,7 @@ class ImageMap(Template):
         map['kind'] = 'pivot-group'
         results, metadata = func(**kw)
         if metadata['kind'] == 'pivot':
-            return __generate_p_map(self, results, metadata, map, func, kw,
+            return self.__generate_p_map(results, metadata, map, func, kw,
                 drilldown_url, drilldown_option)
         assert metadata['kind'] == 'pivot-group'
         map['name'] = metadata['name']
@@ -100,11 +100,13 @@ class ImageMap(Template):
         coords = metadata['grapher'].get_coords(metadata['query'], metadata,
             **metadata['given_kw'])
         for pivot, val in results.items():
+            if pivot not in coords:
+                continue
             coord = coords[pivot]
             coord = str(coord).replace('(', '').replace(')', '')
             if type(val) == types.FloatType and abs(val) > 1:
                 val = "%.2f" % val
-            data[group] = (coord, val)
+            data[pivot] = (coord, val)
         return map
 
     def start_image_maps(self):

@@ -26,6 +26,7 @@ class Gratia(ImageMap, Navigation):
         self.vo_exitcode = self.template('vo_exitcode.tmpl')(self.vo_exitcode)
         self.site_owner = self.template('site.tmpl')(self.site_owner)
         self.bysite = self.template('bysite.tmpl')(self.bysite)
+        self.byvo = self.template('byvo.tmpl')(self.byvo)
         self._cp_config ={}
         self.index = self.overview
 
@@ -68,6 +69,7 @@ class Gratia(ImageMap, Navigation):
                     filter_dict['span'] = 86400*7
         else:
             data['relTime'] = 'absolute'
+
         self.copy_if_present(filter_dict, data, 'facility', 'vo', \
             'exclude-facility', 'exclude-vo', 'user', 'user', 'exclude-dn')
         data['query_kw'] = dict(filter_dict)
@@ -399,6 +401,7 @@ class Gratia(ImageMap, Navigation):
         data['vos'] = vos
         data['current_vo'] = kw.get('vo', None)
         data['static_url'] = self.metadata.get('static_url', '/store/gratia')
+        data['title'] = 'VO Opportunistic Usage'
         return data
 
     def vo_opp2(self, *args, **kw):
@@ -416,6 +419,10 @@ class Gratia(ImageMap, Navigation):
         data['vos'] = vos
         data['current_vo'] = kw.get('vo', None)
         data['static_url'] = self.metadata.get('static_url', '/store/gratia')
+        if data['current_vo']:
+            data['title'] = '%s OSG Usage' % data['current_vo']
+        else:
+            data['title'] = 'OSG Usage'
         return data
 
     def vo_exitcode(self, *args, **kw):

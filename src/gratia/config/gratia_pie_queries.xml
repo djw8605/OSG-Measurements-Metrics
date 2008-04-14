@@ -70,6 +70,17 @@
       <attribute name="title"> Computational Hours by Facility </attribute>
     </query>
 
+    <query name="osg_vo_count" base="GratiaGenericQuery.simple_summary">
+      <sql>
+        <filler name="group"> R.VOName </filler>
+        <filler name="column"> sum(R.Njobs) </filler>
+      </sql>
+      <attribute name="pivot_name"> VO </attribute>
+      <attribute name="column_names"> Jobs </attribute>
+      <attribute name="column_units"/>
+      <attribute name="title"> Job Count by VO </attribute>
+    </query>
+
     <query name="osg_facility_count" base="GratiaGenericQuery.simple_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>

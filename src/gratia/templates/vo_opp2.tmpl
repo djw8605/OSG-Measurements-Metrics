@@ -1,16 +1,11 @@
 
-<html>
-
-<head>
-    <title>VO Activity over the last year</title>
-</head>
-
-<body>
-<h1>VO Activity over the last year</h1>
-</body>
+<h1>OSG Usage over the last year</h1>
 
 #if $current_vo != None
-<p><img src="$static_url/today/${current_vo}_opp_usage2.png"/></p
+    <p><img src="$static_url/today/${current_vo}_opp_usage2.png"/></p>
+    <p>The above image shows the opportunistic usage versus the owned usage
+       for the $current_vo.
+    </p>
 #end if
 
 <table>
@@ -32,6 +27,11 @@ $vos[$idx] <br/> <img src="$static_url/today/${vos[$idx]}_opp_usage2.png" height
 #end if
 </table>
 
+<p>Click on any thumbnail in the above table to access more details about the VO's opportunistic versus owned CPU usage</p>
+
+<p>This page shows the VO's OSG opportunistic usage versus owned usage.
+   To compare the opportunistic usage by site,
+   <a href="$base_url/vo_opp">click here</a>.
 
 </html>
 

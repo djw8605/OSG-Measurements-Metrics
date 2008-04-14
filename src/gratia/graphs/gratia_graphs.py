@@ -34,3 +34,13 @@ class GratiaPie(GratiaColors, SummarizePivotGraph, TimeGraph, PieGraph ):
 class GratiaStackedLine(GratiaColors, SummarizePivotGroupGraph, TimeGraph, StackedLineGraph):
   pass
 
+class GratiaOpp(GratiaStackedBar):
+
+    def sort_keys(self, results):
+        if getattr(self, 'sorted_keys_list', None) != None:
+            return self.sorted_keys_list
+        keys = results.keys()
+        sorted_keys = list(keys)
+        sorted_keys.sort()
+        return sorted_keys
+
