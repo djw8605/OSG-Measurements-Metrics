@@ -9,15 +9,20 @@
 
 #include $image_maps
 
-#if $facility.find('|') < 0
-    <h1>Site Information for $facility</h1>
+#if $vo.find('|') < 0
+    <h1>VO Information for $vo</h1>
+#else
+    <h1> VO Information for $set</h1>
+    <p> VOs in this set: $vo.replace('|', ',') </p>
 #end if
 <h2>Computation Hours</h2>
-<p><img usemap="#facility_hours_bar_smry" src="$base_url/bar_graphs/vo_hours_bar_smry$filter_url"/></p>
-<p><img usemap="#osg_facility_hours" src="$base_url/pie_graphs/osg_vo_hours$filter_url"/></p>
+<p><img usemap="#facility_hours_bar_smry" src="$base_url/bar_graphs/facility_hours_bar_smry$filter_url"/></p>
+<p><img usemap="#vo_opp_hours_bar2" src="$base_url/bar_graphs/vo_opp_hours_bar2$filter_url"/></p>
+<p><img usemap="#facility_success_cumulative_smry" src="$base_url/cumulative_graphs/facility_success_cumulative_smry$filter_url"/></p>
+<p><img usemap="#osg_facility_hours" src="$base_url/pie_graphs/osg_facility_hours$filter_url"/></p>
 
 <h2>Job Count</h2>
-<p><img usemap="#osg_facility_count" src="$base_url/pie_graphs/osg_vo_count$filter_url"/></p>
+<p><img usemap="#osg_facility_count" src="$base_url/pie_graphs/osg_facility_count$filter_url"/></p>
 
 <!-- Controls for filtering sites / VOs / dates / etc -->
 #include $refine

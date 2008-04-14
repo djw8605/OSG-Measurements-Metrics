@@ -73,7 +73,8 @@ class Gratia(ImageMap, Navigation):
             data['relTime'] = 'absolute'
 
         self.copy_if_present(filter_dict, data, 'facility', 'vo', \
-            'exclude-facility', 'exclude-vo', 'user', 'user', 'exclude-dn')
+            'exclude-facility', 'exclude-vo', 'user', 'user', 'exclude-dn', \
+            'set')
         data['query_kw'] = dict(filter_dict)
         data['filter_url'] = urllib.urlencode(filter_dict)
         self.assign_blank(filter_dict, 'facility', 'vo', 'exclude-vo', \
@@ -264,7 +265,7 @@ class Gratia(ImageMap, Navigation):
         self.user_auth(data)
 
         #Handle refine
-        self.refine(data, filter_dict, facility=False)
+        self.refine(data, filter_dict, facility=False, hours=False)
 
         token = self.start_image_maps()
         #Generate image maps
@@ -274,6 +275,8 @@ class Gratia(ImageMap, Navigation):
             'osg_vo_count', 'site', 'vo')
         self.image_map(token, data, 'GratiaBarQueries',
             'vo_hours_bar_smry', 'site', 'vo')
+        self.image_map(token, data, 'GratiaCumulativeQueries',
+            'vo_success_cumulative_smry', 'site', 'vo')
         self.finish_image_maps(token)
 
         external = {}
@@ -300,7 +303,7 @@ class Gratia(ImageMap, Navigation):
         #User auth
         self.user_auth(data)
         #Handle refine
-        self.refine(data, filter_dict, facility=False)
+        self.refine(data, filter_dict, facility=False, hours=False)
 
         token = self.start_image_maps()
         #Generate image maps
@@ -310,6 +313,10 @@ class Gratia(ImageMap, Navigation):
             'osg_facility_count', 'site', 'vo')
         self.image_map(token, data, 'GratiaBarQueries',
             'facility_hours_bar_smry', 'site', 'vo')
+        self.image_map(token, data, 'GratiaBarQueries',
+            'vo_opp_hours_bar2', 'site', 'vo')
+        self.image_map(token, data, 'GratiaCumulativeQueries',
+            'facility_success_cumulative_smry', 'site', 'vo')
         self.finish_image_maps(token)
 
         data['title'] = 'VO Information'

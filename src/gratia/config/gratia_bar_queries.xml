@@ -123,7 +123,7 @@
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
-      <attribute name="title">$vo CPU Hours</attribute>
+      <attribute name="title">CPU Hours by Usage Type</attribute>
       <attribute name="graph_type">GratiaOpp</attribute>
       <results module="gratia.database.query_handler" function="opportunistic_usage_parser2">
         <inputs>
@@ -131,7 +131,26 @@
         </inputs>
       </results>
     </query>
-        
+       
+    <query name="facility_opp_bar" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Usage Type</attribute>
+      <attribute name="title">CPU Hours by Usage Type</attribute>
+      <attribute name="graph_type">GratiaOpp</attribute>
+      <results module="gratia.database.query_handler" function="opportunistic_usage_parser3">
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+          <input name="pivots"> 0,1 </input>
+          <input name="grouping"> 2 </input>
+          <input name="results"> 3 </input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="exitcode_bar">
         <inputs>
             <input name="span" kind="sql" type="int">604800</input>

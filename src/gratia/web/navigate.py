@@ -36,7 +36,7 @@ class Navigation(Authenticate, Template):
         if data['is_vo_member']:
             vos = {}
             for vo in data['vo_membership']:
-                vos[vo] = 'vo_member?vo=%s' % vo
+                vos[vo] = 'vo?vo=%s' % vo
             data['navigation']['VO Membership'] = vos
 
     def gridNav(self, data):
@@ -54,11 +54,11 @@ class Navigation(Authenticate, Template):
         for vo, members in self.vo_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='')
-            info['%s' % vo] = 'vo?vo=%s' % set_info
+            info['%s' % vo] = 'vo?set=%s&vo=%s' % (vo, set_info)
         for site, members in self.site_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='')
-            info['%s' % site] = 'site?facility=%s' % set_info
+            info['%s' % site] = 'site?set=%s&facility=%s' % (site, set_info)
         
     def defaultData(self, data):
         super(Navigation, self).defaultData(data)

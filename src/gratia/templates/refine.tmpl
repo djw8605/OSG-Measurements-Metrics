@@ -24,8 +24,13 @@
         <p> Relative to the present <br/>
             <label for="relativetime">Select time interval</label> 
             <select name="relativetime">
+                #if $relTime == 'absolute'
+                        <option value="absolute" selected="true">Use absolute date range</option>
+                #else
+                        <option value="absolute">Use absolute date range</option>
+                #end if
                 #if $supports_hours
-                #for $val in (('absolute', "Use absolute date range"), ('86400', "24 Hours"), ('172800', "48 Hours"), ("259200", "72 Hours"))
+                #for $val in (('86400', "24 Hours"), ('172800', "48 Hours"), ("259200", "72 Hours"))
                     #if $relTime == $val[0]
                         <option value="$val[0]" selected="true">$val[1]</option>
                     #else
