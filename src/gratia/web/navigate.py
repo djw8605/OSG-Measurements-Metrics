@@ -54,11 +54,11 @@ class Navigation(Authenticate, Template):
         for vo, members in self.vo_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='')
-            info['%s Set' % vo] = 'vo?vo=%s' % set_info
+            info['%s' % vo] = 'vo?vo=%s' % set_info
         for site, members in self.site_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='')
-            info['%s Set' % site] = 'site?facility=%s' % set_info
+            info['%s' % site] = 'site?facility=%s' % set_info
         
     def defaultData(self, data):
         super(Navigation, self).defaultData(data)

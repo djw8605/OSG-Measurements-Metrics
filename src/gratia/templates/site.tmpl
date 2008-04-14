@@ -12,7 +12,9 @@
 
 #else
 
-<h1>Site Information for $facility</h1>
+#if $facility.find('|') < 0
+    <h1>Site Information for $facility</h1>
+#end if
 <h2>Computation Hours</h2>
 <p><img usemap="#vo_hours_bar_smry" src="$base_url/bar_graphs/vo_hours_bar_smry$filter_url"/></p>
 <p><img usemap="#osg_vo_hours" src="$base_url/pie_graphs/osg_vo_hours$filter_url"/></p>
@@ -27,7 +29,9 @@
     <h1> External Monitoring </h1>
     <ul>
         #for name, status in $external.items()
-            <li>$status[2] $name: <a href="$status[1]">$status[0]</a></li>
+            #for val, link, fac in $status
+                <li>$fac $name: <a href="$link">$val</a></li>
+            #end for
         #end for
     </ul>
 #end if

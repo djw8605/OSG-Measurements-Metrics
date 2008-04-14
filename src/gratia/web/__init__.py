@@ -250,6 +250,8 @@ class Gratia(ImageMap, Navigation):
         data['given_kw'] = kw
         filter_dict = {}
         data['facility'] = data.get('facility', None)
+        if data['facility']:
+            data['facility'] = urllib.unquote(data['facility'])
 
         # Leave early if no facility specified.
         if data['facility'] == None:
@@ -265,6 +267,8 @@ class Gratia(ImageMap, Navigation):
         #Generate image maps
         self.image_map(token, data, 'GratiaPieQueries',
             'osg_vo_hours', 'site', 'vo')
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_vo_count', 'site', 'vo')
         self.image_map(token, data, 'GratiaBarQueries',
             'vo_hours_bar_smry', 'site', 'vo')
         self.finish_image_maps(token)
@@ -274,6 +278,36 @@ class Gratia(ImageMap, Navigation):
         external['GridScan'] = self.fetch_gridscan(data['facility'])
         external['GIP Validator'] = self.gip_validation(data['facility'])
         data['title'] = 'Site Information'
+        return data
+
+    def vo(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = kw
+        filter_dict = {} 
+        data['vo'] = data.get('vo', None)
+        if data['vo']:
+            data['vo'] = urllib.unquote(data['vo'])
+            
+        # Leave early if no vo specified.
+        if data['vo'] == None:
+            return
+            
+        #User auth
+        self.user_auth(data)
+        #Handle refine
+        self.refine(data, filter_dict, facility=False)
+
+        token = self.start_image_maps()
+        #Generate image maps
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_facility_hours', 'site', 'vo')
+        self.image_map(token, data, 'GratiaPieQueries',
+            'osg_facility_count', 'site', 'vo')
+        self.image_map(token, data, 'GratiaBarQueries',
+            'vo_facility_bar_smry', 'site', 'vo')
+        self.finish_image_maps(token)
+
+        data['title'] = 'VO Information'
         return data
 
     def fetch_gridscan(self, site):
@@ -302,8 +336,10 @@ class Gratia(ImageMap, Navigation):
                 continue
             if in_font:
                 status = line.strip()
-                info.append(status, "http://scan.grid.iu.edu" + link, fac)
+                info.append((status, "http://scan.grid.iu.edu" + link, fac))
                 status = "Unknown"
+                in_font = False
+                in_row = False
         return info
 
     def gip_validation(self, site):
@@ -315,6 +351,7 @@ class Gratia(ImageMap, Navigation):
         result = "Unknown"
         link = "#"
         info = []
+        my_facs = []
         for line in doc.readlines():
             m = row_re.search(line)
             if m:
@@ -322,6 +359,9 @@ class Gratia(ImageMap, Navigation):
                 if m2:
                     fac = m.groups()[0]
                     in_row = True
+                    continue
+                else:
+                    in_row = False
                     continue
             if in_row:
                 m = info_re.search(line)
@@ -335,7 +375,10 @@ class Gratia(ImageMap, Navigation):
                         result = "Not Reporting"
                     else:
                         result = "Unknown"
-                info.append(result, "http://gip-validate.grid.iu.edu/production/" + link, fac)
+                if fac not in my_facs:
+                    my_facs.append(fac)
+                    info.append((result, "http://gip-validate.grid.iu.edu/production/" + link,
+                        fac))
         return info
 
     def vo_owner(self, *args, **kw):
