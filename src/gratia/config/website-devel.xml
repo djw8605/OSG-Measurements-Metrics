@@ -7,6 +7,9 @@
   <import module="gratia.config" data_file="text_queries.xml" />
 
   <class name="GratiaWeb" type="Gratia">
+      <attribute name="base_server">https://t2.unl.edu</attribute>
+      <attribute name="base_url">/gratia_dev</attribute>
+      <attribute name="base_url_noauth">/gratia_dev</attribute>
       <attribute name="security">GratiaSecurity</attribute>
       <attribute name="static_url">http://t2.unl.edu/store/gratia/</attribute>
       <attribute name="vos_url">http://t2.unl.edu/gratia/xml/vo_corrected_table</attribute>
@@ -19,20 +22,20 @@
   </class>
 
   <class name="web" type="WebHost">
-    <mount location="/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
-    <mount location="/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
-    <mount location="/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
-    <mount location="/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>
-    <mount location="/gip_graphs" content="image/png"> <instance name="gip_grapher" /> </mount>
-    <mount location="/xml" content="text/xml"> <instance name="query_xml" /> </mount>
-    <mount location="/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
-    <mount location="/vo_xml" content="text/xml"> <instance name="vo_xml"/> </mount>
-    <mount location="/user_xml" content="text/xml"> <instance name="user_xml"/> </mount>
-    <mount location="/site_graphs" content="image/png"> <instance name="gratia_site_grapher"/> </mount>
-    <mount location="/vo_graphs" content="image/png"> <instance name="gratia_vo_grapher"/> </mount>
-    <mount location="/user_graphs" content="image/png"> <instance name="gratia_user_grapher"/> </mount>
-    <instance name="static" />
-    <instance name="GratiaWeb" location="/"/>
+    <mount location="/gratia_dev/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
+    <mount location="/gratia_dev/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
+    <mount location="/gratia_dev/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
+    <mount location="/gratia_dev/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>
+    <mount location="/gratia_dev/gip_graphs" content="image/png"> <instance name="gip_grapher" /> </mount>
+    <mount location="/gratia_dev/xml" content="text/xml"> <instance name="query_xml" /> </mount>
+    <mount location="/gratia_dev/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
+    <mount location="/gratia_dev/vo_xml" content="text/xml"> <instance name="vo_xml"/> </mount>
+    <mount location="/gratia_dev/user_xml" content="text/xml"> <instance name="user_xml"/> </mount>
+    <mount location="/gratia_dev/site_graphs" content="image/png"> <instance name="gratia_site_grapher"/> </mount>
+    <mount location="/gratia_dev/vo_graphs" content="image/png"> <instance name="gratia_vo_grapher"/> </mount>
+    <mount location="/gratia_dev/user_graphs" content="image/png"> <instance name="gratia_user_grapher"/> </mount>
+    <instance name="static" location="/gratia_dev/static" />
+    <instance name="GratiaWeb" location="/gratia_dev"/>
     <config module="gratia.config">development.conf</config>
   </class>
 

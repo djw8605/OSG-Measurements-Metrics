@@ -14,7 +14,9 @@
             <input type="text" name="endtime"/> <br/>
             <label for="span"> Bar width </label>
             <select name="span">
-                <option value="3600">Hour</option>
+                #if $supports_hours
+                    <option value="3600">Hour</option>
+                #end if
                 <option value="86400">Day</option>
                 <option value="604800">Week</option>
             </select>
@@ -22,7 +24,14 @@
         <p> Relative to the present <br/>
             <label for="relativetime">Select time interval</label> 
             <select name="relativetime">
-                #for $val in (('absolute', "Use absolute date range"), ('86400', "24 Hours"), ('172800', "48 Hours"), ("259200", "72 Hours"), ("604800", "7 Days"))
+                #for $val in (('absolute', "Use absolute date range"), ('86400', "24 Hours"), ('172800', "48 Hours"), ("259200", "72 Hours"))
+                    #if $relTime == $val[0]
+                        <option value="$val[0]" selected="true">$val[1]</option>
+                    #else
+                        <option value="$val[0]">$val[1]</option>
+                    #end if
+                #end for
+                #for $val in (("604800", "7 Days"), ("2592000", "30 Days"))
                     #if $relTime == $val[0]
                         <option value="$val[0]" selected="true">$val[1]</option>
                     #else

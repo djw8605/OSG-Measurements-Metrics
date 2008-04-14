@@ -40,6 +40,21 @@
             <results function="role_list" />
         </query>
 
+        <query name="list_vo_membership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    vo
+                FROM
+                    VOMembers
+                WHERE
+                    dn=:dn
+            </sql>
+            <results function="role_list" />
+        </query>
+
         <query name="site_ownership">
             <inputs>
                 <input name="dn" kind="sql"> Unknown </input>

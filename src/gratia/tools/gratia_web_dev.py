@@ -7,8 +7,9 @@ from graphtool.web import WebHost
 def main():
     filename = resource_filename("gratia.config", "website-devel.xml")
     WebHost(file=filename)
-    cherrypy.server.quickstart()
+    #cherrypy.server.quickstart()
     cherrypy.engine.start() 
+    cherrypy.engine.block()
 
 if __name__ == '__main__':
     main()

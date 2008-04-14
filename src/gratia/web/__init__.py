@@ -5,32 +5,19 @@ import urllib2
 import re
 import sys
 import types
-from threading import Condition, Thread, currentThread
 
 import cherrypy
-from Cheetah.Template import Template
 from xml.dom.minidom import parse
-from pkg_resources import resource_stream, resource_filename
 
-from graphtool.base.xml_config import XmlConfig
 from gratia.database.query_handler import displayName
-from graphtool.web.security import DenyAll
+from image_map import ImageMap
+from auth import Authenticate
+from navigate import Navigation
 
-# Helper functions
-
-class Gratia(XmlConfig):
+class Gratia(ImageMap, Navigation):
 
     def __init__(self, *args, **kw):
         super(Gratia, self).__init__(*args, **kw)
-
-        security_obj_name = self.metadata.get('security', False)
-        if security_obj_name:
-            self.security_obj = self.globals[security_obj_name]
-        else:
-            self.security_obj = DenyAll()
-
-        #self.metadata['template_dir'] = '$GRAPHTOOL_USER_ROOT/templates'
-        #self.template_dir = os.path.expandvars(self.metadata.get('template_dir', '.'))
         self.main = self.template('main.tmpl')(self.main)
         self.overview = self.template('overview.tmpl')(self.overview)
         self.vo_overview = self.template('vo_overview.tmpl')(self.vo_overview)
@@ -38,145 +25,9 @@ class Gratia(XmlConfig):
         self.vo_opp2 = self.template('vo_opp2.tmpl')(self.vo_opp2)
         self.vo_exitcode = self.template('vo_exitcode.tmpl')(self.vo_exitcode)
         self.site_owner = self.template('site.tmpl')(self.site_owner)
+        self.bysite = self.template('bysite.tmpl')(self.bysite)
         self._cp_config ={}
         self.index = self.overview
-
-    def getTemplateFilename(self, template):
-        template_name = template.replace(".", "_").replace("-", "_") + "_filename"
-        if not hasattr(self, template_name):
-            filename = resource_filename("gratia.templates", template)
-            setattr(self, template_name, filename)
-        return getattr(self, template_name)
-
-    def template(self, name=None):
-        #template_file = os.path.join(self.template_dir, name)
-        template_fp = resource_stream("gratia.templates", name)
-        tclass = Template.compile(source=template_fp.read())
-        def template_decorator(func):
-            def func_wrapper(*args, **kw):
-                data = func(*args, **kw)
-                if data.get('is_authenticated', True):
-                    base_url = self.metadata.get('base_url', '')
-                else:
-                    base_url = self.metadata.get('base_url_noauth', '')
-                if base_url == '/':
-                    base_url = ""
-                addl = {'base_url': base_url}
-                return str(tclass(namespaces=[data, addl]))
-            func_wrapper.exposed = True
-            return func_wrapper
-        return template_decorator
-
-    def generate_drilldown(self, option, url):
-        def drilldown(pivot, group, base_url, filter_dict):
-            filter_dict[option] = pivot
-            filter_url = urllib.urlencode(filter_dict)
-            return os.path.join(base_url, url) + '?' + filter_url
-        return drilldown
-
-    def generate_pg_map(self, token, maps, func, kw, drilldown_url, 
-            drilldown_option):
-        def worker(self, token, maps, func, kw, drilldown_url, 
-                drilldown_option):
-            #print "Start worker!", currentThread().getName()
-            try:
-                map = self.__generate_pg_map(func, kw, drilldown_url,
-                    drilldown_option)
-                token['condition'].acquire()
-                maps.append(map)
-                token['condition'].release()
-            finally:
-                token['condition'].acquire()
-                token['counter'] -= 1
-                token['condition'].notify()
-                token['condition'].release()
-                #print "Finish worker!", currentThread().getName()
-        try:
-            token['condition'].acquire()
-            token['counter'] += 1
-            token['condition'].notify()
-            token['condition'].release()
-            args = (self, token, maps, func, kw, drilldown_url, 
-                    drilldown_option)
-            Thread(target=worker, args=args).start()
-        except:
-            token['condition'].acquire()
-            token['counter'] -= 1
-            token['condition'].notify()
-            token['condition'].release()
-
-
-    def __generate_pg_map(self, func, kw, drilldown_url, drilldown_option):
-        map = {}
-        map['kind'] = 'pivot-group'
-        results, metadata = func(**kw)
-        assert metadata['kind'] == 'pivot-group'
-        map['name'] = metadata['name']
-        column_names = str(metadata.get('column_names',''))
-        column_units = str(metadata.get('column_units',''))
-        names = [ i.strip() for i in column_names.split(',') ]
-        units = [ i.strip() for i in column_units.split(',') ]
-        map['column_names'] = names
-        map['column_units'] = units
-        map['pivot_name'] = metadata['pivot_name']
-        data = {}
-        map['data'] = data
-        map['drilldown'] = self.generate_drilldown(drilldown_option, 
-            drilldown_url)
-        coords = metadata['grapher'].get_coords(metadata['query'], metadata, 
-            **metadata['given_kw'])
-        for pivot, groups in results.items():
-            data_groups = {}
-            data[pivot] = data_groups
-            if pivot in coords:
-                coord_groups = coords[pivot]
-                for group, val in groups.items():
-                    if group in coord_groups:
-                        coord = str(coord_groups[group]).replace('(', '').\
-                            replace(')', '')
-                        if type(val) == types.FloatType and abs(val) > 1:
-                            val = "%.2f" % val
-                        data_groups[group] = (coord, val)
-        return map
-
-    def user_roles(self, data):
-        """
-        Authenticate a user and get their roles
-        """
-        data['is_site_owner'] = False
-        data['is_vo_owner'] = False
-        data['is_view_other_users'] = False
-        if not data['is_authenticated']:
-            data['auth_count'] = 0
-            return
-        dn = data['dn']
-        data['vo_ownership'] = self.security_obj.list_roles("vo_ownership", dn)
-        data['site_ownership'] = self.security_obj.list_roles("site_ownership", \
-            dn)
-        data['user_ownership'] = self.security_obj.list_roles("users", dn)
-        auth_count = 0
-        if len(data['vo_ownership']) > 0:
-            data['is_vo_owner'] = True
-            auth_count += 1
-        if len(data['user_ownership']) > 0:
-            data['is_view_other_users'] = True
-            auth_count += 1
-        if len(data['site_ownership']) > 0:
-            data['is_site_owner'] = True
-            auth_count += 1
-        data['is_super_user'] = False
-        data['auth_count'] = auth_count
-
-    def user_auth(self, data):
-        dn = cherrypy.request.headers.get('SSL-CLIENT-S-DN',None)
-        if dn:
-            assert cherrypy.request.headers.get('SSL-CLIENT-VERIFY', \
-                  'Failure') == 'SUCCESS'
-            data['is_authenticated'] = True
-            data['dn'] = dn
-            data['name'] = displayName(dn)
-        else:
-            data['is_authenticated'] = False
 
     def assign_blank(self, dict, *args):
         for arg in args:
@@ -188,8 +39,10 @@ class Gratia(XmlConfig):
             if arg in from_dict and from_dict[arg] != '':
                 to_dict[arg] = from_dict[arg]
 
-    def refine(self, data, filter_dict, facility=True, vo=True, dn=True):
+    def refine(self, data, filter_dict, facility=True, vo=True, dn=True,\
+            hours=True):
         relTime = data.get('relativetime', False)
+        data['supports_hours'] = hours
         data['refine_vo'] = vo
         data['refine_facility'] = facility
         data['refine_dn'] = dn
@@ -226,34 +79,6 @@ class Gratia(XmlConfig):
             data['filter_url'] = '?' + data['filter_url']
         data['refine'] = self.getTemplateFilename('refine.tmpl')
         data['refine_error'] = None
-
-    def start_image_maps(self):
-        return {'condition': Condition(), 'counter': 0}
-
-    def finish_image_maps(self, token):
-        c = token['condition']
-        #print "Main thread waiting"
-        c.acquire()
-        while token['counter'] > 0:
-            #print "Live image generator count:", token['counter']
-            c.wait()
-        c.release()
-
-    def image_map(self, token, data, obj_name, func_name, drilldown_url, 
-                  drilldown_option):
- 
-        token['condition'].acquire()
-        try:
-            maps = data.get('maps', [])
-            data['maps'] = maps
-        finally:
-            token['condition'].release()
-        self.generate_pg_map(token, maps, getattr(self.globals[obj_name], 
-            func_name), data['query_kw'], drilldown_url, drilldown_option)
-        token['condition'].acquire() 
-        if 'image_maps' not in data:
-            data['image_maps'] = self.getTemplateFilename('image_map.tmpl')
-        token['condition'].release()
 
     def main(self, *args, **kw):
         data = dict(kw)
@@ -292,6 +117,33 @@ class Gratia(XmlConfig):
             data['title'] = "OSG Storage Main for %s" % data['name']
         else:
             data['title'] = "OSG Storage Main"
+        return data
+
+    def bysite(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = dict(kw)
+        self.user_auth(data)
+        filter_dict = {}
+
+        # Handle the refine variables
+        self.refine(data, filter_dict, dn=False, hours=False)
+        token = self.start_image_maps()
+        # Generate image maps:
+        self.image_map(token, data, 'GratiaBarQueries',
+                           'facility_transfer_rate', 'main', 'facility')
+
+        #self.image_map(token, data, 'GratiaBarQueries',
+        #                   'facility_quality', 'main', 'facility')
+
+        #self.image_map(token, data, 'GratiaBarQueries',
+        #                   'facility_transfer_volume', 'main', 'facility')
+
+        self.finish_image_maps(token)
+
+        if data['is_authenticated']:
+            data['title'] = "OSG Metrics Main By Site for %s" % data['name']
+        else:
+            data['title'] = "OSG Metrics Main By Site"
         return data
 
     def focus(self, kw, data, page, default, values):

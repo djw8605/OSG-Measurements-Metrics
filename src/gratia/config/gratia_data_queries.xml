@@ -19,6 +19,19 @@
         </results>
     </query>
 
+    <query name="vo_lookup">
+        <inputs>
+            <input name="vo" kind="sql">cms</input>
+        </inputs>
+        <sql>
+            select VO.VOName, 1 from VO join VONameCorrection on (VO.void=VONameCorrection.void) where VONameCorrection.ReportableVOName=:vo
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">            <inputs>
+                <input name="pivots"> 0 </input>
+            </inputs>
+        </results>
+    </query>
+
     <query name="vo_corrected_table">
         <sql>
             select distinct VO.VOName, 1 from VO join VONameCorrection on (VO.void = VONameCorrection.void);

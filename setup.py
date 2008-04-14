@@ -26,7 +26,7 @@ setup(name="OSG-Gratia-Viewer",
       #setup_requires=["MySQL-python>1.2.0"],
       dependency_links = ['http://effbot.org/downloads/Imaging-1.1.6.tar.gz'
                           '#egg=PIL-1.1.6'],
-      install_requires=["PIL"],
+      install_requires=["PIL","Cheetah"],
 
       entry_points={
           'console_scripts': [
@@ -37,6 +37,7 @@ setup(name="OSG-Gratia-Viewer",
               'gridscan_download = gratia.tools.gridscan_download:main',
               'static_graphs = gratia.tools.static_graphs:main',
               'site_normalization = gratia.tools.site_normalization:main',
+              'gratia_voms_query = gratia.tools.gratia_voms_query:main',
           ],
           'setuptools.installation' : [
               'eggsecutable = gratia.tools.gratia_web:main'

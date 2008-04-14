@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/reset-fonts-grids/reset-fonts-grids.css"> 
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/base/base.css"> 
+        <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/treeview/assets/skins/sam/treeview.css">
+        <script src = "http://yui.yahooapis.com/2.5.1/build/yahoo/yahoo-min.js" ></script> 
+        <script src = "http://yui.yahooapis.com/2.5.1/build/event/event-min.js" ></script>
+        <script src = "http://yui.yahooapis.com/2.5.1/build/treeview/treeview-min.js" ></script>
+        <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/treeview/assets/treeview-menu.css">
+        <style>
+            #expandcontractdiv {border:1px dotted #dedede; background-color:#EBE4F2; margin:0 0 .5em 0; padding:0.4em;}
+            #treeDiv1 { background: #fff; padding:1em; margin-top:1em; }
+        </style>
+<script type="text/javascript">
+(function() {
+	var tree; //will hold our TreeView instance
+	
+	function treeInit() {
+
+		//instantiate the tree:
+		tree = new YAHOO.widget.TreeView("treeDiv1");
+		#for viewer, pages in $navigation.items()
+                    var viewNode = new YAHOO.widget.TextNode("$viewer View", tree.getRoot(), true);
+                    #for $pagename, $url in $pages.items()
+                        var pageInfo = {label:"$pagename", href:"$url"}
+                        var pageNode = new YAHOO.widget.TextNode(pageInfo, viewNode, false);
+                    #end for
+                #end for
+		tree.draw();		
+	}
+	
+	YAHOO.util.Event.onDOMReady(treeInit);
+	
+})();
+
+</script>
+<title>$title</title>
+
+    </head>
+    <body class="yui-skin-sam">
+    <div id="doc3" class="yui-t4">
+        <div id="hd"><!-- header -->
+            <h1>Open Science Grid Metrics</h1>
+        </div>
+        <div id="bd"><!-- body -->
+            <div id="yui-main">
+                <div class="yui-b">
+                    #include $main_tmpl
+                </div>
+            </div>
+            <div class="yui-b">
+                <div id="treeDiv1"></div>
+            </div>
+        </div>  
+        <div id="ft"><!-- footer -->
+            Funding for this project provided by the Open Science Grid.  See
+            <a href="http://www.opensciencegrid.org"/>www.opensciencegrid.org</a>
+        </div>
+    </div>
+    </body>
+</html>
+

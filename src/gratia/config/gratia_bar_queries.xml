@@ -92,6 +92,30 @@
       </results>
     </query>
 
+<!--
+    <query name="facility_quality" base="GratiaGenericQuery.jobs_summary_query">
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> 
+                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+            </filler>
+        </sql>
+        <results>
+            <inputs>
+                <input name="grouping_transform">make_int</input>
+                <input name="results"> 2, 3 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"> QualityMap </attribute>
+        <attribute name="fixed-height"> False </attribute>
+        <attribute name="title"> Job Quality by Facility </attribute>
+        <attribute name="column_names"> Successful, Failed</attribute>
+        <attribute name="column_units"> Jobs, Jobs </attribute>
+        <attribute name="pivot_name">Facility</attribute>
+    </query>
+-->
+
     <query name="vo_opp_hours_bar2" base="GratiaGenericQuery.jobs_summary_query">
       <sql> 
         <filler name="group"> S.SiteName </filler>
