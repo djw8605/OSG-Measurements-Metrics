@@ -1,0 +1,35 @@
+#from urllib import quote
+#from gratia.database.query_handler import displayName
+
+<!-- Image maps -->
+#include $image_maps
+
+
+
+#if $facility == None
+
+    <p>No facility specified!  Perhaps you got here by accident?  If you would like to view the grid-wide OSG information by site, <a href="$base_url/bysite">click here</a>.</p>
+
+#else
+
+<h1>Site Information for $facility</h1>
+<h2>Computation Hours</h2>
+<p><img usemap="#vo_hours_bar_smry" src="$base_url/bar_graphs/vo_hours_bar_smry$filter_url"/></p>
+<p><img usemap="#osg_vo_hours" src="$base_url/pie_graphs/osg_vo_hours$filter_url"/></p>
+
+<h2>Job Count</h2>
+<p><img usemap="#osg_vo_count" src="$base_url/pie_graphs/osg_vo_count$filter_url"/></p>
+
+<!-- Controls for filtering sites / VOs / dates / etc -->
+#include $refine
+
+#if len($external) > 0
+    <h1> External Monitoring </h1>
+    <ul>
+        #for name, status in $external.items()
+            <li>$status[2] $name: <a href="$status[1]">$status[0]</a></li>
+        #end for
+    </ul>
+#end if
+
+#end if

@@ -24,7 +24,8 @@ class Gratia(ImageMap, Navigation):
         self.vo_opp = self.template('vo_opp.tmpl')(self.vo_opp)
         self.vo_opp2 = self.template('vo_opp2.tmpl')(self.vo_opp2)
         self.vo_exitcode = self.template('vo_exitcode.tmpl')(self.vo_exitcode)
-        self.site_owner = self.template('site.tmpl')(self.site_owner)
+        self.site_owner = self.template('site_owner.tmpl')(self.site_owner)
+        self.site = self.template('site.tmpl')(self.site)
         self.bysite = self.template('bysite.tmpl')(self.bysite)
         self.byvo = self.template('byvo.tmpl')(self.byvo)
         self._cp_config ={}
@@ -240,8 +241,8 @@ class Gratia(ImageMap, Navigation):
         # External data
         external = {}
         data['external'] = external
-        external['GridScan'] = self.fetch_gridscan(data.get('facility'))
-        external['GIP Validator'] = self.gip_validation(data['facility'])
+        external['GridScan'] = self.fetch_gridscan(data.get('facility'))[0][:2]
+        external['GIP Validator'] = self.gip_validation(data['facility'])[0][:2]
         return data
 
     def site(self, *args, **kw):
@@ -249,6 +250,10 @@ class Gratia(ImageMap, Navigation):
         data['given_kw'] = kw
         filter_dict = {}
         data['facility'] = data.get('facility', None)
+
+        # Leave early if no facility specified.
+        if data['facility'] == None:
+            return
 
         #User auth
         self.user_auth(data)
@@ -268,6 +273,7 @@ class Gratia(ImageMap, Navigation):
         data['external'] = external
         external['GridScan'] = self.fetch_gridscan(data['facility'])
         external['GIP Validator'] = self.gip_validation(data['facility'])
+        data['title'] = 'Site Information'
         return data
 
     def fetch_gridscan(self, site):
@@ -275,10 +281,15 @@ class Gratia(ImageMap, Navigation):
         in_row = False
         in_font = False
         link_re = re.compile('HREF="(.*?)"')
+        site_re2 = re.compile(site)
+        site_re = re.compile('<A HREF="(.*?)">(.*)</A>')
         link = "#"
         status = "Unknown"
+        info = []
         for line in doc.readlines():
-            if line.find(site) >= 0:
+            m = site_re.search(line)
+            if m and site_re2.search(m.groups()[1]):
+                fac = m.groups()[1]
                 in_row = True
             if not in_row:
                 continue
@@ -291,20 +302,27 @@ class Gratia(ImageMap, Navigation):
                 continue
             if in_font:
                 status = line.strip()
-                break
-        return status, "http://scan.grid.iu.edu" + link
+                info.append(status, "http://scan.grid.iu.edu" + link, fac)
+                status = "Unknown"
+        return info
 
     def gip_validation(self, site):
         doc = urllib2.urlopen('http://gip-validate.grid.iu.edu/production')
-        row_re = re.compile("<td valign='middle'>%s</td>" % site)
+        row_re = re.compile("<td valign='middle'>(.*)</td>")
+        row_re2 = re.compile(site)
         info_re = re.compile("<td height='30' bgcolor='(.*?)'><a href='(.*?)'>")
         in_row = False
         result = "Unknown"
         link = "#"
+        info = []
         for line in doc.readlines():
-            if row_re.search(line):
-                in_row = True
-                continue
+            m = row_re.search(line)
+            if m:
+                m2 = row_re2.search(m.groups()[0])
+                if m2:
+                    fac = m.groups()[0]
+                    in_row = True
+                    continue
             if in_row:
                 m = info_re.search(line)
                 if m:
@@ -317,8 +335,8 @@ class Gratia(ImageMap, Navigation):
                         result = "Not Reporting"
                     else:
                         result = "Unknown"
-                break
-        return result, "http://gip-validate.grid.iu.edu/production/" + link
+                info.append(result, "http://gip-validate.grid.iu.edu/production/" + link, fac)
+        return info
 
     def vo_owner(self, *args, **kw):
         return "We're sorry, but the VO owner page has not been written."
