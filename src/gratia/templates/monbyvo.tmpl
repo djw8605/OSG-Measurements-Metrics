@@ -1,0 +1,31 @@
+#from urllib import quote
+#from gratia.database.query_handler import displayName
+
+<!-- Image maps -->
+#include $image_maps
+
+
+    <h1>OSG Monitoring Information By VO</h1>
+
+<!-- Unauthenticated user view -->
+#if not $is_authenticated
+    <p>You are not authenticated!  In order to be able to access a broader set
+       of information, <a href="$base_server$base_url">click here</a>.
+    </p>
+#end if
+
+#if $is_authenticated
+    <p>Welcome, $name, to the OSG metrics monitoring page</p>
+    <p>For more options, refer to the menus on the right.</p>
+#end if
+
+<!-- Common, grid-wide view. -->
+
+<p><img usemap="#gip_vo" src="$base_url/gip_graphs/gip_vo$filter_url"/></p>
+<p><img usemap="#gip_vo_pie" src="$base_url/gip_graphs/gip_vo_pie$filter_url"/></p>
+<p><img usemap="#gip_vo_waiting" src="$base_url/gip_graphs/gip_vo_waiting$filter_url"/></p>
+<p><img usemap="#gip_vo_waiting_pie" src="$base_url/gip_graphs/gip_vo_waiting_pie$filter_url"/></p>
+
+<!-- Controls for filtering sites / VOs / dates / etc -->
+#include $refine
+

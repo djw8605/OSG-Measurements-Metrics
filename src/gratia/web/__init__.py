@@ -29,6 +29,8 @@ class Gratia(ImageMap, Navigation):
         self.vo = self.template('vo.tmpl')(self.vo)
         self.bysite = self.template('bysite.tmpl')(self.bysite)
         self.byvo = self.template('byvo.tmpl')(self.byvo)
+        self.monbyvo = self.template('monbyvo.tmpl')(self.monbyvo)
+        self.monbysite = self.template('monbysite.tmpl')(self.monbysite)
         self._cp_config ={}
         self.index = self.overview
 
@@ -144,9 +146,42 @@ class Gratia(ImageMap, Navigation):
         self.finish_image_maps(token)
 
         if data['is_authenticated']:
-            data['title'] = "OSG Job Accounting Information By Site for %s" % data['name']
+            data['title'] = "OSG Job Accounting Information By Site for %s" % \
+                data['name']
         else:
             data['title'] = "OSG Job Accounting Information By Site"
+        return data
+
+    def monbysite(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = dict(kw)
+        self.user_auth(data)
+        filter_dict = {}
+
+        # Handle the refine variables
+        self.refine(data, filter_dict, dn=False, hours=False)
+        token = self.start_image_maps()
+        # Generate image maps:
+        self.image_map(token, data, 'GIPQueries',
+            'gip_facility', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_facility_pie', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_free_cpu_realtime', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_free_cpus_history', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_facility_waiting', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_facility_waiting_pie', 'site', 'facility')
+
+        self.finish_image_maps(token)
+
+        if data['is_authenticated']:
+            data['title'] = "OSG Monitoring Information By Site for %s" % \
+                data['name']
+        else:
+            data['title'] = "OSG Monitoring Information By Site"
         return data
 
     def byvo(self, *args, **kw):
@@ -172,6 +207,33 @@ class Gratia(ImageMap, Navigation):
             data['title'] = "OSG Job Accounting Information By VO for %s" % data['name']
         else:
             data['title'] = "OSG Job Accounting Information By VO"
+        return data
+
+    def monbyvo(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = dict(kw)
+        self.user_auth(data)
+        filter_dict = {}
+        
+        # Handle the refine variables
+        self.refine(data, filter_dict, dn=False, hours=False)
+        token = self.start_image_maps()
+        # Generate image maps:
+        self.image_map(token, data, 'GIPQueries',
+            'gip_vo', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_vo_pie', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_vo_waiting', 'site', 'facility')
+        self.image_map(token, data, 'GIPQueries',
+            'gip_vo_waiting_pie', 'site', 'facility')
+
+        self.finish_image_maps(token)
+        if data['is_authenticated']:
+            data['title'] = "OSG Monitoring Information By VO for %s" % \
+                data['name']
+        else:
+            data['title'] = "OSG Monitoring Accounting Information By VO"
         return data
 
     def focus(self, kw, data, page, default, values):

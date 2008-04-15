@@ -20,6 +20,8 @@
 
 		//instantiate the tree:
 		tree = new YAHOO.widget.TreeView("treeDiv1");
+                var pageInfo = {label:"Home", href:"$base_url/"};
+                var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
 		#for viewer, pages in $navigation.items()
                     var viewNode = new YAHOO.widget.TextNode("$viewer View", tree.getRoot(), true);
                     #for $pagename, $url in $pages.items()

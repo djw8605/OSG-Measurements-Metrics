@@ -5,7 +5,7 @@
 #include $image_maps
 
 
-    <h1>OSG Job Accounting Information By Site</h1>
+    <h1>OSG Monitoring Information By Site</h1>
 
 <!-- Unauthenticated user view -->
 #if not $is_authenticated
@@ -21,13 +21,12 @@
 
 <!-- Common, grid-wide view. -->
 
-<h2>Computation Hours</h2>
 <p><img usemap="#gip_facility" src="$base_url/gip_graphs/gip_facility$filter_url"/></p>
 <p><img usemap="#gip_facility_pie" src="$base_url/gip_graphs/gip_facility_pie$filter_url"/></p>
+<p><img usemap="#gip_free_cpus_history" src="$base_url/gip_graphs/gip_free_cpus_history$filter_url"/></p>
 <p><img usemap="#gip_free_cpu_realtime" src="$base_url/gip_graphs/gip_free_cpu_realtime$filter_url"/></p>
-
-<h2>Job Count</h2>
-<p><img usemap="#osg_facility_count" src="$base_url/pie_graphs/osg_facility_count$filter_url"/></p>
+<p><img usemap="#gip_facility_waiting" src="$base_url/gip_graphs/gip_facility_waiting$filter_url"/></p>
+<p><img usemap="#gip_facility_waiting_pie" src="$base_url/gip_graphs/gip_facility_waiting_pie$filter_url"/></p>
 
 <!-- Controls for filtering sites / VOs / dates / etc -->
 #include $refine
