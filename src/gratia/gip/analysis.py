@@ -205,4 +205,25 @@ def correct_count(core_info, ksi2k_info, ownership, correction, duplicate):
             vo_info[vo] = old_info
     return core_count, msi2k_count, vo_info
 
+def create_site_dict(ce_entries, cp):
+    """
+    Determine site ownership of CEs.
+    """
+    # Query BDII for the cluster and site entries
+    cluster_entries = read_bdii(cp, query="(objectClass=GlueCluster)")
+    site_entries = read_bdii(cp, query="(objectClass=GlueSite)")
+    ownership = {}
+
+    # Determine the site's advertised ownership.
+    for ce in ce_entries:
+        try:
+            # First, we join the CE to the cluster:
+            cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
+            # Then, join the cluster to the site:
+            site = join_FK(cluster, site_entries, "SiteUniqueID")
+            ownership[ce.glue["CEHostingCluster"]] = site.glue["SiteName"]
+        except:
+            pass
+
+    return ownership
 

@@ -37,6 +37,7 @@ setup(name="OSG-Gratia-Viewer",
               'gridscan_download = gratia.tools.gridscan_download:main',
               'static_graphs = gratia.tools.static_graphs:main',
               'site_normalization = gratia.tools.site_normalization:main',
+              'gip_subcluster_record = gratia.tools.gip_subcluster_record:main',
               'gratia_voms_query = gratia.tools.gratia_voms_query:main',
           ],
           'setuptools.installation' : [

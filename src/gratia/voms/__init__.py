@@ -90,8 +90,8 @@ def mapVos():
         vos[vo] = vos.get(vo, Set())
         for member in members:
             if isinstance(member, User) or isinstance(member, EdgUser):
-                vos[vo].add(member.DN)
+                vos[vo].add((member.DN, member.mail))
             else:
-                vos[vo].add(member['DN'])
+                vos[vo].add((member['DN'], member['mail']))
     return vos
 

@@ -5,29 +5,7 @@ import sys
 from gratia.gip.ldap import read_bdii, config_file
 from gratia.gip.common import join_FK
 from gratia.gip.analysis import create_count_dict, sub_cluster_info, \
-    correct_sc_info
-
-def create_site_dict(ce_entries, cp):
-    """
-    Determine site ownership of CEs.
-    """
-    # Query BDII for the cluster and site entries
-    cluster_entries = read_bdii(cp, query="(objectClass=GlueCluster)")
-    site_entries = read_bdii(cp, query="(objectClass=GlueSite)")
-    ownership = {}
-
-    # Determine the site's advertised ownership.
-    for ce in ce_entries:
-        try:
-            # First, we join the CE to the cluster:
-            cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
-            # Then, join the cluster to the site:
-            site = join_FK(cluster, site_entries, "SiteUniqueID")
-            ownership[ce.glue["CEHostingCluster"]] = site.glue["SiteName"]
-        except:
-            pass
-    
-    return ownership
+    correct_sc_info, create_site_dict
 
 def main():
 

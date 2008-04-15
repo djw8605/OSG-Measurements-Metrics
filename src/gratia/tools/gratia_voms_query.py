@@ -21,7 +21,7 @@ def main():
         print "VO: %s, Gratia VO: %s" % (vo, gratia_voname)
         curs.execute("DELETE FROM VOMembers where vo=?", (vo,))
         for member in members:
-            curs.execute("INSERT INTO VOMembers VALUES (?, ?)", (vo, member))
+            curs.execute("INSERT INTO VOMembers VALUES (?, ?, ?)", (vo, member[0], member[1]))
     conn.commit()
 
 if __name__ == '__main__':
