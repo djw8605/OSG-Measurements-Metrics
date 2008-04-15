@@ -1,6 +1,7 @@
 
 import urllib
 
+from graphtool.base.xml_config import XmlConfig
 from template import Template
 from auth import Authenticate
 
@@ -61,6 +62,11 @@ class Navigation(Authenticate, Template):
             info['%s' % site] = 'site?set=%s&facility=%s' % (site, set_info)
         
     def defaultData(self, data):
+        x = XmlConfig()
+        data['vo_list'] = [i[0] for i in x.\
+            globals['GratiaDataQueries'].vo_list()[0]]
+        data['site_list'] = [i[0] for i in x.\
+            globals['GratiaDataQueries'].site_list()[0]]
         super(Navigation, self).defaultData(data)
         data['navigation'] = data.get('navigation', {})
         self.navFromRoles(data)

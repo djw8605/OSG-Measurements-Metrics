@@ -8,6 +8,20 @@
     <attribute name="display_name"> Data Queries </attribute>
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
+    <query name="site_list">
+        <sql>
+            SELECT distinct S.SiteName, 1 from Site S
+        </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+    </query>
+
+    <query name="vo_list">
+        <sql>
+            SELECT distinct VO.VOName, 1 from VO join VONameCorrection on (VO.void=VONameCorrection.void)
+        </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+    </query>
+
     <query name="vo_table">
         <sql>
             SELECT distinct VOName, 1 from VO
@@ -26,7 +40,8 @@
         <sql>
             select VO.VOName, 1 from VO join VONameCorrection on (VO.void=VONameCorrection.void) where VONameCorrection.ReportableVOName=:vo
         </sql>
-        <results module="graphtool.database.query_handler" function="complex_pivot_parser">            <inputs>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
                 <input name="pivots"> 0 </input>
             </inputs>
         </results>

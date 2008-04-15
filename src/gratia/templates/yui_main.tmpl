@@ -4,14 +4,29 @@
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/reset-fonts-grids/reset-fonts-grids.css"> 
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/base/base.css"> 
         <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/treeview/assets/skins/sam/treeview.css">
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/button/assets/skins/sam/button.css" />
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/container/assets/skins/sam/container.css" />
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/datatable/assets/skins/sam/datatable.css"> 
         <script src = "http://yui.yahooapis.com/2.5.1/build/yahoo/yahoo-min.js" ></script> 
         <script src = "http://yui.yahooapis.com/2.5.1/build/event/event-min.js" ></script>
         <script src = "http://yui.yahooapis.com/2.5.1/build/treeview/treeview-min.js" ></script>
         <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/treeview/assets/treeview-menu.css">
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/connection/connection-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/dom/dom-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/element/element-beta-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/button/button-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/dragdrop/dragdrop-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/container/container-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/element/element-beta-min.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/datasource/datasource-beta-min.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/datatable/datatable-beta-min.js"></script> 
+
         <style>
             #expandcontractdiv {border:1px dotted #dedede; background-color:#EBE4F2; margin:0 0 .5em 0; padding:0.4em;}
             #treeDiv1 { background: #fff; padding:1em; margin-top:1em; }
         </style>
+
 <script type="text/javascript">
 (function() {
 	var tree; //will hold our TreeView instance
@@ -29,11 +44,80 @@
                         var pageNode = new YAHOO.widget.TextNode(pageInfo, viewNode, false);
                     #end for
                 #end for
+                var pageInfo = {label:"WLCG Reporting", href:"$base_url/wlcg_reporting"};
+                var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
+                var viewNode = new YAHOO.widget.HTMLNode('<div><button id="show">Custom View</button></div>',
+                    tree.getRoot(), true);
 		tree.draw();		
 	}
-	
-	YAHOO.util.Event.onDOMReady(treeInit);
-	
+
+        function autoCompleteInit() {
+            var voArray = [
+                #for vo in $vo_list
+                    "$vo",
+                #end for
+            ];
+            var siteArray = [
+                #for site in $site_list
+                    "$site",
+                #end for
+            ];
+            // Instantiate JS Array DataSource
+            voDS = new YAHOO.widget.DS_JSArray(voArray);
+            siteDS = new YAHOO.widget.DS_JSArray(siteArray);
+            oAutoComp2 = new YAHOO.widget.AutoComplete('statesinput2','statescontainer2', this.oACDS2);
+            oAutoComp2.prehighlightClassName = "yui-ac-prehighlight";
+            oAutoComp2.typeAhead = true;
+            oAutoComp2.useShadow = true;
+            oAutoComp2.forceSelection = true;
+            oAutoComp2.formatResult = function(oResultItem, sQuery) {
+            var sMarkup = oResultItem[0] + " (" + oResultItem[1] + ")";
+                return (sMarkup);
+            };
+        }
+
+YAHOO.namespace("gratia.customize");
+
+function dialogInit() {
+        
+        // Define various event handlers for Dialog
+        var handleSubmit = function() {
+                this.submit();
+        };
+        var handleCancel = function() {
+                this.cancel();
+        };
+        var handleFailure = function(o) {
+                alert("Submission failed: " + o.status);
+        };
+        var handleSuccess = function(o) {
+        };
+
+        // Instantiate the Dialog
+        YAHOO.gratia.customize.dialog1 = new YAHOO.widget.Dialog("dialog1", 
+                                                        { width : "30em",
+                                                          fixedcenter : true,
+                                                          visible : false, 
+                                                          constraintoviewport : true,
+                                                          buttons : [ { text:"Submit", handler:handleSubmit, isDefault:true },
+                                                                      { text:"Cancel", handler:handleCancel } ]
+                                                        });
+
+        // Wire up the success and failure handlers
+        YAHOO.gratia.customize.dialog1.callback = { 
+                                                     failure: handleFailure };
+        
+        // Render the Dialog
+        YAHOO.gratia.customize.dialog1.render();
+        YAHOO.util.Event.addListener("show", "click", YAHOO.gratia.customize.dialog1.show, YAHOO.gratia.customize.dialog1, true);
+}
+
+        function allInit() {
+            treeInit();
+            dialogInit();
+        }
+
+	YAHOO.util.Event.onDOMReady(allInit);
 })();
 
 </script>
@@ -53,13 +137,32 @@
             </div>
             <div class="yui-b">
                 <h2>Navigation</h2>
-                <div id="treeDiv1"></div>
+                <div id="treeDiv1"></div> 
             </div>
         </div>  
         <div id="ft"><!-- footer -->
             <img src="http://www.opensciencegrid.org/tmpl_images/template_21.gif" style="margin: 0px 10px 0px 0px;" width="84" height="40" alt="" usemap="#template_21167c2a2" align="left" border="0" /><map name="template_21167c2a2" id="template_21167c2a2"><area shape="rect" coords="40,8,76,34" href="http://www.sc.doe.gov/" alt="" target="_blank"></area><area shape="rect" coords="3,5,31,34" href="http://www.nsf.gov/" alt="" target="_blank"></area></map>Supported by the National Science Foundation and the U.S. Department of Energy's Office of Science</td>
         </div>
     </div>
+
+<div id="dialog1">
+<div class="hd">Custom Gratia Query</div>
+<div class="bd">
+    <form method="GET" action="$base_url/bysite">
+	<label for="facility">Site Filter:</label><input type="textbox" name="facility" />
+        <div class="clear"></div>
+	<label for="vo">VO Filter:</label><input type="textbox" name="vo" />
+        <div class="clear"></div>
+	<label for="grouping">Grouping:</label>
+	<input type="radio" name="grouping[]" value="site" checked/> By Site
+	<input type="radio" name="grouping[]" value="vo" /> By VO
+	
+	<div class="clear"></div>
+
+    </form>
+</div>
+</div>
+
     </body>
 </html>
 

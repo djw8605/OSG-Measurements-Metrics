@@ -5,6 +5,8 @@ import urllib2
 import re
 import sys
 import types
+import calendar
+import datetime
 
 import cherrypy
 from xml.dom.minidom import parse
@@ -31,6 +33,7 @@ class Gratia(ImageMap, Navigation):
         self.byvo = self.template('byvo.tmpl')(self.byvo)
         self.monbyvo = self.template('monbyvo.tmpl')(self.monbyvo)
         self.monbysite = self.template('monbysite.tmpl')(self.monbysite)
+        self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(self.apel_data)
         self._cp_config ={}
         self.index = self.overview
 
@@ -575,5 +578,44 @@ class Gratia(ImageMap, Navigation):
         data['vos'] = vos
         data['current_vo'] = kw.get('vo', None)
         data['static_url'] = self.metadata.get('static_url', '/store/gratia')
+        return data
+
+    def apel_data(self, year=datetime.datetime.now().year, month=datetime.datetime.now().month, **kw):
+        data = dict(kw)
+        self.user_auth(data)
+        year = int(year)
+        month = int(month)
+        apel_url = self.metadata.get('apel_url', 'http://home.fnal.gov/~weigand/apel-wlcg/apel-wlcg-%i%02i.xml' % (year, month))
+        try:
+            xmldoc = urllib2.urlopen(apel_url)
+            data['error'] = False
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception, e:
+            print >> sys.stderr, "Exception occurred while APEL data: %s" % str(e)
+            data['title'] = "WLCG Reporting Info Error."
+            data['error'] = True
+            data['error_message'] = 'An error occurred when retrieving the data.'
+            return data
+        dom = parse(xmldoc)
+        apel_data = []
+        data['apel'] = apel_data
+        report_time = None
+        for rowDom in dom.getElementsByTagName('row'):
+            info = {}
+            for field in rowDom.getElementsByTagName('field'):
+                name = str(field.getAttribute('name'))
+                if len(name) == 0:
+                    continue
+                val = str(field.firstChild.data)
+                info[name] = val
+                if name == 'MeasurementDate' and report_time == None:
+                    report_time = val
+            apel_data.append(info)
+        data['year'] = year
+        data['month'] = month
+        data['month_name'] = calendar.month_name[month]
+        data['report_time'] = report_time
+        data['title'] = "Reported WLCG data for %i-%i" % (year, month)
         return data
 
