@@ -16,6 +16,20 @@ my_data = {
         //{Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: '$row.Njobs', SumCPU: '$row.SumCPU', NormSumCPU: '$row.NormSumCPU', SumWCT: '$row.SumWCT', NormSumWCT: '$row.NormSumWCT', Start: new Date("$row.RecordStart"), End: new Date("$row.RecordEnd"), Norm: '$row.NormFactor'},
         {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor},
     #end for
+  ],
+
+  gip: [
+    #for key in sorted($subclusters.keys(), $getVar('key_sorter', '', False))
+        #set val=$subclusters[key]
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: '$int($val[2])', SI2K: $val[3], Ownership: '$val[4]'},
+    #end for
+  ],
+
+  sitenorm: [
+    #for key in sorted($site_norm.keys(), $getVar('key_sorter', '', False))
+        #set val=$site_norm[key]
+        {Site: '$key', GIPNorm: $val[0], WLCGNorm: $val[1], Diff: $val[2]},
+    #end for
   ]
 };
 
@@ -25,8 +39,8 @@ my_data = {
 (function(){var A=YAHOO.util,B=YAHOO.env.ua,E=A.Event,C=A.Dom,D=YAHOO.widget.DataTable;D.prototype._initTheadEls=function(){var X,V,T,Z,I,M;if(!this._elThead){Z=this._elThead=document.createElement("thead");I=this._elA11yThead=document.createElement("thead");M=[Z,I];E.addListener(Z,"focus",this._onTheadFocus,this);E.addListener(Z,"keydown",this._onTheadKeydown,this);E.addListener(Z,"mouseover",this._onTableMouseover,this);E.addListener(Z,"mouseout",this._onTableMouseout,this);E.addListener(Z,"mousedown",this._onTableMousedown,this);E.addListener(Z,"mouseup",this._onTableMouseup,this);E.addListener(Z,"click",this._onTheadClick,this);E.addListener(Z.parentNode,"dblclick",this._onTableDblclick,this);this._elTheadContainer.firstChild.appendChild(I);this._elTbodyContainer.firstChild.appendChild(Z)}else{Z=this._elThead;I=this._elA11yThead;M=[Z,I];for(X=0;X<M.length;X++){for(V=M[X].rows.length-1;V>-1;V--){E.purgeElement(M[X].rows[V],true);M[X].removeChild(M[X].rows[V])}}}var N,d=this._oColumnSet;var H=d.tree;var L,P;for(T=0;T<M.length;T++){for(X=0;X<H.length;X++){var U=M[T].appendChild(document.createElement("tr"));P=(T===1)?this._sId+"-hdrow"+X+"-a11y":this._sId+"-hdrow"+X;U.id=P;for(V=0;V<H[X].length;V++){N=H[X][V];L=U.appendChild(document.createElement("th"));if(T===0){N._elTh=L}P=(T===1)?this._sId+"-th"+N.getId()+"-a11y":this._sId+"-th"+N.getId();L.id=P;L.yuiCellIndex=V;this._initThEl(L,N,X,V,(T===1))}if(T===0){if(X===0){C.addClass(U,D.CLASS_FIRST)}if(X===(H.length-1)){C.addClass(U,D.CLASS_LAST)}}}if(T===0){var R=d.headers[0];var J=d.headers[d.headers.length-1];for(X=0;X<R.length;X++){C.addClass(C.get(this._sId+"-th"+R[X]),D.CLASS_FIRST)}for(X=0;X<J.length;X++){C.addClass(C.get(this._sId+"-th"+J[X]),D.CLASS_LAST)}var Q=(A.DD)?true:false;var c=false;if(this._oConfigs.draggableColumns){for(X=0;X<this._oColumnSet.tree[0].length;X++){N=this._oColumnSet.tree[0][X];if(Q){L=N.getThEl();C.addClass(L,D.CLASS_DRAGGABLE);var O=D._initColumnDragTargetEl();N._dd=new YAHOO.widget.ColumnDD(this,N,L,O)}else{c=true}}}for(X=0;X<this._oColumnSet.keys.length;X++){N=this._oColumnSet.keys[X];if(N.resizeable){if(Q){L=N.getThEl();C.addClass(L,D.CLASS_RESIZEABLE);var G=L.firstChild;var F=G.appendChild(document.createElement("div"));F.id=this._sId+"-colresizer"+N.getId();N._elResizer=F;C.addClass(F,D.CLASS_RESIZER);var e=D._initColumnResizerProxyEl();N._ddResizer=new YAHOO.util.ColumnResizer(this,N,L,F.id,e);var W=function(f){E.stopPropagation(f)};E.addListener(F,"click",W)}else{c=true}}}if(c){}}else{}}for(var a=0,Y=this._oColumnSet.keys.length;a<Y;a++){if(this._oColumnSet.keys[a].hidden){var b=this._oColumnSet.keys[a];var S=b.getThEl();b._nLastWidth=S.offsetWidth-(parseInt(C.getStyle(S,"paddingLeft"),10)|0)-(parseInt(C.getStyle(S,"paddingRight"),10)|0);this._setColumnWidth(b.getKeyIndex(),"1px")}}if(B.webkit&&B.webkit<420){var K=this;setTimeout(function(){K._elThead.style.display=""},0);this._elThead.style.display="none"}}})();
 
 YAHOO.util.Event.addListener(window, "load", function() {
-    YAHOO.example.Basic = new function() {
-        var myColumnDefs = [
+    fcn = new function() {
+        var wlcgColumnDefs = [
             {key:"Site", sortable:true, resizeable:true},
             {key:"VO", sortable:true, resizeable:true},
             {key:"Njobs", label:"Number of Jobs", sortable:true, resizeable:true},
@@ -36,19 +50,55 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true},
             {key:"Start", label:"Start Date", sortable:true, resizeable:true},
             {key:"End", label:"End Date", sortable:true, resizeable:true},
-            //{key:"Start", label:"Interval Start Date", formatter:YAHOO.widget.DataTable.formatDate, sortable:true, sortOptions:{defaultDir:YAHOO.widget.DataTable.CLASS_DESC},resizeable:true},
-            //{key:"End", label:"Interval End Date", formatter:YAHOO.widget.DataTable.formatDate, sortable:true, sortOptions:{defaultDir:YAHOO.widget.DataTable.CLASS_DESC},resizeable:true},
             {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true},
         ];
 
-        this.myDataSource = new YAHOO.util.DataSource(my_data.apel);
-        this.myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        this.myDataSource.responseSchema = {
+        var gipColumnDefs = [
+            {key:"Site", sortable:true, resizeable:true},
+            {key:"Subcluster", sortable:true, resizeable:true},
+            {key:"Processor", label:"Processor Model", sortable:true, resizeable:true},
+            {key:"SI2K", label:"SI2K Score", sortable:true, resizeable:true},
+            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true},
+        ];
+
+        perc_formatter = function(elCell, oRecord, oColumn, oData) { 
+            var perc = oData; 
+            elCell.innerHTML = perc + "%";
+        }; 
+ 
+        var sitenormColumnDefs = [
+            {key:"Site", sortable:true, resizeable:true},
+            {key:"GIPNorm", label:"Normalization Calculated by the GIP", sortable:true, resizeable:true},
+            {key:"WLCGNorm", label:"Normalization Reported to WLCG", sortable:true, resizeable:true},
+            {key:"Diff", label:"GIP Percent Difference", sortable:true, resizeable:true, formatter:perc_formatter},
+        ];
+
+        this.wlcgDataSource = new YAHOO.util.DataSource(my_data.apel);
+        this.wlcgDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.wlcgDataSource.responseSchema = {
             fields: ["Site", "VO", "Njobs", "SumCPU", "NormSumCPU", "SumWCT", "NormSumWCT", "Start", "End", "Norm"]
         };
 
-        this.myDataTable = new YAHOO.widget.DataTable("basic",
-                myColumnDefs, this.myDataSource, {});
+        this.gipDataSource = new YAHOO.util.DataSource(my_data.gip);
+        this.gipDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.gipDataSource.responseSchema = {
+            fields: ["Site", "Cluster", "Subcluster", "Timestamp", "Processor", "Cores", "SI2K", "Ownership"]
+        };
+
+        this.sitenormDataSource = new YAHOO.util.DataSource(my_data.sitenorm);
+        this.sitenormDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.sitenormDataSource.responseSchema = {
+            fields: ["Site", "GIPNorm", "WLCGNorm", "Diff"]
+        };
+
+        this.myDataTable = new YAHOO.widget.DataTable("wlcg",
+                wlcgColumnDefs, this.wlcgDataSource, {sortedBy:{key:"Site"}});
+
+        this.myDataTable = new YAHOO.widget.DataTable("gip",
+                gipColumnDefs, this.gipDataSource, {sortedBy:{key:"Site"}});
+
+        this.myDataTable = new YAHOO.widget.DataTable("sitenorm",
+                sitenormColumnDefs, this.sitenormDataSource, {sortedBy:{key:"Site"}});
     };
 });
 
@@ -84,11 +134,10 @@ YAHOO.util.Event.addListener(window, "load", function() {
 <br/>
 
 <p>This data was reported at $report_time</p>
+<p>(Note: Click on the column headers to sort the table by that column.)</p>
+<div id="wlcg"></div> 
 
-<div id="basic"></div> 
-
-<!--
-<h1>Normalization Factor calculation.</h1>
+<h1>GIP Subcluster Information</h1>
 
 <p>In order to generate an accurate normalization factor, the site must 
    advertise the make-up of each cluster using the GIP.  Each cluster is 
@@ -105,15 +154,21 @@ YAHOO.util.Event.addListener(window, "load", function() {
    The normalization factor is the average SI2K score, weighted by number of
    cores, then divided by 1000.
 </p>
-<p>The table below shows the GIP-recorded subcluster information for each site
+<p>The table below shows the GIP-recorded subcluster information for each site.
 </p>
+#if $gip_report_time
+<p>This data was reported at $gip_report_time.</p>
+#end if
+<div id="gip"></div>
 
-<p>The table below shows the GIP-based normalization constant, the normalization
-   constant reported to the WLCG, and the percent difference.  Nominally, all
-   WLCG sites should focus on switching to the GIP-based normalization constant
-   from the manually-update one.
+<h1>Site Normalization Calculation</h1>
+<p>The table below shows the calculated normalization constant (using the above
+   table), the normalization constant reported to the WLCG, and the percent
+   difference.  Nominally, all WLCG sites should focus on switching to the 
+   GIP-based normalization constant from the manually-update one.
 </p>
--->
+<div id="sitenorm"></div>
+
 
 #end if
 

@@ -52,11 +52,12 @@ def main():
             own = ownership[cluster]
             own_str = ''
             for entry in own:
-                own_str += '%s:%s%%' % entry
+                own_str += '%s:%s%%,' % entry
             curs.execute("INSERT INTO subcluster_score VALUES (%s, %s, %s, " \
-                "%s, %s, %s, %s)", (now, site, cluster, \
+                "%s, %s, %s, %s, %s)", (now, site, cluster, \
                 sc.glue["SubClusterUniqueID"],
-                sc.glue["SubClusterLogicalCPUs"], cpu_si2k, own_str))
+                sc.glue["SubClusterLogicalCPUs"], cpu_si2k, own_str, \
+                sc.glue["HostProcessorModel"]))
     conn.commit()
         
 if __name__ == '__main__':

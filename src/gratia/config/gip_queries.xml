@@ -17,6 +17,42 @@
       <connection> gip </connection>
     </aggregate>
 
+    <query name="subcluster_latest">
+        <sql>
+            SELECT site, cluster, subcluster, timestamp, proc, ncores, si2k_score, ownership
+            FROM subcluster_score
+            WHERE timestamp=(select max(timestamp) from subcluster_score)
+        </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots"> 0, 1, 2 </input>
+                <input name="results"> 3, 4, 5, 6, 7 </input>
+            </inputs>
+        </results>
+    </query>
+
+    <query name="subcluster">
+        <inputs>
+            <input name="timestamp" type="datetime" kind="sql">time.time()</input>
+        </inputs>
+        <sql>
+            SELECT site, cluster, subcluster, timestamp, proc, ncores, si2k_score, ownership
+            FROM subcluster_score
+            WHERE timestamp=:timestamp
+        </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots"> 0, 1, 2 </input>
+                <input name="results"> 3, 4, 5, 6, 7 </input>
+            </inputs>
+        </results>
+    </query>
+
+    <query name="subcluster_times">
+        <sql> SELECT distinct timestamp, 1 from subcluster_score </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+    </query>
+
     <query name="gip_vo_pie">
       <inputs>
         <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
