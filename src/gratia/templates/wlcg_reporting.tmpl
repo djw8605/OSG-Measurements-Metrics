@@ -87,4 +87,33 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
 <div id="basic"></div> 
 
+<!--
+<h1>Normalization Factor calculation.</h1>
+
+<p>In order to generate an accurate normalization factor, the site must 
+   advertise the make-up of each cluster using the GIP.  Each cluster is 
+   divided into heterogeneous (in terms of CPU model) subclusters.  When the
+   GIP configuration is run, the site admin specifies, for each subcluster:
+   <ul>
+      <li>Subcluster name (must be unique)</li>
+      <li>CPU Processor model</li>
+      <li>Number of cores per subcluster</li>
+      <li>(Optional override using alter-attributes.conf) The SI2K score per
+          core.
+      </li>
+   </ul>
+   The normalization factor is the average SI2K score, weighted by number of
+   cores, then divided by 1000.
+</p>
+<p>The table below shows the GIP-recorded subcluster information for each site
+</p>
+
+<p>The table below shows the GIP-based normalization constant, the normalization
+   constant reported to the WLCG, and the percent difference.  Nominally, all
+   WLCG sites should focus on switching to the GIP-based normalization constant
+   from the manually-update one.
+</p>
+-->
+
 #end if
+
