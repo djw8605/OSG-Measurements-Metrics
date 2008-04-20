@@ -47,6 +47,7 @@ def main():
             if int(sc.glue["HostBenchmarkSI00"]) != 400:
                 cpu_si2k = int(sc.glue["HostBenchmarkSI00"])
             if cluster not in site_ownership:
+                print >> sys.stderr, "Problem with %s site ownership; skipping." % cluster
                 continue
             site = site_ownership[cluster]
             own = ownership[cluster]
@@ -58,6 +59,7 @@ def main():
                 sc.glue["SubClusterUniqueID"],
                 sc.glue["SubClusterLogicalCPUs"], cpu_si2k, own_str, \
                 sc.glue["HostProcessorModel"]))
+            print >> sys.stderr, "Successfully inserted subcluster for site %s" % site
     conn.commit()
         
 if __name__ == '__main__':

@@ -63,9 +63,9 @@ class Navigation(Authenticate, Template):
         
     def defaultData(self, data):
         x = XmlConfig()
-        data['vo_list'] = [i[0] for i in x.\
+        data['vo_list'] = [i for i in x.\
             globals['GratiaDataQueries'].vo_list()[0]]
-        data['site_list'] = [i[0] for i in x.\
+        data['site_list'] = [i for i in x.\
             globals['GratiaDataQueries'].site_list()[0]]
         super(Navigation, self).defaultData(data)
         data['navigation'] = data.get('navigation', {})

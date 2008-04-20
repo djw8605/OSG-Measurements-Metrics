@@ -1,13 +1,20 @@
 
-#if $error
+<h1>Query interface for Grid Users</h1>
 
-  <p>We're sorry, but an error occurred while collecting the data for the page.
-     Please try again at a later time.
-  </p>
+<form action="$base_url/email_query" method="get">
+<label for="dn">User's Distinguished Name</label><input type="text" name="dn"/>
+<input type="submit"/>
+</form>
+<br/>
+
+#if not $is_query
+
+<p>Please use the above form to query for a specific user.</p>
 
 #else
 
-<h1>Data reported to the WLCG for $month_name, $year</h1>
+<p>Below are the results for query "$dn"</p>
+
 
 <script>
 my_data = {
@@ -166,99 +173,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
 </script>
 
-<div>
-<form action="$base_url/wlcg_reporting" method="get">
-<p>Select a different month's data:</p>
-<p><label for="year">Year:</label>
-<select name="year">
-    #for i in range(2007, $year+1)
-        #if $i == $year
-            <option selected value="$i">$i</option>
-        #else
-            <option value="$i">$i</option>
-        #end if
-    #end for
-</select>
-<label for="month">Month:</label>
-<select name="month">
-    #for i in range(1,13)
-        #if $i == $month
-            <option selected value="$i">$i</option>
-        #else
-            <option value="$i">$i</option>
-        #end if
-    #end for
-</select>
-<input type="submit" value="Go!">
-</p>
-</form>
-</div>
-<br/>
-
-<p>This data was reported at $report_time</p>
-<p>(Note: Click on the column headers to sort the table by that column.)</p>
-<div id="wlcg"></div> 
-<br/>
-<hr/>
-
-<h1>WLCG Pledge Information</h1>
-<p>Each WLCG site has pledged a certain amount of kSI2K for their site; in this section, we compare the amount of pledged KSI2K hours to this month's accounting data.  The accounting data is measured in KSI2K-hours, which is the number of hours recorded by the accounting system multiplied by the site normalization factor (shown above).  Each WLCG site should attempt to hit this month's goal, which is the KSI2K pledge amount times the number of hours in the month times an efficiency factor.  The efficiency factor is currently 60%.
-  The table below shows:
-<ul>
-  <li><strong>2007 KSI2K Pledge:</strong> 2007 KSI2K pledge in the WLCG MoU</li>
-  <li><strong>Month goal of KSI2K-hours:</strong> The corresponding number of KSI2K hours which should be achieved this month (assumes an efficiency of 60% from the pledged amount) </li>
-  <li><strong>KSI2K-hours for owner VO</strong> The number of KSI2K-hours contributed to the VO which owns the site.</li>
-  <li><strong>KSI2K-hours for WLCG</strong> The number of KSI2K-hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
-  <li><strong>KSI2K-hours for all VOs</strong> The number of KSI2K-hours contributed to all VOs.</li>
-  <li><strong>Percent of WLCG goal</strong> The percentage of the goal delivered this month.  This is computed by (<strong>KSI2K-hours for WLCG</strong>)/(<strong>monthly goal</strong>). </li>
-  <li><strong>Percent non-WLCG</strong> The percentage of the KSI2K-hours delivered to non-WLCG VOs out of the site's total for this month</li>
-</ul>
-Please note that the mapping from OSG site to WLCG site is not one-to-one.
-Sometimes, several OSG sites put together compose a single WLCG site.  Further,
- the WLCG names are not the same as the OSG name.  For example, Nebraska is 
-known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
-</p>
-<h2>ATLAS Sites</h2>
-<div id="atlas"></div>
-<h2>CMS Sites</h2>
-<div id="cms"></div>
-
-<br/>
-<hr/>
-<h1>GIP Subcluster Information</h1>
-
-<p>In order to generate an accurate normalization factor, the site must 
-   advertise the make-up of each cluster using the GIP.  Each cluster is 
-   divided into heterogeneous (in terms of CPU model) subclusters.  When the
-   GIP configuration is run, the site admin specifies, for each subcluster:
-   <ul>
-      <li>Subcluster name (must be unique)</li>
-      <li>CPU Processor model</li>
-      <li>Number of cores per subcluster</li>
-      <li>(Optional override using alter-attributes.conf) The SI2K score per
-          core.
-      </li>
-   </ul>
-   The normalization factor is the average SI2K score, weighted by number of
-   cores, then divided by 1000.
-</p>
-<p>The table below shows the GIP-recorded subcluster information for each site.
-</p>
-#if $gip_report_time
-<p>This data was reported at $gip_report_time.</p>
-#end if
-<div id="gip"></div>
-
-<br/>
-<hr/>
-<h1>Site Normalization Calculation</h1>
-<p>The table below shows the calculated normalization constant (using the above
-   table), the normalization constant reported to the WLCG, and the percent
-   difference.  Nominally, all WLCG sites should focus on switching to the 
-   GIP-based normalization constant from the manually-update one.
-</p>
-<div id="sitenorm"></div>
-
+<div id="results"></div> 
 
 #end if
 
