@@ -1,63 +1,31 @@
 
 <h1>Query interface for Grid Users</h1>
 
-<form action="$base_url/email_query" method="get">
-<label for="dn">User's Distinguished Name</label><input type="text" name="dn"/>
+#if not $is_authenticated or not $is_vo_member
+
+<p>We're sorry, but you must be authenticated and a member of a VO to view this page.</p>
+
+#else if not $is_query
+
+<form action="$base_url/email_lookup" method="get">
+<label for="dn">User's Distinguished Name: </label><input type="text" name="dn"/>
 <input type="submit"/>
 </form>
 <br/>
-
-#if not $is_query
 
 <p>Please use the above form to query for a specific user.</p>
 
 #else
 
-<p>Below are the results for query "$dn"</p>
-
+<p>Below are the results for query "$query_dn"</p>
 
 <script>
 my_data = {
-  apel: [
-    #for row in $apel
-        {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor},
+  user: [
+    #for key, val in $results.items()
+        {Name: "$displayName($key[0])", DN: "$key[0]", VO: "$key[1]", Email: '$val'},
     #end for
   ],
-
-  gip: [
-    #for key in sorted($subclusters.keys(), $getVar('key_sorter', '', False))
-        #set val=$subclusters[key]
-        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), SI2K: $val[3], Ownership: '$val[4]'},
-    #end for
-  ],
-
-  sitenorm: [
-    #for key in sorted($site_norm.keys(), $getVar('key_sorter', '', False))
-        #set val=$site_norm[key]
-        {Site: '$key', GIPNorm: $val[0], WLCGNorm: $val[1], Diff: $val[2]},
-    #end for
-  ],
-
-  cms_pledge: [
-    #for key in sorted($pledge['cms'].keys(), $getVar('key_sorter', '', False))
-        #set val=$pledge['cms'][key]
-        #set goal=int(float($val.pledge07)*$val.efficiency*$val.days_in_month*24)
-        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
-        #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge07, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
-    #end for
-  ],
-
-  atlas_pledge: [
-    #for key in sorted($pledge['atlas'].keys(), $getVar('key_sorter', '', False))
-        #set val=$pledge['atlas'][key]
-        #set goal=int(float($val.pledge07)*$val.efficiency*$val.days_in_month*24)
-        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
-        #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge07, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
-    #end for
-  ],
-
 
 };
 
@@ -68,105 +36,21 @@ my_data = {
 
 YAHOO.util.Event.addListener(window, "load", function() {
     fcn = new function() {
-        var wlcgColumnDefs = [
-            {key:"Site", sortable:true, resizeable:true},
-            {key:"VO", sortable:true, resizeable:true},
-            {key:"Njobs", label:"Number of Jobs", sortable:true, resizeable:true},
-            //{key:"SumCPU", label:"CPU Hours", sortable:true, resizeable:true},
-            //{key:"NormSumCPU", label:"Normalized CPU Hours", sortable:true, resizeable:true},
-            {key:"SumWCT", label:"Wall Hours", sortable:true, resizeable:true},
-            {key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true},
-            {key:"Start", label:"Start Date", sortable:true, resizeable:true},
-            {key:"End", label:"End Date", sortable:true, resizeable:true},
-            {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true},
+        var userColumnDefs = [
+            {key:"Name", label:"User name", sortable:true, resizeable:true},
+            {key:"DN", label:"Distinguished Name", sortable:true, resizeable:true},
+            {key:"VO", label:"Virtual Organization", sortable:true, resizeable:true},
+            {key:"Email", label:"Email", sortable:true, resizeable:true},
         ];
 
-        var gipColumnDefs = [
-            {key:"Site", sortable:true, resizeable:true},
-            {key:"Subcluster", sortable:true, resizeable:true},
-            {key:"Processor", label:"Processor Model", sortable:true, resizeable:true},
-            {key:"SI2K", label:"SI2K Score", sortable:true, resizeable:true},
-            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true},
-        ];
-
-        perc_formatter = function(elCell, oRecord, oColumn, oData) { 
-            var perc = oData; 
-            elCell.innerHTML = perc + "%";
-        }; 
- 
-        var sitenormColumnDefs = [
-            {key:"Site", sortable:true, resizeable:true},
-            {key:"GIPNorm", label:"Normalization Calculated by the GIP", sortable:true, resizeable:true},
-            {key:"WLCGNorm", label:"Normalization Reported to WLCG", sortable:true, resizeable:true},
-            {key:"Diff", label:"GIP Percent Difference", sortable:true, resizeable:true, formatter:perc_formatter},
-        ];
-
-        var cmsColumnDefs = [
-            {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"2007 KSI2K Pledge", sortable:true, resizeable:true},
-            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
-            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
-            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", labelsortable:true, resizeable:true},
-            {key:"delivered", label:"Percent of WLCG goal ", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter},
-        ];
-
-        var atlasColumnDefs = [
-            {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"2007 KSI2K Pledge", sortable:true, resizeable:true},
-            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
-            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
-            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", labelsortable:true, resizeable:true},
-            {key:"delivered", label:"Percent of WLCG goal", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter},
-        ];
-
-        this.wlcgDataSource = new YAHOO.util.DataSource(my_data.apel);
-        this.wlcgDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        this.wlcgDataSource.responseSchema = {
-            fields: ["Site", "VO", "Njobs", "SumCPU", "NormSumCPU", "SumWCT", "NormSumWCT", "Start", "End", "Norm"]
+        this.userDataSource = new YAHOO.util.DataSource(my_data.user);
+        this.userDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.userDataSource.responseSchema = {
+            fields: ["Name", "DN", "VO", "Email"],
         };
 
-        this.gipDataSource = new YAHOO.util.DataSource(my_data.gip);
-        this.gipDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        this.gipDataSource.responseSchema = {
-            fields: ["Site", "Cluster", "Subcluster", "Timestamp", "Processor", "Cores", "SI2K", "Ownership"]
-        };
-
-        this.sitenormDataSource = new YAHOO.util.DataSource(my_data.sitenorm);
-        this.sitenormDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        this.sitenormDataSource.responseSchema = {
-            fields: ["Site", "GIPNorm", "WLCGNorm", "Diff"]
-        };
-
-        this.atlasDataSource = new YAHOO.util.DataSource(my_data.atlas_pledge);
-        this.atlasDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        this.atlasDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
-        };
-
-        this.cmsDataSource = new YAHOO.util.DataSource(my_data.cms_pledge);
-        this.cmsDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        this.cmsDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
-        };
-
-        this.myDataTable = new YAHOO.widget.DataTable("wlcg",
-                wlcgColumnDefs, this.wlcgDataSource, {sortedBy:{key:"Site"}});
-
-        this.myDataTable = new YAHOO.widget.DataTable("gip",
-                gipColumnDefs, this.gipDataSource, {sortedBy:{key:"Site"}});
-
-        this.myDataTable = new YAHOO.widget.DataTable("sitenorm",
-                sitenormColumnDefs, this.sitenormDataSource, {sortedBy:{key:"Site"}});
-
-        this.myDataTable = new YAHOO.widget.DataTable("cms",
-                cmsColumnDefs, this.cmsDataSource, {sortedBy:{key:"WLCGSite"}});
-
-        this.myDataTable = new YAHOO.widget.DataTable("atlas",
-                atlasColumnDefs, this.atlasDataSource, {sortedBy:{key:"WLCGSite"}});
+        this.myDataTable = new YAHOO.widget.DataTable("results",
+                userColumnDefs, this.userDataSource, {});
 
     };
 });
@@ -174,6 +58,12 @@ YAHOO.util.Event.addListener(window, "load", function() {
 </script>
 
 <div id="results"></div> 
+<br />
+<form action="$base_url/email_lookup" method="get">
+<label for="dn">User's Distinguished Name: </label><input type="text" name="dn"/>
+<input type="submit"/>
+</form>
+<br/>
 
 #end if
 

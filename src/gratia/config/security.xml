@@ -30,12 +30,12 @@
                 <input name="dn" kind="sql"> Unknown </input>
             </inputs>
             <sql>
-                SELECT dn, mail, vo
+                SELECT dn, vo, mail
                 FROM VOMembers
-                WHERE regexp_like(dn, :dn)
+                WHERE dn regexp :dn
             </sql>
             <results module="graphtool.database.query_handler" function="simple_results_parser">
-                <inputs><input name="pivots">0, 1</input> <input name="results">2</input></inputs>
+                <inputs><input name="pivots">0, 1 </input> <input name="results">2</input></inputs>
             </results>
         </query>
 

@@ -35,6 +35,7 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
         self.monbyvo = self.template('monbyvo.tmpl')(self.monbyvo)
         self.monbysite = self.template('monbysite.tmpl')(self.monbysite)
         self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(self.apel_data)
+        self.email_lookup = self.template('email_lookup.tmpl')(self.email_lookup)
         self._cp_config ={}
         self.index = self.overview
 
@@ -583,7 +584,9 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
 
     def email_lookup(self, **kw):
         data = dict(kw)
+        data['title'] = "User email lookup"
         dn = data.get('dn', None)
+        data['query_dn'] = dn
         self.user_auth(data)
         self.user_roles(data)
         if dn == None:
@@ -591,5 +594,6 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
         else:
             data['is_query'] = True
             data['results'] = self.globals['GratiaSecurity'].email_lookup(dn=dn)[0]
+            data['displayName'] = displayName
         return data
 
