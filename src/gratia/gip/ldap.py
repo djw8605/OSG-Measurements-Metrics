@@ -15,6 +15,8 @@ def config_file(*additional_files):
     p = optparse.OptionParser()
     p.add_option('-c', '--config', dest='config', help='Configuration file.',
         default="")
+    p.add_option('-e', '--endpoint', dest='endpoint', default='', help='BDII' \
+        ' endpoint.')
     (options, args) = p.parse_args()
     cp = ConfigParser.ConfigParser()
     files = additional_files + [i.strip() for i in options.config.split(',')]
@@ -25,6 +27,10 @@ def config_file(*additional_files):
         pass
     files = [os.path.expandvars(i) for i in files]
     cp.read(files)
+    if len(options.endpoint) > 0:
+        #print "Old   endpoint", cp.get('bdii', 'endpoint')
+        cp.set("bdii", "endpoint", options.endpoint)
+    #print 'Using endpoint', cp.get('bdii', 'endpoint')
     return cp
 
 class LdapData:
@@ -79,6 +85,7 @@ def read_ldap(fp):
                 buffer += line
             else:
                 buffer += '\n' + line
+    #print "Number of LDAP entries", len(entries)
     return entries
 
 def query_bdii(cp, query="(objectClass=GlueCE)", binding="o=grid"):
@@ -91,6 +98,7 @@ def query_bdii(cp, query="(objectClass=GlueCE)", binding="o=grid"):
     info['hostname'], info['port'] = m.groups()
     info['query'] = query
     info["binding"] = binding
+    #print info
     fp = os.popen('ldapsearch -h %(hostname)s -p %(port)s -xLLL '
         "-b %(binding)s '%(query)s'" % info)
     return fp

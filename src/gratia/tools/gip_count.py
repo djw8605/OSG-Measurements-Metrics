@@ -17,8 +17,14 @@ def pretty_ownership(entry):
 
 def main():
     # Determine any filters we should apply
-    if len(sys.argv) > 1:
-        ce_glob = sys.argv[1]
+    parser = optparse.OptionParser(add_help_option=False)
+    parser.add_option("-e", "--endpoint")
+    parser.add_option("-h", "--help")
+    parser.add_option("-c", "--config")
+    parser.parse_args()
+    (options, args) = parser.parse_args()
+    if len(args) >= 1:
+        ce_glob = args[0]
     else:
         ce_glob = "*"
 
