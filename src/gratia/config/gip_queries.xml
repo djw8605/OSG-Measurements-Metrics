@@ -49,9 +49,10 @@
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
         </inputs>
         <sql>
-            SELECT site, cluster, subcluster, DATE(timestamp) as date, proc, ncores, si2k_score, ownership
+            SELECT site, cluster, subcluster, DATE(timestamp) as date, proc, max(ncores), max(si2k_score), ownership
             FROM subcluster_score
             WHERE timestamp &lt; endtime and timestamp &gt; starttime
+            GROUP BY date
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">
             <inputs>

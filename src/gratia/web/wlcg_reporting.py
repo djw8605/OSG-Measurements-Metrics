@@ -307,7 +307,7 @@ class WLCGReporter(Authenticate):
     def get_rsv_data(self, apel_data, gip_time=None, \
             year=datetime.datetime.now().year, \
             month=datetime.datetime.now().month, **kw):
-        wlcg_sites = get_wlcg_sites()
+        wlcg_sites = get_wlcg_sites(apel_data)
         daterange = gratia_interval(year, month)
         cur = daterange['starttime']
         end = min(daterange['endtime'], datetime.datetime.today())
@@ -321,4 +321,25 @@ class WLCGReporter(Authenticate):
         return data
 
     def get_ksi2k_availability(self, pledge_data, rsv_data):
-        pass
+        info = gratia_interval(year, month)
+        gip_data, dummy = self.globals['GIPQueries'].subcluster_interval(info)
+        cur = info['starttime']
+        end = min(info['endtime'], datetime.datetime.today())
+        wlcg_sites = get_wlcg_sites(apel_data)
+        data = {}
+        gip_smry = {}
+        oneday = datetime.timedelta(1, 0)
+        for site in wlcg_sites:
+            data[site] = {}
+            gip_smry[site] = {}
+        while cur <= end:
+            for site in wlcg_sites:
+                gip_smry[site][cur] = 0
+            cur += oneday
+        for key, val in gip_data.items():
+            gip_data[key[0]] = gip_data[key[0][
+        while cur <= end:
+            for site in in wlcg_sites:
+                data[site][cur] = rsv_data[site][cur] * 
+            cur += oneday
+
