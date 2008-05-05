@@ -100,12 +100,13 @@ function dialogInit() {
                                                           visible : false, 
                                                           constraintoviewport : true,
                                                           buttons : [ { text:"Submit", handler:handleSubmit, isDefault:true },
-                                                                      { text:"Cancel", handler:handleCancel } ]
+                                                                      { text:"Cancel", handler:handleCancel } ],
+                                                          postmethod: "form",
+                                                          hideaftersubmit: false,
                                                         });
 
         // Wire up the success and failure handlers
-        YAHOO.gratia.customize.dialog1.callback = { 
-                                                     failure: handleFailure };
+        YAHOO.gratia.customize.dialog1.callback = { failure: handleFailure };
         
         // Render the Dialog
         YAHOO.gratia.customize.dialog1.render();
@@ -149,9 +150,9 @@ function dialogInit() {
 <div class="hd">Custom Gratia Query</div>
 <div class="bd">
     <form method="GET" action="$base_url/bysite">
-	<label for="facility">Site Filter:</label><input type="textbox" name="facility" />
+	<label for="facility">Site Filter: </label><input type="textbox" name="facility" />
         <div class="clear"></div>
-	<label for="vo">VO Filter:</label><input type="textbox" name="vo" />
+	<label for="vo">VO Filter: </label><input type="textbox" name="vo" />
         <div class="clear"></div>
 	<label for="grouping">Grouping:</label>
 	<input type="radio" name="grouping[]" value="site" checked/> By Site

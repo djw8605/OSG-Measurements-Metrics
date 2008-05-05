@@ -34,23 +34,28 @@ my_data = {
   cms_pledge: [
     #for key in sorted($pledge['cms'].keys(), $getVar('key_sorter', '', False))
         #set val=$pledge['cms'][key]
-        #set goal=int(float($val.pledge07)*$val.efficiency*$val.days_in_month*24)
+        #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormWCT/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge07, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
     #end for
   ],
 
   atlas_pledge: [
     #for key in sorted($pledge['atlas'].keys(), $getVar('key_sorter', '', False))
         #set val=$pledge['atlas'][key]
-        #set goal=int(float($val.pledge07)*$val.efficiency*$val.days_in_month*24)
+        #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormWCT/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge07, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
     #end for
   ],
 
+  summary: [
+    #for key in sorted($summary.keys(), $getVar('key_sorter', '', False))
+        {Site: '$key', WLCGAccounting: "$summary[$key]['accounting']", Subclusters: $summary[$key]['subclusters']},
+    #end for
+  ],
 
 };
 
@@ -96,24 +101,32 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
         var cmsColumnDefs = [
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"2007 KSI2K Pledge", sortable:true, resizeable:true},
+            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true},
+            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true},
             {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
             {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
             {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", labelsortable:true, resizeable:true},
+            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
             {key:"delivered", label:"Percent of WLCG goal ", sortable:true, resizeable:true, formatter:perc_formatter},
             {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter},
         ];
 
         var atlasColumnDefs = [
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"2007 KSI2K Pledge", sortable:true, resizeable:true},
+            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true},
+            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true},
             {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
             {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
             {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", labelsortable:true, resizeable:true},
+            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
             {key:"delivered", label:"Percent of WLCG goal", sortable:true, resizeable:true, formatter:perc_formatter},
             {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter},
+        ];
+
+        var summaryColumnDefs = [
+            {key:"Site", label:"OSG Site name", sortable:true, resizeable:true},
+            {key:"WLCGAccounting", label:"WLCG Accounting Site", sortable:true, resizeable:true},
+            {key:"Subclusters", label:"Number of GIP Subclusters", sortable:true, resizeable:true},
         ];
 
         this.wlcgDataSource = new YAHOO.util.DataSource(my_data.apel);
@@ -137,13 +150,19 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.atlasDataSource = new YAHOO.util.DataSource(my_data.atlas_pledge);
         this.atlasDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.atlasDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
         };
 
         this.cmsDataSource = new YAHOO.util.DataSource(my_data.cms_pledge);
         this.cmsDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.cmsDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+        };
+
+        this.summaryDataSource = new YAHOO.util.DataSource(my_data.summary);
+        this.summaryDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.summaryDataSource.responseSchema = {
+            fields: ["Site", "WLCGAccounting", "Subclusters"]
         };
 
         this.myDataTable = new YAHOO.widget.DataTable("wlcg",
@@ -161,10 +180,25 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.myDataTable = new YAHOO.widget.DataTable("atlas",
                 atlasColumnDefs, this.atlasDataSource, {sortedBy:{key:"WLCGSite"}});
 
+        this.myDataTable = new YAHOO.widget.DataTable("summary", summaryColumnDefs,
+                this.summaryDataSource, {sortedBy:{key:"Site"}});
+
     };
 });
 
 </script>
+
+<h2>Page Contents:</h2>
+
+<ul>
+    <li><a href="#wlcg">Per-site WLCG Accounting Summary</a></li>
+    <li><a href="#atlas">USATLAS T2 WLCG Accounting Data</a></li>
+    <li><a href="#cms">USCMS T2 WLCG Accounting Data</a></li>
+    <li><a href="#gip">GIP Subcluster Summary</a></li>
+    <li><a href="#sitenorm">Site Normalization Factors</a></li>
+    <li><a href="#summary">Available Data Summary</a></li>
+</ul>
+
 
 <div>
 <form action="$base_url/wlcg_reporting" method="get">
@@ -205,7 +239,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
 <p>Each WLCG site has pledged a certain amount of kSI2K for their site; in this section, we compare the amount of pledged KSI2K hours to this month's accounting data.  The accounting data is measured in KSI2K-hours, which is the number of hours recorded by the accounting system multiplied by the site normalization factor (shown above).  Each WLCG site should attempt to hit this month's goal, which is the KSI2K pledge amount times the number of hours in the month times an efficiency factor.  The efficiency factor is currently 60%.
   The table below shows:
 <ul>
-  <li><strong>2007 KSI2K Pledge:</strong> 2007 KSI2K pledge in the WLCG MoU</li>
+  <li><strong>$pledge_year KSI2K Pledge:</strong> $pledge_year KSI2K pledge in the WLCG MoU</li>
   <li><strong>Month goal of KSI2K-hours:</strong> The corresponding number of KSI2K hours which should be achieved this month (assumes an efficiency of 60% from the pledged amount) </li>
   <li><strong>KSI2K-hours for owner VO</strong> The number of KSI2K-hours contributed to the VO which owns the site.</li>
   <li><strong>KSI2K-hours for WLCG</strong> The number of KSI2K-hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
@@ -242,6 +276,9 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
    The normalization factor is the average SI2K score, weighted by number of
    cores, then divided by 1000.
 </p>
+<p> The process of changing the SI2K score per core through the 
+    alter-attributes.conf is <a href="https://twiki.grid.iu.edu/twiki/bin/view/InformationServices/GipSi2k">documented here</a>
+</p>
 <p>The table below shows the GIP-recorded subcluster information for each site.
 </p>
 #if $gip_report_time
@@ -259,6 +296,15 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 </p>
 <div id="sitenorm"></div>
 
+<br/>
+<hr/>
+<h1>Data Summary</h1>
+<p>Finally, the following table shows the data available for each site.  Ideally,
+   each site should have an accompanying WLCG Accounting name and more than one
+   GIP subcluster; any incorrect data in the above tables is usually due to one or
+   both of these missing.
+</p>
+<div id="summary"></div>
 
 #end if
 

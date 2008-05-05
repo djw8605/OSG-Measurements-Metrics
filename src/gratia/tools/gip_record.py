@@ -5,7 +5,7 @@ import datetime
 
 import MySQLdb
 
-from gratia.gip.ldap import query_bdii, read_ldap, config_file
+from gratia.gip.ldap import query_bdii, read_ldap, config_file, read_bdii
 from gratia.gip.common import cp_get, getGipDBConn, findCE
 
 insert_vo_info = """
@@ -63,19 +63,23 @@ insert into ce_info values (
 )
 """
 
+insert_site_info = """
+replace into site_info values( %(site)s, %(cename)s)
+"""
+
 compact_vo = """
 select 
-    from_unixtime(truncate(unix_timestamp(time)/%(span)s, 0)*%(span)s), 
+    from_unixtime(truncate(unix_timestamp(time)/%(span)s, 0)*%(span)s) as unixtimestamp, 
     avg(runningJobs), avg(totalCpus), avg(freeJobSlots), avg(maxTotalJobs), 
     avg(totalJobs), status, lrmsType, lrmsVersion, vo, avg(assignedJobSlots), 
     avg(freeCpus), avg(waitingJobs), avg(maxRunningJobs), hostName, queue 
 from 
     vo_info 
 where 
-    time > %(starttime)s AND
-    time <= %(endtime)s
+    time >= %(starttime)s AND
+    time < %(endtime)s
 group by 
-    truncate(unix_timestamp(time)/%(span)s, 0)*%(span)s, status, lrmsType, 
+    unixtimestamp, status, lrmsType, 
     lrmsVersion, vo, hostName, queue
 """
 
@@ -158,6 +162,36 @@ def compactor(conn, cp):
     for row in rows:
         curs.execute(insert_vo2, row)
     curs.execute(update_compactor_info, (n_daily, 'daily'))
+
+def do_site_info(cp):
+    ce_entries = read_bdii(cp, "(objectClass=GlueCE)")
+    cluster_entries = read_bdii(cp, "(objectClass=GlueCluster)")
+    site_entries = read_bdii(cp, "(objectClass=GlueSite)")
+    ce_map = {}
+    for ce in ce_entries:
+        try:
+            cluster = ce.glue['ForeignKey'].split('=')[1]
+        except:
+            continue
+        ce_map[ce.glue['CEHostingCluster']] = cluster
+    cluster_map = {}
+    for cluster in cluster_entries:
+        try:
+            site = cluster.glue['ForeignKey'].split('=')[1]
+        except:
+            continue
+        cluster_map[cluster.glue['ClusterName']] = site
+    site_map = {}
+    for site in site_entries:
+        site_map[site.glue['SiteUniqueID']] = site.glue['SiteName']
+    conn = getGipDBConn(cp)
+    curs = conn.cursor()
+    for ce, cluster in ce_map.items():
+        my_cluster = cluster_map.get(cluster, None)
+        my_site = site_map.get(my_cluster, None)
+        if my_site:
+            curs.execute(insert_site_info, {'site': my_site, 'cename': ce})
+    conn.commit()
 
 def do_ce_info(cp, ce_entries):
     now = datetime.datetime.now()
@@ -242,6 +276,7 @@ def main():
     conn.commit()
     compactor(conn, cp)
     do_ce_info(cp, ce_entries)
+    do_site_info(cp)
 
 if __name__ == '__main__':
     main()

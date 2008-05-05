@@ -3,7 +3,20 @@
 
 #if not $is_authenticated or not $is_vo_member
 
-<p>We're sorry, but you must be authenticated and a member of a VO to view this page.</p>
+#if not $is_authenticated
+
+<p>We're sorry, but you must be authenticated to VO to view this page. 
+   It appears you are not authenticated.
+</p>
+
+#else if not $is_vo_member
+
+<p>You appear to be authenticated, but not a member of any OSG VO.  The DN you
+   presented is:
+</p>
+<p><em>$dn</em></p>
+
+#end if
 
 #else if not $is_query
 

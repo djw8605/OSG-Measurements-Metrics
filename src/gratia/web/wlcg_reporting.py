@@ -1,4 +1,5 @@
 
+import sys
 import urllib2
 import calendar
 import datetime
@@ -60,6 +61,8 @@ class WLCGReporter(Authenticate):
             site = site.replace("Uflorida", "UFlorida")
             if site[:6] == "Purdue" and site.find("Lear") < 0:
                 site = "Purdue-RCAC"
+            if site[:6] == 'Purdue' and site.find("Lear") >= 0:
+                site = "Purdue-Lear"
             if site[:8] == "UFlorida" and site != "UFlorida-IHEPA" and site != "UFlorida-PG":
                 site = "UFlorida-HPC"
             vo_info = pledge_info.get(VOMoU, {})
@@ -68,10 +71,17 @@ class WLCGReporter(Authenticate):
             vo_info[my_accounting] = site_info
             site_info['pledge07'] = my_pledge07
             site_info['pledge08'] = my_pledge08
+            if year >= 2008 and month >= 4:
+                site_info['pledge'] = my_pledge08
+            else:
+                site_info['pledge'] = my_pledge07
             site_info['efficiency'] = .6
             site_info['days_in_month'] = last_day
             self.add_effort(site_info, site, VOMoU, apel_data, gratia_data)
-            #print my_accounting, site, site_info
+            sites = site_info.get('sites', [])
+            site_info['sites'] = sites
+            if site not in sites:
+                sites.append(site)
         for vo, vo_info in pledge_info.items():
             refined_vo_info = {}
             for site, site_info in vo_info.items():
@@ -151,8 +161,18 @@ class WLCGReporter(Authenticate):
                 info[name] = val
                 if name == 'MeasurementDate' and report_time == None:
                     report_time = val
+            if len(info) == 0:
+                for child in rowDom.childNodes:
+                    name = str(child.nodeName)
+                    if not name or len(name) == 0:
+                        continue
+                    if child.nodeType == child.TEXT_NODE:
+                        continue
+                    val = str(child.firstChild.data)
+                    info[name] = val
+                    if name == 'MeasurementDate' and report_time == None:
+                        report_time = val
             apel_data.append(info)
-        #print apel_data
         return apel_data, report_time
 
     def apel_data(self, gip_time=None, year=datetime.datetime.now().year, 
@@ -172,6 +192,7 @@ class WLCGReporter(Authenticate):
             data['title'] = "WLCG Reporting Info Error."
             data['error'] = True
             data['error_message'] = 'An error occurred when retrieving the data.'
+            raise e
             return data
         data['apel'] = apel_data
         data['year'] = year
@@ -223,7 +244,7 @@ class WLCGReporter(Authenticate):
             gipnorm = int(total_si2k / total_cores) / 1000.
             wlcgnorm = float(wlcg_norm[site])
             diff = int((gipnorm - wlcgnorm)/wlcgnorm * 100)
-            site_norm[site] = (gipnorm, wlcgnorm, diff)
+            site_norm[site] = (gipnorm, wlcgnorm, diff, int(total_si2k/1000.))
 
         # Remove non-WLCG sites from the GIP data.
         new_subclusters = {}
@@ -234,11 +255,40 @@ class WLCGReporter(Authenticate):
 
         # Add in the pledge data
         data['pledge'] = self.t2_pledges(apel_data, year, month)
-        
-        data['title'] = "Reported WLCG data for %s %i" % (calendar.month_name[month], year)
+       
+        # Determine site summary table.  Shows number of subclusters,
+        # site name, and WLCG accounting name
+        summary = {}
+        for site in wlcg_sites:
+            sum_info = summary.get(site, {})
+            summary[site] = sum_info
+            for key, val in data['subclusters'].items():
+                 if key[0] == site:
+                     num_subclusters = sum_info.get('subclusters', 0)
+                     sum_info['subclusters'] = num_subclusters + 1
+            for vo_key, vo_val in data['pledge'].items():
+                for key, val in vo_val.items():
+                    if site in val['sites']:
+                        sum_info['accounting'] = key
+                        if 'actual' not in val:
+                            val['actual'] = 0
+                        val['actual'] += site_norm.get(site, (0, 0, 0, 0))[3]
+            if 'subclusters' not in sum_info:
+                sum_info['subclusters'] = 0
+            if 'accounting' not in sum_info:
+                sum_info['accounting'] = "UNKNOWN"
+        data['summary'] = summary
+
+        data['title'] = "Reported WLCG data for %s %i" % \
+            (calendar.month_name[month], year)
+        if year >= 2008 and month >= 4:
+            data['pledge_year'] = '2008'
+        else:
+            data['pledge_year'] = '2007'
         return data
 
-    def pledge_table(self, year=datetime.datetime.now().year, month=datetime.datetime.now().month):
+    def pledge_table(self, year=datetime.datetime.now().year, \
+            month=datetime.datetime.now().month):
         apel_data, report_time = self.get_apel_data(year, month)
         pledges = self.t2_pledges(apel_data, year, month)
         cherrypy.response.headers['Content-Type'] = 'text/plain'
@@ -247,3 +297,28 @@ class WLCGReporter(Authenticate):
         return str(info)
     pledge_table.exposed = True
 
+    def get_wlcg_sites(self, apel_data):
+        wlcg_sites = []
+        for row in apel_data:
+            if row['ExecutingSite'] not in wlcg_sites:
+                wlcg_sites.append(row['ExecutingSite'])
+        return wlcg_sites
+
+    def get_rsv_data(self, apel_data, gip_time=None, \
+            year=datetime.datetime.now().year, \
+            month=datetime.datetime.now().month, **kw):
+        wlcg_sites = get_wlcg_sites()
+        daterange = gratia_interval(year, month)
+        cur = daterange['starttime']
+        end = min(daterange['endtime'], datetime.datetime.today())
+        data = {}
+        for site in wlcg_sites:
+            data[site] = {}
+        while cur <= end:
+            for site in wlcg_sites:
+                data[site][cur] = 1.0
+            cur += datetime.timedelta(1, 0)
+        return data
+
+    def get_ksi2k_availability(self, pledge_data, rsv_data):
+        pass

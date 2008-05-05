@@ -17,13 +17,43 @@
       <connection> gip </connection>
     </aggregate>
 
+    <query name="site_info">
+        <sql>
+          SELECT * from site_info
+        </sql>
+        <results module="gratia.database.query_handler" function="simple_results_parser">
+          <inputs>
+             <input name="pivots">1</input>
+             <input name="results">0</input>
+          </inputs>
+        </results>
+    </query>
+
     <query name="subcluster_latest">
         <sql>
             SELECT site, cluster, subcluster, timestamp, proc, ncores, si2k_score, ownership
             FROM subcluster_score
             WHERE timestamp=(select max(timestamp) from subcluster_score)
         </sql>
-        <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <results module="gratia.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots"> 0, 1, 2 </input>
+                <input name="results"> 3, 4, 5, 6, 7 </input>
+            </inputs>
+        </results>
+    </query>
+
+    <query name="subcluster_interval">
+        <inputs>
+            <input kind="sql" type="datetime" name="starttime">time.time()-30*86400</input>
+            <input kind="sql" type="datetime" name="endtime">time.time()</input>
+        </inputs>
+        <sql>
+            SELECT site, cluster, subcluster, DATE(timestamp) as date, proc, ncores, si2k_score, ownership
+            FROM subcluster_score
+            WHERE timestamp &lt; endtime and timestamp &gt; starttime
+        </sql>
+        <results module="gratia.database.query_handler" function="simple_results_parser">
             <inputs>
                 <input name="pivots"> 0, 1, 2 </input>
                 <input name="results"> 3, 4, 5, 6, 7 </input>
@@ -40,7 +70,7 @@
             FROM subcluster_score
             WHERE timestamp=:timestamp
         </sql>
-        <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <results module="gratia.database.query_handler" function="gip_parser_simple">
             <inputs>
                 <input name="pivots"> 0, 1, 2 </input>
                 <input name="results"> 3, 4, 5, 6, 7 </input>
@@ -59,7 +89,7 @@
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -96,7 +126,7 @@ group by
         <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>   
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -109,16 +139,18 @@ from
      sum(freeCpus) as freeCpus
    from
      ce_info
+   join site_info s on ce_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)   group by
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
+   group by
      time, hostName
   ) as foo
 group by
   hostName
       </sql>
-      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
       <attribute name="graph_type"> GratiaPie </attribute>
       <attribute name="pivot_name">Facility</attribute>
       <attribute name="title">Count of Free CPUs by Facility</attribute>
@@ -133,7 +165,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -146,18 +178,19 @@ from
      sum(runningJobs) as runningJobs
    from
      vo_info
+   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
      vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, hostName
   ) as foo
 group by
   hostName
       </sql>
-      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
       <attribute name="graph_type"> GratiaPie </attribute>
       <attribute name="pivot_name">Facility</attribute>
       <attribute name="title">Count of Running Jobs by Facility</attribute>
@@ -171,7 +204,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -184,11 +217,12 @@ from
      sum(waitingJobs) as waitingJobs
    from
      vo_info
+   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
      vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, vo
   ) as foo
@@ -209,7 +243,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -222,18 +256,19 @@ from
      sum(waitingJobs) as waitingJobs
    from
      vo_info
+   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
      vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, hostName
   ) as foo
 group by
   hostName
       </sql>
-      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
       <attribute name="graph_type"> GratiaPie </attribute>
       <attribute name="pivot_name">Facility</attribute>
       <attribute name="title"> Count of Waiting Jobs by Facility</attribute>
@@ -248,7 +283,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -262,11 +297,12 @@ from
      sum(runningJobs) as runningJobs
    from
      vo_info
+   join site_info s on vo_info.hostName=s.cename
    where
-     time &gt;= :starttime AND  time &lt; :endtime AND
+     time &gt;= :starttime AND time &lt; :endtime AND
      vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, vo
   ) as foo
@@ -274,7 +310,7 @@ group by
   time,
   vo
       </sql>
-      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+      <results module="gratia.database.query_handler" function="pivot_group_parser_plus">
         <inputs>
           <input name="pivots"> 1 </input>
           <input name="grouping"> 0 </input>
@@ -297,7 +333,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -311,11 +347,12 @@ from
      sum(waitingJobs) as waitingJobs
    from
      vo_info
+   join site_info s on vo_info.hostName=s.cename
    where
-     time &gt;= :starttime AND  time &lt; :endtime AND
+     time &gt;= :starttime AND time &lt; :endtime AND
      vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, vo
   ) as foo
@@ -323,7 +360,7 @@ group by
   time,
   vo
       </sql>
-      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+      <results module="gratia.database.query_handler" function="pivot_group_parser_plus">
         <inputs>
           <input name="pivots"> 1 </input>
           <input name="grouping"> 0 </input>
@@ -346,7 +383,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -360,11 +397,12 @@ from
      sum(waitingJobs) as waitingJobs
    from
      vo_info
+   join site_info s on vo_info.hostName=s.cename
    where
-     time &gt;= :starttime AND  time &lt; :endtime AND
+     time &gt;= :starttime AND time &lt; :endtime AND
      vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, hostName
   ) as foo
@@ -372,7 +410,7 @@ group by
   time,
   hostName
       </sql>
-      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+      <results module="gratia.database.query_handler" function="gip_parser">
         <inputs>
           <input name="pivots"> 1 </input>
           <input name="grouping"> 0 </input>
@@ -395,7 +433,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -409,11 +447,12 @@ from
      sum(runningJobs) as runningJobs
    from
      vo_info
+   join site_info s on vo_info.hostName=s.cename
    where
-     time &gt;= :starttime AND  time &lt; :endtime AND
+     time &gt;= :starttime AND time &lt; :endtime AND
      vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, hostName
   ) as foo
@@ -421,7 +460,7 @@ group by
   time,
   hostName
       </sql>
-      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+      <results module="gratia.database.query_handler" function="gip_parser">
         <inputs>
           <input name="pivots"> 1 </input>
           <input name="grouping"> 0 </input>
@@ -443,7 +482,7 @@ group by
         <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -457,10 +496,11 @@ from
      sum(freeCpus) as freeCpus
    from
      ce_info
+   join site_info s on ce_info.hostName=s.cename
    where
-     time &gt;= :starttime AND  time &lt; :endtime AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     time &gt;= :starttime AND time &lt; :endtime AND
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, hostName
   ) as foo
@@ -468,7 +508,7 @@ group by
   time,
   hostName
       </sql>
-      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+      <results module="gratia.database.query_handler" function="gip_parser">
         <inputs>
           <input name="pivots"> 1 </input>
           <input name="grouping"> 0 </input>
@@ -490,7 +530,7 @@ group by
         <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">cmsosgce2|cmsosgce4|cmsosgce3|osg-gw-4.t2.ucsd.edu</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -504,10 +544,11 @@ from
      sum(totalCpus) as totalCpus
    from
      ce_info
+   join site_info s on ce_info.hostName=s.cename
    where
-     time &gt;= :starttime AND  time &lt; :endtime AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     time &gt;= :starttime AND time &lt; :endtime AND
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
    group by
      time, hostName
   ) as foo
@@ -515,7 +556,7 @@ group by
   time,
   hostName
       </sql>
-      <results module="graphtool.database.query_handler" function="pivot_group_parser_plus">
+      <results module="gratia.database.query_handler" function="gip_parser">
         <inputs>
           <input name="pivots"> 1 </input>
           <input name="grouping"> 0 </input>

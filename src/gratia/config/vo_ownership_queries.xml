@@ -27,6 +27,17 @@
       </results>
     </query>
 
+    <query name="sitename_lookup">
+      <sql>
+        SELECT resName, resDNS from rs
+      </sql>
+      <results module="gratia.database.query_handler" function="fake_parser">
+        <inputs>
+          <input name="columns">resName, resDNS</input>
+        </inputs>
+      </results>
+    </query>
+
   </class>
 
 </graphtool-config>

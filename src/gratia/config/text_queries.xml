@@ -11,6 +11,7 @@
   <import module="gratia.config" data_file="gip_queries.xml" />
 
   <import module="graphtool.tools.query_output">XmlGenerator</import>
+  <import module="graphtool.tools.csv_output">CsvGenerator</import>
 
   <class type="XmlGenerator" name="query_xml">
     <queryobj> GratiaDataQueries </queryobj>
@@ -40,6 +41,15 @@
       <attribute name="authtype">vo_ownership</attribute>
       <attribute name="access">vo</attribute>
       <queryobj> GratiaVoBarQueries </queryobj>
+  </class>
+
+  <class type="CsvGenerator" name="query_csv">
+    <queryobj> GratiaDataQueries </queryobj>
+    <queryobj> GratiaPieQueries </queryobj>
+    <queryobj> GratiaBarQueries </queryobj>
+    <queryobj> GratiaCumulativeQueries </queryobj>
+    <queryobj> GridScanQueries </queryobj>
+    <queryobj> GIPQueries </queryobj>
   </class>
 
 </graphtool-config>

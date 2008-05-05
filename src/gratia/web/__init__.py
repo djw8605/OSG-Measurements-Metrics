@@ -4,13 +4,16 @@ import urllib
 import urllib2
 import re
 import sys
+import time
 import types
 import calendar
 import datetime
+import cStringIO
 
 import cherrypy
 from xml.dom.minidom import parse
-
+from graphtool.graphs.common_graphs import QualityMap
+from graphtool.graphs.basic import BasicStackedBar 
 from gratia.database.query_handler import displayName
 from image_map import ImageMap
 from auth import Authenticate
@@ -36,6 +39,7 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
         self.monbysite = self.template('monbysite.tmpl')(self.monbysite)
         self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(self.apel_data)
         self.email_lookup = self.template('email_lookup.tmpl')(self.email_lookup)
+
         self._cp_config ={}
         self.index = self.overview
 
@@ -596,4 +600,108 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
             data['results'] = self.globals['GratiaSecurity'].email_lookup(dn=dn)[0]
             data['displayName'] = displayName
         return data
+
+    def uscms_t2_site_avail(self):
+        url = self.metadata['dashboard_sam_url']
+        req = urllib2.Request(url, headers={"Accept": "text/xml"})
+        handler = urllib2.HTTPHandler()
+        fp = handler.http_open(req)
+        dom = parse(fp)
+        cherrypy.response.headers['Content-Type'] = 'image/png'
+        data_dom = dom.getElementsByTagName("data")[0]
+        data = {}
+        begin = None
+        end = None
+        for item in data_dom.getElementsByTagName("item"):
+            timestamp_dom = item.getElementsByTagName("TimeStamp")[0]
+            av_dom = item.getElementsByTagName("AvValue")[0]
+            voname_dom = item.getElementsByTagName("VOName")[0]
+            timestamp_str = str(timestamp_dom.firstChild.data)
+            time_tuple = time.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.datetime(*time_tuple[:6])
+            if not begin:
+                begin = timestamp
+            if not end:
+                end = timestamp
+            begin = min(timestamp, begin)
+            end = max(timestamp, end)
+            av = float(av_dom.firstChild.data)
+            voname = str(voname_dom.firstChild.data)
+            site_dict = data.get(voname, {})
+            data[voname] = site_dict
+            site_dict[timestamp] = av
+        metadata = {'title':'USCMS T2 SAM Availability', 'span':86400,
+            'starttime':begin, 'endtime':end,
+            'color_override': {-2:'grey'}}
+        fp = cStringIO.StringIO()
+        QM = QualityMap()
+        QM(data, fp, metadata)
+        return fp.getvalue()
+    uscms_t2_site_avail.exposed=True
+
+    def cms_site_avail(self):
+        url = self.metadata['dashboard_sam_url_all']
+        req = urllib2.Request(url, headers={"Accept": "text/xml"})
+        handler = urllib2.HTTPHandler()
+        fp = handler.http_open(req)
+        dom = parse(fp)
+        cherrypy.response.headers['Content-Type'] = 'image/png'
+        data_dom = dom.getElementsByTagName("data")[0]
+        data = {}
+        begin = None
+        end = None
+        for item in data_dom.getElementsByTagName("item"):
+            timestamp_dom = item.getElementsByTagName("TimeStamp")[0]
+            av_dom = item.getElementsByTagName("AvValue")[0]
+            voname_dom = item.getElementsByTagName("VOName")[0]
+            timestamp_str = str(timestamp_dom.firstChild.data)
+            time_tuple = time.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.datetime(*time_tuple[:6])
+            if not begin:
+                begin = timestamp
+            if not end:
+                end = timestamp
+            begin = min(timestamp, begin)
+            end = max(timestamp, end)
+            av = float(av_dom.firstChild.data)
+            voname = str(voname_dom.firstChild.data)
+            site_dict = data.get(voname, {})
+            data[voname] = site_dict
+            site_dict[timestamp] = av
+        metadata = {'title':'CMS SAM Availability', 'span':86400,
+            'starttime':begin, 'endtime':end, 'fixed-height': False,
+            'color_override': {-2:'grey'}}
+        fp = cStringIO.StringIO()
+        QM = QualityMap()
+        QM(data, fp, metadata)
+        return fp.getvalue()
+    cms_site_avail.exposed=True
+
+    def d0(self):
+        cherrypy.response.headers['Content-Type'] = 'image/png'
+        url = self.metadata.get('d0_csv', 'http://physics.lunet.edu/~snow/' \
+            'd0osgprod.csv')
+        url_fp = urllib2.urlopen(url)
+        metadata = {'croptime':True, 'span':86400, 'pivot_name': 'OSG Site', \
+            'grouping_name': 'Date', 'column_names': 'Merged Events', \
+            'title': 'D0 OSG Production'}
+        fp = cStringIO.StringIO()
+        data = {}
+        for line in url_fp.readlines():
+            info = line.strip().split(',')
+            grouping_name = time.strptime(info[0], '%y%m%d')
+            group = datetime.datetime(*grouping_name[:6])
+            pivot = info[1]
+            results = int(info[3])
+            if pivot not in data:
+                data[pivot] = {}
+            grouping_dict = data[pivot]
+            if group not in grouping_dict:
+                grouping_dict[group] = results
+            else:
+                grouping_dict[group] += results
+        BSB = BasicStackedBar()
+        BSB(data, fp, metadata)
+        return fp.getvalue()
+    d0.exposed = True
 

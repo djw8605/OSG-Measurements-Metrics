@@ -92,6 +92,24 @@
       <attribute name="title"> Job Count by Facility </attribute>
     </query>
 
+    <query name="osg_sharing_sites_pie_perc" base="GratiaGenericQuery.simple_summary">
+      <sql>
+        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Usage Type</attribute>
+      <attribute name="title">Percent of Opportunistic CPU Hours</attribute>
+      <attribute name="graph_type">GratiaPie</attribute>
+      <results module="gratia.database.query_handler" function="opp_usage_simple_perc">
+        <inputs>
+          <input name="pivots"> 0,1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+    </query>
+
+
   </class>
 
 </graphtool-config>
