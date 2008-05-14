@@ -1,0 +1,189 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/>
+
+  <import file="$HOME/dbinfo/DBParam.xml" />
+
+  <class type="SqlQueries" name="RSVQueries">
+
+    <attribute name="display_name"> RSV Graphs </attribute>
+    <attribute name="connection_manager"> RSVConnMan </attribute>
+
+    <aggregate>
+      <connection> rsv </connection>
+    </aggregate>
+
+    <query name="rsv_quality">
+      <inputs>
+        <input name="span" type="eval" kind="sql">7200</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="fixed-height">False</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+select
+  ServiceURI,
+  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
+  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility AND
+     MetricName regexp :metric
+group by
+  ServiceURI, time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Site Quality</attribute>
+      <attribute name="column_names">Successful, Failed</attribute>
+      <attribute name="column_units">Probes, Probes</attribute>
+    </query>
+
+    <query name="rsv_metric_quality">
+      <inputs>
+        <input name="span" type="eval" kind="sql">7200</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+select
+  MetricName,
+  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
+  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility AND
+     MetricName regexp :metric
+group by
+  MetricName, time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Quality for $facility</attribute>
+      <attribute name="column_names">Successful, Failed</attribute>
+      <attribute name="column_units">Probes, Probes</attribute>
+    </query>
+
+    <query name="rsv_count">
+      <inputs>
+        <input name="span" type="eval" kind="sql">7200</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+select
+  ServiceURI,
+  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
+  COUNT(*)
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility
+group by
+  ServiceURI, time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedBar </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Probe Count</attribute>
+      <attribute name="column_names">Probes Run</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="rsv_dist">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+select
+  MetricStatus,
+  COUNT(*)
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility
+group by
+  MetricStatus
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Status</attribute>
+      <attribute name="title">RSV Status Distribution</attribute>
+      <attribute name="column_names">Status</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="failed_tests">
+        <inputs>
+            <input name="span" type="eval" kind="sql">7200</input>
+            <input name="errorstart" type="datetime" kind="sql">time.time()-4*86400</input>
+            <input name="facility" kind="sql">Nebraska</input>
+        </inputs>
+        <sql>
+select
+    SummaryData,
+    GatheredAt,
+    DetailsData,
+    MetricType
+from MetricRecord
+where Timestamp &gt;=:errorstart AND Timestamp &lt; :errorstart + INTERVAL :span seconds
+        </sql>
+        <results module="gratia.database.query_handler" function="fake_parser"/>
+        <attribute name="graph_type"/>
+        <attribute name="title">Failed RSV Tests</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>

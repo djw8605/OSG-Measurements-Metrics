@@ -9,6 +9,7 @@
   <import module="gratia.config" data_file="gratia_vo_queries.xml" />
   <import module="gratia.config" data_file="gridscan_queries.xml" />
   <import module="gratia.config" data_file="gip_queries.xml" />
+  <import module="gratia.config" data_file="rsv_queries.xml" />
 
   <import module="graphtool.tools.query_output">XmlGenerator</import>
   <import module="graphtool.tools.csv_output">CsvGenerator</import>
@@ -20,6 +21,7 @@
     <queryobj> GratiaCumulativeQueries </queryobj>
     <queryobj> GridScanQueries </queryobj>
     <queryobj> GIPQueries </queryobj>
+    <queryobj> RSVQueries </queryobj>
   </class>
 
   <class type="XmlGenerator" name="site_xml">
@@ -50,6 +52,7 @@
     <queryobj> GratiaCumulativeQueries </queryobj>
     <queryobj> GridScanQueries </queryobj>
     <queryobj> GIPQueries </queryobj>
+    <queryobj> RSVQueries </queryobj>
   </class>
 
 </graphtool-config>

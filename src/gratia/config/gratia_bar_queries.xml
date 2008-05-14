@@ -60,6 +60,22 @@
       </results>
     </query>
 
+    <query name="probe_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> R.ProbeName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">Hours Spent on Jobs By Probe</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="vo_facility_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> S.SiteName </filler>

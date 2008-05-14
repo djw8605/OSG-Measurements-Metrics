@@ -37,7 +37,7 @@ my_data = {
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormWCT/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
     #end for
   ],
 
@@ -47,13 +47,20 @@ my_data = {
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormWCT/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
     #end for
   ],
 
   summary: [
     #for key in sorted($summary.keys(), $getVar('key_sorter', '', False))
         {Site: '$key', WLCGAccounting: "$summary[$key]['accounting']", Subclusters: $summary[$key]['subclusters']},
+    #end for
+  ],
+
+  availability: [
+    #for site in sorted($availability.keys(), $getVar('key_sorter', '', False))
+      #set val=$availability[$site]
+      {Site: '$site', Ownership: $val['ownership'], KSI2KSize: $val['size'], RSVAvail: $val['rsv'], Availability: $val['availability']},
     #end for
   ],
 
@@ -104,6 +111,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true},
             {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true},
             {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
+            {key:"KSI2KAvail", label:"CMS KSI2K Availability", sortable:true, resizeable:true},
             {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
             {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
             {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
@@ -116,11 +124,20 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true},
             {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true},
             {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
+            {key:"KSI2KAvail", label:"ATLAS KSI2K Availability", sortable:true, resizeable:true},
             {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
             {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
             {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
             {key:"delivered", label:"Percent of WLCG goal", sortable:true, resizeable:true, formatter:perc_formatter},
             {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter},
+        ];
+
+        var availabilityColumnDefs = [
+            {key:"Site", label:"OSG Site name", sortable:true, resizeable:true},
+            {key:"Ownership", label:"MoU VO Ownership", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"KSI2KSize", label:"MoU VO Owned KSI2K Size", sortable:true, resizeable:true},
+            {key:"RSVAvail", label:"RSV Availability", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"Availability", label:"Month's MoU VO KSI2K-Availability", sortable:true, resizeable:true},
         ];
 
         var summaryColumnDefs = [
@@ -150,13 +167,19 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.atlasDataSource = new YAHOO.util.DataSource(my_data.atlas_pledge);
         this.atlasDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.atlasDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
         };
 
         this.cmsDataSource = new YAHOO.util.DataSource(my_data.cms_pledge);
         this.cmsDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.cmsDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+        };
+
+        this.availabilityDataSource = new YAHOO.util.DataSource(my_data.availability);
+        this.availabilityDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.availabilityDataSource.responseSchema = {
+            fields: ["Site", "Ownership", "KSI2KSize", "RSVAvail", "Availability"],
         };
 
         this.summaryDataSource = new YAHOO.util.DataSource(my_data.summary);
@@ -180,6 +203,9 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.myDataTable = new YAHOO.widget.DataTable("atlas",
                 atlasColumnDefs, this.atlasDataSource, {sortedBy:{key:"WLCGSite"}});
 
+        this.myDataTable = new YAHOO.widget.DataTable("availability",
+                availabilityColumnDefs, this.availabilityDataSource, {sortedBy:{key:"Site"}});
+
         this.myDataTable = new YAHOO.widget.DataTable("summary", summaryColumnDefs,
                 this.summaryDataSource, {sortedBy:{key:"Site"}});
 
@@ -188,7 +214,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
 </script>
 
-<h2>Page Contents:</h2>
+<h3>Page Contents:</h3>
 
 <ul>
     <li><a href="#wlcg">Per-site WLCG Accounting Summary</a></li>
@@ -196,6 +222,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
     <li><a href="#cms">USCMS T2 WLCG Accounting Data</a></li>
     <li><a href="#gip">GIP Subcluster Summary</a></li>
     <li><a href="#sitenorm">Site Normalization Factors</a></li>
+    <li><a href="#availability">Site Availability Measurements</a></li>
     <li><a href="#summary">Available Data Summary</a></li>
 </ul>
 
@@ -242,6 +269,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
   <li><strong>$pledge_year KSI2K Pledge:</strong> $pledge_year KSI2K pledge in the WLCG MoU</li>
   <li><strong>Month goal of KSI2K-hours:</strong> The corresponding number of KSI2K hours which should be achieved this month (assumes an efficiency of 60% from the pledged amount) </li>
   <li><strong>KSI2K-hours for owner VO</strong> The number of KSI2K-hours contributed to the VO which owns the site.</li>
+  <li><strong>Owner VO's KSI2K-Availability</strong> <a href="#availability">Explained below</a>.  For each day of the month, multiply that day's available KSI2K times the owner VO's ownership percentage times the RSV-measured availability, then sum them up.</li>
   <li><strong>KSI2K-hours for WLCG</strong> The number of KSI2K-hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
   <li><strong>KSI2K-hours for all VOs</strong> The number of KSI2K-hours contributed to all VOs.</li>
   <li><strong>Percent of WLCG goal</strong> The percentage of the goal delivered this month.  This is computed by (<strong>KSI2K-hours for WLCG</strong>)/(<strong>monthly goal</strong>). </li>
@@ -285,6 +313,31 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 <p>This data was reported at $gip_report_time.</p>
 #end if
 <div id="gip"></div>
+
+<br/>
+<hr/>
+<h1>Availability Data</h1>
+<p>(WARNING: Experimental metric).  A site's KSI2K-availability is calculated by
+   multiplying the following three values, calculated daily, then summed over
+   the whole month
+   <ul>
+      <li>The total cluster size, measured in KSI2K.</li>
+      <li>The ownership percentage of the sponsoring VO.</li>
+      <li>The RSV-measured daily availability percentage</li>
+   </ul>
+   Specifically, the first two bullet points are dependent on site admins giving
+   the correct inputs (which is getting more accurate as site admins are being
+   educated in the GIP).  The third bullet point is dependent on the reliability
+   if the RSV measurements, which is a new component to the OSG.
+   <br/>
+   The below table shows, for each site, the average monthly value of the above
+   bullet points, in addition to the total KSI2K-availability for the month.
+   The first three values cannot be multiplied together to get the fourth; the
+   first three are averages over the whole month, while the fourth is derived
+   by computing the daily amount.
+</p>
+<br/>
+<div id="availability"></div>
 
 <br/>
 <hr/>

@@ -1,5 +1,7 @@
 
+import re
 import sys
+import time
 import urllib2
 import calendar
 import datetime
@@ -139,7 +141,8 @@ class WLCGReporter(Authenticate):
         if timestamp==None:
             subclusters = self.globals['GIPQueries'].subcluster_latest()[0]
         else:
-            subclusters = self.globals['GIPQueries'].subcluster(timestamp=timestamp)[0]
+            subclusters = self.globals['GIPQueries'].subcluster_latest( \
+                endtime=timestamp)[0]
         time_list = self.globals['GIPQueries'].subcluster_times()
         return subclusters, time_list
 
@@ -209,7 +212,10 @@ class WLCGReporter(Authenticate):
         data['key_sorter'] = key_sorter
         apel_data.sort(key_sorter)
         # Add in the GIP data
-        data['subclusters'], data['time_list'] = self.gratia_data(timestamp=gip_time)
+        if gip_time == None:
+            time_info = gratia_interval(year, month)
+            data['subclusters'], data['time_list'] = self.gratia_data( \
+                timestamp=time_info['endtime'])
 
         # Determine all the WLCG sites:
         wlcg_sites = []
@@ -288,8 +294,13 @@ class WLCGReporter(Authenticate):
 
         # Site availability hours
         rsv_data = self.get_rsv_data(apel_data, year, month)
-        data['avail'] = self.get_ksi2k_availability(data['pledge'], rsv_data)
-        print data['avail']
+        avail_data, act_avail_data, full_data, errors =  \
+            self.get_ksi2k_availability(year, \
+            month, apel_data, data['pledge'], rsv_data)
+        data['act_avail'] = act_avail_data
+        data['avail'] = avail_data
+        data['availability'] = full_data
+        #print data['availability']['Nebraska']
         return data
 
     def pledge_table(self, year=datetime.datetime.now().year, \
@@ -312,7 +323,7 @@ class WLCGReporter(Authenticate):
     def get_rsv_data(self, apel_data, 
             year=datetime.datetime.now().year, \
             month=datetime.datetime.now().month, **kw):
-        wlcg_sites = get_wlcg_sites(apel_data)
+        wlcg_sites = self.get_wlcg_sites(apel_data)
         daterange = gratia_interval(year, month)
         cur = daterange['starttime']
         end = min(daterange['endtime'], datetime.datetime.today())
@@ -326,29 +337,46 @@ class WLCGReporter(Authenticate):
             cur += oneday
         return data
 
-    def parse_ownership(data, vo):
+    def parse_ownership(self, data, vo):
         r = re.compile("(\w+):([0-9]+)")
         m = r.findall(data)
         if m == None:
-            raise Exception("Unable to determine site ownership.")
+            raise Exception("Unable to determine %s ownership: %s." % \
+                (vo, data))
         for grouping in m:
             sponsor, perc = grouping
             if sponsor.lower().find(vo) >= 0:
                 return float(perc)/100.
+        raise Exception("Unable to determine %s ownership: %s." % (vo, data))
 
     def _avg(self, values):
-        return sum(values) / float(len(values))
+        myvals = [i for i in values if i > 0]
+        try:
+            return sum(myvals) / float(len(myvals))
+        except:
+            return 0
 
-    def get_ksi2k_availability(self, pledge_data, rsv_data):
+    def get_ksi2k_availability(self, year, month, apel_data, pledge_data, \
+            rsv_data):
         info = gratia_interval(year, month)
-        gip_data, dummy = self.globals['GIPQueries'].subcluster_interval(info)
+        print info
+        gip_data, dummy = self.globals['GIPQueries'].subcluster_interval(**info)
         cur = info['starttime']
         end = min(info['endtime'], datetime.datetime.today())
-        wlcg_sites = get_wlcg_sites(apel_data)
+        wlcg_sites = self.get_wlcg_sites(apel_data)
         data = {}
         gip_smry = {}
         oneday = datetime.timedelta(1, 0)
         errors = {}
+        site_map = {}
+        vo_ownership = {}
+        for act_site, val in pledge_data['cms'].items():
+            if 'sites' in val:
+                site_map[act_site] = val['sites']
+        for act_site, val in pledge_data['atlas'].items():
+            if 'sites' in val:
+                site_map[act_site] = val['sites']
+        wlcg_act_sites = site_map.keys()
         for site in wlcg_sites:
             data[site] = {}
             gip_smry[site] = {}
@@ -356,39 +384,74 @@ class WLCGReporter(Authenticate):
                 errors[site] = "RSV data not available.  "
             else:
                 errors[site] = ""
+            vo_ownership[site] = "'(Unknown) '"
         while cur <= end:
             for site in wlcg_sites:
                 gip_smry[site][cur] = 0
             cur += oneday
         for key, val in gip_data.items():
+            #print key
             site = key[0]
-            if site in pledge_data['atlas']
-                pledge_vo = 'atlas'
-            elif site in pledge_data['cms']
-                pledge_vo = 'cms'
-            else:
-                pledge_vo = None
-            try:
-                ownership_perc = parse_ownership(gip_data[site][4], pledge_vo)
-            except:
-                errors[site] += "Unabe to determine site ownership.  "
+            date = datetime.datetime(*time.strptime(key[3], '%Y-%m-%d')[:3])
+            if site not in wlcg_sites:
                 continue
-            gip_data[site][val[0]] += ownership_perc*val[2]*val[3]
+            pledge_vo = None
+            for act_site, sites in site_map.items():
+                if site in sites:
+                    if act_site in pledge_data['atlas']:
+                        pledge_vo = 'atlas'
+                    else:
+                        pledge_vo = 'cms'
+            if pledge_vo == None:
+                if site in errors and errors[site].find("site ownership") < 0:
+                    errors[site] += "Unable to determine site ownership.  "
+                continue
+            try:
+                ownership_perc = self.parse_ownership(val[3], \
+                    pledge_vo)
+            except:
+                #raise
+                if site in errors and errors[site].find("site ownership") < 0:
+                    errors[site] += "Unable to determine site ownership.  "
+                continue
+            #print "*", site, "*", date, ownership_perc, val[1], val[2]
+            gip_smry[site][date] += ownership_perc*val[1]*val[2]/float(1000.)
+            vo_ownership[site] = str(int(100*ownership_perc))
         for site in wlcg_sites:
-            pledge_val = pledge_data['atlas'].get(site, {}).get('pledge', 0) + \
-                pledge_data['cms'].get(site, {}).get('pledge', 0)
-            if site not in gip_data:
+            #pledge_val = pledge_data['atlas'].get(site, {}).get('pledge', 0) +\
+            #    pledge_data['cms'].get(site, {}).get('pledge', 0)
+            if site not in gip_smry:
                 errors[site] += "GIP data not available."
                 continue
-            gip_val = max(gip_data[site].values())
-            if abs(gip_val-pledge_val)/float(pledge_val) > .5:
-                errors[site] += "Suspect GIP data."
+            #if pledge_val == 0:
+            #    errors[site] += "Pledge data unavailable for %s.  " % site
+            #    continue
+            #gip_val = max(gip_smry[site].values())
+            #if abs(gip_val-pledge_val)/float(pledge_val) > .5:
+            #    errors[site] += "Suspect GIP data."
         cur = info['starttime']
+        #print gip_smry
         while cur <= end:
-            for site in in wlcg_sites:
-                gip_val = gip_data.get(site, {})
-                data[site][cur] = rsv_data.get(site, {}).get(cur, 0) * \
-                    gip_val.get(cur, self._avg(gip_val.values()))
+            for site in wlcg_sites:
+                gip_val = gip_smry.get(site, {})
+                val = gip_val.get(cur, self._avg(gip_val.values()))
+                if val == 0:
+                    val = self._avg(gip_val.values())
+                #print "Site", site, "Date", cur, "RSV data", rsv_data.get(site, {}).get(cur, 0), "GIP val", gip_val.get(cur, self._avg(gip_val.values()))
+                data[site][cur] = rsv_data.get(site, {}).get(cur, 0) * val
             cur += oneday
-        return data, errors
+        act_data = {}
+        for act_site in wlcg_act_sites:
+            act_data[act_site] = 0
+        for act_site, sites in site_map.items():
+            for site in sites:
+                act_data[act_site] += int(24*sum(data[site].values()))
+        full_data = {}
+        for site in wlcg_sites:
+            full_data[site] = {}
+            full_data[site]['rsv'] = int(100*self._avg(rsv_data.get(site, {}).values()))
+            full_data[site]['size'] = int(self._avg(data.get(site, {}).values()))
+            full_data[site]['ownership'] = vo_ownership[site]
+            full_data[site]['availability'] = int(24*sum(data[site].values()))
+        return data, act_data, full_data, errors
 

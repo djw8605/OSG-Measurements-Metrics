@@ -6,7 +6,7 @@ import datetime
 import MySQLdb
 
 from gratia.gip.ldap import query_bdii, read_ldap, config_file, read_bdii
-from gratia.gip.common import cp_get, getGipDBConn, findCE
+from gratia.gip.common import cp_get, getGipDBConn, findCE, join_FK
 
 insert_vo_info = """
 insert into vo_info values
@@ -65,6 +65,11 @@ insert into ce_info values (
 
 insert_site_info = """
 replace into site_info values( %(site)s, %(cename)s)
+"""
+
+insert_se_info = """
+replace into se_info(date, se, site, total, free) 
+    values (%(date)s, %(se)s, %(site)s, %(total)s, %(free)s)
 """
 
 compact_vo = """
@@ -193,6 +198,30 @@ def do_site_info(cp):
             curs.execute(insert_site_info, {'site': my_site, 'cename': ce})
     conn.commit()
 
+def do_se_info(cp):
+    site_entries = read_bdii(cp, "(objectClass=GlueSite)")
+    se_entries = read_bdii(cp, "(objectClass=GlueSE)")
+    conn = getGipDBConn(cp)
+    curs = conn.cursor()
+    today = datetime.date.today()
+    for entry in se_entries:
+        try:
+            site = join_FK(entry, site_entries, "SiteUniqueID")
+        except ValueError, ve:
+            print "Unable to match SE:\n%s" % entry
+            continue
+        try:
+            site_name = site.glue['SiteName']
+            total = int(entry.glue['SESizeTotal'])
+            free = int(entry.glue['SESizeFree'])
+            se_name = entry.glue['SEName']
+        except:
+            print "Unable to parse attributes:\n%s" % entry
+            continue
+        curs.execute(insert_se_info, {'date': today, 'site': site_name, 'se': \
+            se_name, 'total': total, 'free': free})
+    conn.commit()
+
 def do_ce_info(cp, ce_entries):
     now = datetime.datetime.now()
     free_cpus = {}
@@ -277,6 +306,7 @@ def main():
     compactor(conn, cp)
     do_ce_info(cp, ce_entries)
     do_site_info(cp)
+    do_se_info(cp)
 
 if __name__ == '__main__':
     main()

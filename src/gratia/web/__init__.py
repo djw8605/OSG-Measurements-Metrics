@@ -393,8 +393,48 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
         data['title'] = 'VO Information'
         return data
 
+    def rsv_reporting(self, *args, **kw):
+        data = dict(kw) 
+        data['given_kw'] = kw
+        filter_dict = {} 
+            
+        #User auth
+        self.user_auth(data)
+        #Handle refine
+        self.refine(data, filter_dict, facility=False)
+
+        token = self.start_image_maps()
+        #Generate image maps
+        self.image_map(token, data, 'RSVQueries',
+            'rsv_quality', 'rsv_site', 'facility')
+        self.image_map(token, data, 'RSVQueries',
+            'rsv_dist', None, None)
+        self.finish_image_maps(token)
+
+        data['title'] = 'RSV Information'
+        return data
+
+    def rsv_site(self, **kw):
+        data = dict(kw)
+        data['given_kw'] = kw
+        filter_dict = {}
+        data['error'] = False
+
+        if 'facility' not in data:
+            data['error'] = 'No facility present in the URL; try adding ' \
+                '?facility=<name> to the URL.'
+
+        self.user_auth(data)
+        self.refine(data, filter_dict, facility=False)
+        
+        token = self.start_image_maps()
+        self.image_map(token, data, 'RSVQueries', 'rsv_metric_quality', \
+            'rsv_site', 'facility')
+        self.finish_image_maps(token)
+
     def fetch_gridscan(self, site):
-        doc = urllib2.urlopen('http://scan.grid.iu.edu/cgi-bin/show_results?grid=1')
+        doc = urllib2.urlopen('http://scan.grid.iu.edu/cgi-bin/show_results' \
+            '?grid=1')
         in_row = False
         in_font = False
         link_re = re.compile('HREF="(.*?)"')

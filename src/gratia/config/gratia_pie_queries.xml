@@ -70,6 +70,21 @@
       <attribute name="title"> Computational Hours by Facility </attribute>
     </query>
 
+    <query name="osg_probe_hours" base="GratiaGenericQuery.simple_summary">
+        <inputs>
+            <input kind="sql" type="float" name="min_hours"> 10 </input>
+        </inputs>
+      <sql>
+        <filler name="group"> R.ProbeName </filler>
+        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> Probe </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Computational Hours by Probe </attribute>
+    </query>
+
     <query name="osg_vo_count" base="GratiaGenericQuery.simple_summary">
       <sql>
         <filler name="group"> R.VOName </filler>

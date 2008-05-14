@@ -30,10 +30,13 @@
     </query>
 
     <query name="subcluster_latest">
+        <inputs>
+            <input kind="sql" type="datetime" name="endtime">time.time()</input>
+        </inputs>
         <sql>
-            SELECT site, cluster, subcluster, timestamp, proc, ncores, si2k_score, ownership
+            SELECT site, cluster, subcluster, timestamp, coalesce(proc, "Unknown"), ncores, si2k_score, ownership
             FROM subcluster_score
-            WHERE timestamp=(select max(timestamp) from subcluster_score)
+            WHERE timestamp=(select max(timestamp) from subcluster_score where timestamp &lt;= :endtime) 
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">
             <inputs>
@@ -49,15 +52,15 @@
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
         </inputs>
         <sql>
-            SELECT site, cluster, subcluster, DATE(timestamp) as date, proc, max(ncores), max(si2k_score), ownership
+            SELECT site, cluster, subcluster, DATE(timestamp) as date, coalesce(proc, "Unknown"), max(ncores), max(si2k_score), ownership
             FROM subcluster_score
-            WHERE timestamp &lt; endtime and timestamp &gt; starttime
-            GROUP BY date
+            WHERE timestamp &lt; :endtime and timestamp &gt;= :starttime
+            GROUP BY date, site, cluster, subcluster
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">
             <inputs>
-                <input name="pivots"> 0, 1, 2 </input>
-                <input name="results"> 3, 4, 5, 6, 7 </input>
+                <input name="pivots"> 0, 1, 2, 3 </input>
+                <input name="results"> 4, 5, 6, 7 </input>
             </inputs>
         </results>
     </query>
@@ -90,7 +93,7 @@
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -127,7 +130,7 @@ group by
         <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>   
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -166,7 +169,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -205,7 +208,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -244,7 +247,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -284,7 +287,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -327,6 +330,56 @@ group by
       <attribute name="column_units">Count</attribute>
     </query>
 
+    <query name="gip_queue">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  queue,
+  avg(runningJobs)
+from
+  (select
+     time,
+     queue,
+     sum(runningJobs) as runningJobs
+   from
+     vo_info
+   join site_info s on vo_info.hostName=s.cename
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo AND
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
+   group by
+     time, queue
+  ) as foo
+group by
+  time,
+  queue
+      </sql>
+      <results module="gratia.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Queue</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Running Jobs by Queue</attribute>
+      <attribute name="column_names">Running Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
     <query name="gip_vo_waiting">
       <inputs>
         <input name="span" type="eval" kind="sql">1800</input>
@@ -334,7 +387,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -377,6 +430,56 @@ group by
       <attribute name="column_units">Count</attribute>
     </query>
 
+    <query name="gip_queue_waiting">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  queue,
+  avg(waitingJobs)
+from
+  (select
+     time,
+     queue,
+     sum(waitingJobs) as waitingJobs
+   from
+     vo_info
+   join site_info s on vo_info.hostName=s.cename
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo AND
+     s.sitename regexp :facility AND
+     NOT (s.sitename regexp :excludefacility)
+   group by
+     time, queue
+  ) as foo
+group by
+  time,
+  queue 
+      </sql>
+      <results module="gratia.database.query_handler" function="gip_parser">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Queue</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Count of Waiting Jobs by Queue</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+      <attribute name="column_units">Count</attribute>
+    </query>
+
     <query name="gip_facility_waiting">
       <inputs>
         <input name="span" type="eval" kind="sql">1800</input>
@@ -384,7 +487,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -434,7 +537,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -483,7 +586,7 @@ group by
         <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select
@@ -531,7 +634,7 @@ group by
         <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC2-CE|USCMS-FNAL-WC3-CE|USCMS-FNAL-WC4-CE|UCSDT2-B</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
       </inputs>
       <sql>
 select

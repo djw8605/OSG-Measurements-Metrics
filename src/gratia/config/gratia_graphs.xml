@@ -9,6 +9,7 @@
   <import module="gratia.config" data_file="gratia_vo_queries.xml"/>
   <import module="gratia.config" data_file="gridscan_queries.xml"/>
   <import module="gratia.config" data_file="gip_queries.xml"/>
+  <import module="gratia.config" data_file="rsv_queries.xml"/>
   <import module="gratia.graphs.gratia_graphs">*</import>
 
   <class type="Grapher" name="gratia_pie_grapher">
@@ -60,6 +61,11 @@
   <class type="Grapher" name="gip_grapher">
     <attribute name="display_name"> GIP Graphs </attribute>
     <queryobj> GIPQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="rsv_grapher">
+    <attribute name="display_name"> RSV Graphs </attribute>
+    <queryobj> RSVQueries </queryobj>
   </class>
 
 </graphtool-config>
