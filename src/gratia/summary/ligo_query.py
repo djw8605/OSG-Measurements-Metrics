@@ -6,6 +6,7 @@ import urllib2
 import httplib
 import datetime
 import operator
+import optparse
 
 from xml.dom.minidom import parse
 from pkg_resources import resource_filename
@@ -37,7 +38,7 @@ WHERE {
 } ORDER BY DESC(?Timestamp)
 """
 
-non_osg_servers = ['.de', 'gac-grid.org']
+non_osg_servers = ['.de', 'gac-grid.org', 'all machines', 'osg-gw-2.t2.edu']
 
 sesame_server = 'http://buran.aei.mpg.de:25002/openrdf-sesame/repositories' \
     '/GEO600'
@@ -136,14 +137,16 @@ def getSiteMap():
 oneday = datetime.timedelta(1, 0)
 def sendSummary(info):
     r = Gratia.UsageRecord("Batch")
-    r.WallDuration(items['CPUtime']*3600)
+    r.WallDuration(info['CPUtime']*3600)
     dt = info['Timestamp']
     s = datetime.datetime(dt.year, dt.month, dt.day, 0, 0, 0) - oneday
-    e = datetime.datetime(e.year,  e.month,  e.day,  23, 59, 59) - oneday
+    e = datetime.datetime(s.year, s.month, s.day,  23, 59, 59)
     r.StartTime(s.strftime('%Y-%m-%dT%H:%M:%SZ'))
     r.EndTime(e.strftime('%Y-%m-%dT%H:%M:%SZ'))
     r.SiteName(info['Site'])
     r.Grid('OSG')
+    r.VOName('ligo')
+    r.ReportableVOName('ligo')
     r.Njobs(info['Njobs'])
     print Gratia.Send(r)
 
@@ -151,7 +154,7 @@ def parseArgs():
     parser = optparse.OptionParser()
     parser.add_option("-d", "--database", dest="database", default="itb", \
         help="The Gratia DB to send results to.")
-    return parser.parse()
+    return parser.parse_args()
 
 def main():
     options, args = parseArgs()
@@ -175,7 +178,7 @@ def main():
         print "Sending jobs for site", items['Name'], "date", \
             items['Timestamp'].strftime('%x')
         njobs = int(items['Submitted']-items['Active']-items['Pending'])
-        info['Njobs'] = njobs
+        items['Njobs'] = njobs
         print "Njobs", njobs, "CPU hours", \
             int(float(items['CPUtime']))
         if njobs > 0:

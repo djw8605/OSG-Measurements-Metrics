@@ -7,7 +7,7 @@ import urllib
 import optparse
 
 from xml.dom.minidom import parseString
-from pkg_resources import resource_file
+from pkg_resources import resource_filename
 
 import Gratia
 
@@ -27,7 +27,7 @@ site_filter = [ \
 
 def parseArgs():
     parser = optparse.OptionParser()
-    parser.add_options("-d", "--db", dest="database", default="itb", \
+    parser.add_option("-d", "--db", dest="database", default="itb", \
         help="Database to report summaries to.")
     return parser.parse_args()
 
@@ -211,9 +211,9 @@ def sendSummaryData(data):
 def main():
     options, args = parseArgs()
     if options.database == 'production':
-        filename = resource_file("gratia.summary", "CmsProbeConfigProd")
+        filename = resource_filename("gratia.summary", "CmsProbeConfigProd")
     else:
-        filename = resource_file("gratia.summary", "CmsProbeConfigItb")
+        filename = resource_filename("gratia.summary", "CmsProbeConfigItb")
     Gratia.Initialize(customProbe=filename)
     startTime, endTime = getLastWeek()
     sites = getOsgSites(startTime, endTime)
