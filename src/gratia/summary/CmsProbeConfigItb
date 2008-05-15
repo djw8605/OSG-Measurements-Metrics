@@ -1,0 +1,34 @@
+<ProbeConfiguration 
+    UseSSL="0" 
+
+    UseGratiaCertificates="0"
+
+    SSLHost="gratia.opensciencegrid.org:8881"
+    SSLCollectorService="/gratia-servlets/rmi"
+
+    SOAPHost="gratia.opensciencegrid.org:8881"
+    CollectorService="/gratia-servlets/rmi" 
+    UseSoapProtocol="0"
+    
+    MeterName="CMSDashboardProbe"
+    SiteName="CMS"
+    Grid="OSG"
+    
+    LogLevel="2"
+    DebugLevel="0" 
+    GratiaExtension="gratia.xml"
+    CertificateFile="/etc/grid-security/hostcert.pem"
+    KeyFile="/etc/grid-security/hostkey.pem"
+
+    MaxPendingFiles="100000"
+    DataFolder="/tmp/gratia/var/data/"
+    WorkingFolder="/tmp/gratia/var/tmp"
+    LogFolder="/tmp/gratia/var/logs/"
+    LogRotate="31"
+    UseSyslog="0"
+    SuppressUnknownVORecords="0"
+
+    EnableProbe="0"
+
+/>
+

@@ -40,6 +40,8 @@ setup(name="OSG-Gratia-Viewer",
               'gip_subcluster_record = gratia.tools.gip_subcluster_record:main',
               'gratia_voms_query = gratia.tools.gratia_voms_query:main',
               'wlcg_pledge_email = gratia.tools.wlcg_pledge_email:main',
+              'cms_summary = gratia.summary.dashboard_slurp:main',
+              'ligo_summary = gratia.summary.ligo_query:main',
           ],
           'setuptools.installation' : [
               'eggsecutable = gratia.tools.gratia_web:main'
