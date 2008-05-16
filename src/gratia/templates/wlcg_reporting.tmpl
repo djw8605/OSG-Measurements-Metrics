@@ -12,57 +12,88 @@
 <script>
 my_data = {
   apel: [
-    #for row in $apel
+    #for row in $apel[:-1]
         {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor},
     #end for
+        #set row=$apel[-1]
+        {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor}
   ],
 
   gip: [
-    #for key in sorted($subclusters.keys(), $getVar('key_sorter', '', False))
+    #set keys = sorted($subclusters.keys(), $getVar('key_sorter', '', False))
+    #for key in keys[:-1]
         #set val=$subclusters[key]
         {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), SI2K: $val[3], Ownership: '$val[4]'},
     #end for
+        #set key = keys[-1]
+        #set val=$subclusters[key]
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), SI2K: $val[3], Ownership: '$val[4]'}
   ],
 
   sitenorm: [
-    #for key in sorted($site_norm.keys(), $getVar('key_sorter', '', False))
+    #set keys = sorted($site_norm.keys(), $getVar('key_sorter', '', False))
+    #for key in keys[:-1]
         #set val=$site_norm[key]
         {Site: '$key', GIPNorm: $val[0], WLCGNorm: $val[1], Diff: $val[2]},
     #end for
+        #set key = keys[-1]
+        #set val=$site_norm[key]
+        {Site: '$key', GIPNorm: $val[0], WLCGNorm: $val[1], Diff: $val[2]}
   ],
 
   cms_pledge: [
-    #for key in sorted($pledge['cms'].keys(), $getVar('key_sorter', '', False))
+    #set keys = sorted($pledge['cms'].keys(), $getVar('key_sorter', '', False))
+    #for key in keys[:-1]
         #set val=$pledge['cms'][key]
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormWCT/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
         {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
     #end for
+        #set key=keys[-1]
+        #set val=$pledge['cms'][key]
+        #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
+        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
+        #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg}
   ],
 
   atlas_pledge: [
-    #for key in sorted($pledge['atlas'].keys(), $getVar('key_sorter', '', False))
+    #set keys = sorted($pledge['atlas'].keys(), $getVar('key_sorter', '', False))
+    #for key in keys[:-1]
         #set val=$pledge['atlas'][key]
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormWCT/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
         {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
     #end for
+        #set key = keys[-1]
+        #set val=$pledge['atlas'][key]
+        #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
+        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
+        #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg}
   ],
 
   summary: [
-    #for key in sorted($summary.keys(), $getVar('key_sorter', '', False))
+    #set keys = sorted($summary.keys(), $getVar('key_sorter', '', False))
+    #for key in keys[:-1]
         {Site: '$key', WLCGAccounting: "$summary[$key]['accounting']", Subclusters: $summary[$key]['subclusters']},
     #end for
+        #set key=keys[-1]
+        {Site: '$key', WLCGAccounting: "$summary[$key]['accounting']", Subclusters: $summary[$key]['subclusters']}
   ],
 
   availability: [
-    #for site in sorted($availability.keys(), $getVar('key_sorter', '', False))
+    #set keys = sorted($availability.keys(), $getVar('key_sorter', '', False))
+    #for site in keys[:-1]
       #set val=$availability[$site]
       {Site: '$site', Ownership: $val['ownership'], KSI2KSize: $val['size'], RSVAvail: $val['rsv'], Availability: $val['availability']},
     #end for
-  ],
+      #set key = keys[-1]
+      #set val=$availability[$site]
+      {Site: '$site', Ownership: $val['ownership'], KSI2KSize: $val['size'], RSVAvail: $val['rsv'], Availability: $val['availability']}
+  ]
 
 };
 
@@ -73,6 +104,7 @@ my_data = {
 
 YAHOO.util.Event.addListener(window, "load", function() {
     fcn = new function() {
+
         var wlcgColumnDefs = [
             {key:"Site", sortable:true, resizeable:true},
             {key:"VO", sortable:true, resizeable:true},
@@ -83,7 +115,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true},
             {key:"Start", label:"Start Date", sortable:true, resizeable:true},
             {key:"End", label:"End Date", sortable:true, resizeable:true},
-            {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true},
+            {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true}
         ];
 
         var gipColumnDefs = [
@@ -91,19 +123,20 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Subcluster", sortable:true, resizeable:true},
             {key:"Processor", label:"Processor Model", sortable:true, resizeable:true},
             {key:"SI2K", label:"SI2K Score", sortable:true, resizeable:true},
-            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true},
+            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true}
         ];
 
-        perc_formatter = function(elCell, oRecord, oColumn, oData) { 
-            var perc = oData; 
-            elCell.innerHTML = perc + "%";
+        var perc_formatter = function(elCell, oRecord, oColumn, oData) { 
+            if (oData == null) return;
+            var a = oData;
+            elCell.innerHTML = String(a) + "%";
         }; 
  
         var sitenormColumnDefs = [
             {key:"Site", sortable:true, resizeable:true},
             {key:"GIPNorm", label:"Normalization Calculated by the GIP", sortable:true, resizeable:true},
             {key:"WLCGNorm", label:"Normalization Reported to WLCG", sortable:true, resizeable:true},
-            {key:"Diff", label:"GIP Percent Difference", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"Diff", label:"GIP Percent Difference", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
         var cmsColumnDefs = [
@@ -116,7 +149,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
             {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
             {key:"delivered", label:"Percent of WLCG goal ", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
         var atlasColumnDefs = [
@@ -129,7 +162,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
             {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
             {key:"delivered", label:"Percent of WLCG goal", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
         var availabilityColumnDefs = [
@@ -137,13 +170,13 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Ownership", label:"MoU VO Ownership", sortable:true, resizeable:true, formatter:perc_formatter},
             {key:"KSI2KSize", label:"MoU VO Owned KSI2K Size", sortable:true, resizeable:true},
             {key:"RSVAvail", label:"RSV Availability", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"Availability", label:"Month's MoU VO KSI2K-Availability", sortable:true, resizeable:true},
+            {key:"Availability", label:"Month's MoU VO KSI2K-Availability", sortable:true, resizeable:true}
         ];
 
         var summaryColumnDefs = [
             {key:"Site", label:"OSG Site name", sortable:true, resizeable:true},
             {key:"WLCGAccounting", label:"WLCG Accounting Site", sortable:true, resizeable:true},
-            {key:"Subclusters", label:"Number of GIP Subclusters", sortable:true, resizeable:true},
+            {key:"Subclusters", label:"Number of GIP Subclusters", sortable:true, resizeable:true}
         ];
 
         this.wlcgDataSource = new YAHOO.util.DataSource(my_data.apel);
@@ -179,7 +212,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.availabilityDataSource = new YAHOO.util.DataSource(my_data.availability);
         this.availabilityDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.availabilityDataSource.responseSchema = {
-            fields: ["Site", "Ownership", "KSI2KSize", "RSVAvail", "Availability"],
+            fields: ["Site", "Ownership", "KSI2KSize", "RSVAvail", "Availability"]
         };
 
         this.summaryDataSource = new YAHOO.util.DataSource(my_data.summary);

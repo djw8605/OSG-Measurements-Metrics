@@ -156,7 +156,7 @@ def _summarize(sumData, data, keys):
 site_re = re.compile('(.*) \(.*\)')
 def summarizeData(data):
     info = {}
-    keys=['WallDuration', 'NoEventsPerRun']
+    keys=['WallDuration', 'NoEventsPerRun', 'NEventsProcessed']
     for jobId, values in data.items():
         m = site_re.match(values.get('site', 'Unknown'))
         if m:
@@ -185,16 +185,20 @@ def summarizeSite(site, startTime, endTime):
     data = getSiteJobs(site, startTime, endTime)
     return summarizeData(data)
 
-def getLastWeek():
-    today = datetime.date.today()
-    yest = today - datetime.timedelta(7)
+def getLastDay():
+    today = datetime.date.today() - datetime.timedelta(1, 0)
+    #yest = today - datetime.timedelta(7)
     year, month, date = today.year, today.month, today.day
     start = datetime.datetime(year, month, date, 00, 00, 00)
     end = datetime.datetime(year, month, date, 23, 59, 59)
+    print "Time interval:", start, end
     return start, end
 
-def sendSummaryData(data):
+def sendSummaryData(startTime, data):
     for key, values in data.items():
+        # Don't report previous activity... it was already hopefully reported.
+        if key[2] < startTime:
+            continue
         r = Gratia.UsageRecord("Batch")
         r.WallDuration(values['WallDuration'])
         st = values['StartTime'].strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -206,7 +210,7 @@ def sendSummaryData(data):
         r.Grid('OSG')
         r.Njobs(values['Njobs'])
         r.AdditionalInfo('NumberOfEvents', values['NoEventsPerRun'])
-        print Gratia.Send(r)
+        print Gratia.Send(r), key, values
 
 def main():
     options, args = parseArgs()
@@ -214,8 +218,8 @@ def main():
         filename = resource_filename("gratia.summary", "CmsProbeConfigProd")
     else:
         filename = resource_filename("gratia.summary", "CmsProbeConfigItb")
-    Gratia.Initialize(customProbe=filename)
-    startTime, endTime = getLastWeek()
+    Gratia.Initialize(customConfig=filename)
+    startTime, endTime = getLastDay()
     sites = getOsgSites(startTime, endTime)
     name_map = osgToDashboard(sites)
     for site in sites[::-1]:
@@ -224,7 +228,7 @@ def main():
         print "There were %i jobs returned" % len(data)
         data = summarizeData(data)
         print "There are %i summarized entries" % len(data)
-        sendSummaryData(data)
+        sendSummaryData(startTime, data)
 
 if __name__ == '__main__':
     main()

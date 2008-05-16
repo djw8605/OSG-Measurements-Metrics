@@ -32,8 +32,8 @@ WHERE {
                GEO600:executing  ?Active ;
                GEO600:pending    ?Pending .
 
- FILTER ( ?Timestamp >= xsd:dateTime ("2008-03-01T00:00:00+01:00") ) .
- FILTER ( ?Timestamp <  xsd:dateTime ("2008-06-01T00:00:00+01:00") )
+ FILTER ( ?Timestamp >= xsd:dateTime ("%s") ) .
+ FILTER ( ?Timestamp <  xsd:dateTime ("%s") )
 
 } ORDER BY DESC(?Timestamp)
 """
@@ -60,6 +60,9 @@ def xsdToDatetime(value):
     value = datetime.datetime(*value_tuple[:6])
     value += offset
     return value
+
+def datetimeToXsd(value):
+    return value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 def organizeByKeys(info, *args):
     new_info = {}
@@ -98,8 +101,10 @@ def filterOSG(info):
         new_info.append(items)
     return new_info
 
-def queryLigo():
-    data = {'query': sparql_query}
+def queryLigo(start, end):
+    start += datetime.timedelta(0, 3*3600)
+    end += datetime.timedelta(0, 3*3600)
+    data = {'query': sparql_query % (datetimeToXsd(start), datetimeToXsd(end))}
     query = urllib.urlencode(data)
     req = urllib2.Request(sesame_server, query, headers={"Accept": \
         "application/sparql-results+xml"})
@@ -150,6 +155,14 @@ def sendSummary(info):
     r.Njobs(info['Njobs'])
     print Gratia.Send(r)
 
+def getLastDay():
+    today = datetime.date.today() - datetime.timedelta(1, 0)
+    #yest = today - datetime.timedelta(7)
+    year, month, date = today.year, today.month, today.day
+    start = datetime.datetime(year, month, date, 00, 00, 00)
+    end = datetime.datetime(year, month, date, 23, 59, 59)
+    return start, end
+
 def parseArgs():
     parser = optparse.OptionParser()
     parser.add_option("-d", "--database", dest="database", default="itb", \
@@ -163,7 +176,8 @@ def main():
     else:
         filename = resource_filename("gratia.summary", "LigoProbeConfigItb")
     Gratia.Initialize(customConfig=filename)
-    info = queryLigo()
+    startTime, endTime = getLastDay()
+    info = queryLigo(startTime-datetime.timedelta(1, 0), endTime)
     info = filterOSG(info)
     info = organizeByKeys(info, "Name", "Timestamp")
     info = calculateLigoDaily(info, "Submitted", "CPUtime", "Active", \
