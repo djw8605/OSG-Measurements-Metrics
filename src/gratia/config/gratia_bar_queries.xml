@@ -60,6 +60,60 @@
       </results>
     </query>
 
+    <query name="facility_cpu_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">CPU Hours Spent on Jobs By Facility</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="facility_cpu_efficiency" base="GratiaGenericQuery.jobs_summary_query">
+      <inputs>
+          <input name="facility" kind="sql">Nebraska</input>
+      </inputs>
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> (CpuUserDuration + CpuSystemDuration)/WallDuration </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">CPU Efficiency for $facility</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="vo_cpu_efficiency" base="GratiaGenericQuery.jobs_summary_query">
+      <inputs>
+          <input name="vo" kind="sql">cms</input>
+      </inputs>
+      <sql>
+        <filler name="group"> R.VOName </filler>
+        <filler name="column"> (CpuUserDuration + CpuSystemDuration)/WallDuration </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">CPU Efficiency for $vo</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="probe_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> R.ProbeName </filler>
