@@ -70,6 +70,21 @@
       <attribute name="title"> Computational Hours by Facility </attribute>
     </query>
 
+    <query name="osg_facility_cpu_hours" base="GratiaGenericQuery.simple_summary">
+        <inputs>
+            <input kind="sql" type="float" name="min_hours"> 10 </input>
+        </inputs>
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(R.CpuUserDuration + CpuSystemDuration)/3600 as CpuHours </filler>
+        <filler name="having"> HAVING CpuHours >= :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> Facility </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Computational Hours by Facility </attribute>
+    </query>
+
     <query name="osg_probe_hours" base="GratiaGenericQuery.simple_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>

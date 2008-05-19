@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import re
 import os
 import types
 import datetime
@@ -14,6 +15,14 @@ from email.MIMEText import MIMEText
 from email.MIMEImage import MIMEImage
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formataddr
+
+ftoa_re = re.compile(r'(?<=\d)(?=(\d\d\d)+(\.|$))')
+def ftoa(s):
+    """
+    Converts a float or integer to a properly comma-separated string using
+    regular expressions.  Kudos to anyone who can actually read the RE.
+    """
+    return ftoa_re.sub(',', str(s))
 
 def loadConfig():
     """
@@ -32,6 +41,8 @@ def loadConfig():
     parser = optparse.OptionParser()
     parser.add_option("-c", "--config", dest="config", help="Comma-separated "\
         "list of config files.", default="")
+    parser.add_option("-d", "--dev", dest="dev", action="store_true", \
+        default=False, help="Development mode email.")
     (options, args) = parser.parse_args()
     for entry in options.config.split(','):
         entry = entry.strip()
@@ -42,6 +53,7 @@ def loadConfig():
     if not cp.has_section("info"):
         cp.add_section("info")
         cp.set("info", "url", "http://t2.unl.edu/gratia/pledge_table")
+    cp.set("info", "dev", options.dev)
 
     return cp
 
@@ -52,17 +64,19 @@ subject = "WLCG Pledge data for %s %s"
 email_plain = \
 """Below is the pledge data so far for %(month)s %(year)s.  This data was recorded from the beginning of the month until %(report_time)s.
 
-ATLAS Sites
+Note: We have recently changed this report to show CPU-hours instead of Wall-hours; this drastically changes the percentages for some sites.
+
+ATLAS T2 Sites
 %(atlas_plain_table)s
-CMS Sites
+CMS T2 Sites
 %(cms_plain_table)s
 For each WLCG accounting site, we show the following information:
    - %(pledge_year)s KSI2K Pledge: The size of the resource, as measured in KSI2K.
-   - Month goal for KSI2K-hours: The number of hours in the month times the pledged size of the resource times the month's efficiency (currentyl 60%).
+   - Month goal for KSI2K-hours: The number of hours in the month times the pledged size of the resource times the month's efficiency (currently 60%%).
    - KSI2K-hours for the owning VO: KSI2K hours are CPU-hours multiplied by the average KSI2K rating of the resource
    - KSI2K-hours for all WLCG VOs
    - Site's total KSI2K-hours
-   - Percentage of the WLCG goal accomplished
+   - Percentage of the WLCG goal accomplished.  Percentage is based only on the entire month's goal.
    - Percentage of the site's total time delivered to non-WLCG VOs.
 
 This is a summary of the available data; a more thorough analysis is available at:
@@ -77,24 +91,27 @@ email_html = """
 
 <p>Below is the pledge data so far for <b>%(month)s %(year)s</b>.  This data was recorded from the beginning of the month until %(report_time)s.</p>
 
-<h2>ATLAS Sites</h2>
-%(atlas_html_table)s
-
-<h2>CMS Sites</h2>
-%(cms_html_table)s
-
 <br/>
+<p style='font-weight: bold;'>Note: We have recently changed this report to show CPU-hours instead of Wall-hours; this drastically changes the percentages for some sites.</p>
 
 For each WLCG accounting site, we show the following information:
 <ul>
-   <li>%(pledge_year)s KSI2K Pledge</li>: The size of the resource, as measured in KSI2K.
-   <li>Month goal for KSI2K-hours</li>: The number of hours in the month times the pledged size of the resource times the month's efficiency (currentyl 60%).
-   <li>KSI2K-hours for the owning VO</li>: KSI2K hours are CPU-hours multiplied by the average KSI2K rating of the resource
+   <li>%(pledge_year)s KSI2K Pledge: The size of the resource, as measured in KSI2K.</li>
+   <li>Month goal for KSI2K-hours: The number of hours in the month times the pledged size of the resource times the month's efficiency (currently 60%%).</li>
+   <li>KSI2K-hours for the owning VO: KSI2K hours are CPU-hours multiplied by the average KSI2K rating of the resource</li>
    <li>KSI2K-hours for all WLCG VOs</li>
    <li>Site's total KSI2K-hours</li>
-   <li>Percentage of the WLCG goal accomplished</li>
+   <li>Percentage of the WLCG KSI2K-hours goal accomplished. Percentage is based only on the entire month's goal.</li>
    <li>Percentage of the site's total time delivered to non-WLCG VOs.</li>
 </ul>
+
+<h2>ATLAS T2 Sites</h2>
+%(atlas_html_table)s
+
+<h2>CMS T2 Sites</h2>
+%(cms_html_table)s
+
+<br/>
 
 <p>This is a summary of the available data; a more thorough analysis is available at:</p>
 <p><a href="http://t2.unl.edu/gratia/wlcg_reporting">http://t2.unl.edu/gratia/wlcg_reporting</a></p>
@@ -117,6 +134,7 @@ table.mytable th {
 	padding: 1px 1px 1px 1px;
 	border-style: inset inset inset inset;
 	background-color: white;
+        font-weight: normal;
 }
 table.mytable td {
 	border-width: 1px 1px 1px 1px;
@@ -127,7 +145,7 @@ table.mytable td {
 }
 </style>
 <table class="mytable">
-<thead><th>WLCG Accounting Name</th><th>2007 KSI2K Pledge</th><th>Month goal of KSI2K-hours</th><th>KSI2K-hours for owner VO</th><th>KSI2K-hours for WLCG VOs</th><th>KSI2K-hours for all VOs</th><th>Percent of WLCG goal</th><th>Percent non-WLCG</th></thead>
+<thead><th>WLCG Accounting Name</th><th>2007 KSI2K Pledge</th><th>Month goal of KSI2K-hours</th><th>KSI2K-hours for owner VO</th><th>KSI2K-hours for WLCG VOs</th><th>KSI2K-hours for all VOs</th><th>Percent of WLCG goal achieved</th><th>Percent of site's time given to non-WLCG VOs</th></thead>
 %s
 </table>
 """
@@ -142,11 +160,11 @@ plain_table = """
 """
 
 html_table_row = """
-<tr><td>%s</td><td>%i</td><td>%i</td><td>%i</td><td>%i</td><td>%i</td><td>%s</td><td>%s</td></tr>
+<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>
 """
 
 plain_table_row = \
-"""| %15s | %6s | %6i | %11i | %11i | %11i | %9s | %9s |
+"""| %15s | %6s | %6s | %11s | %11s | %11s | %9s | %9s |
 """
 
 def load_pledges(cp):
@@ -159,6 +177,8 @@ def to_str(cp):
     toStr = cp.get("email", "toStr")
     toNames = eval(toNames, {}, {})
     toStr = eval(toStr, {}, {})
+    if len(toNames) > 1 and cp.get_boolean("info", "dev"):
+        raise Exception("Cannot send to multiple recipients in dev mode.")
     names = [formataddr(i) for i in zip(toNames, toStr)]
     return ', '.join(names)
 
@@ -176,9 +196,15 @@ def send_email(msg, cp):
     smtp.quit()
 
 def main():
-    year = datetime.datetime.now().year
-    month = datetime.datetime.now().month
-    month_str = calendar.month_name[month]
+    now = datetime.datetime.now()
+    year = now.year
+    month = now.month
+    #Bug fix - on the first day of the month, we're actually reporting the
+    # previous month's usage.
+    if now.day == 1:
+        month_str = calendar.month_name[month-1]
+    else:
+        month_str = calendar.month_name[month]
     cp = loadConfig()
     pledges = load_pledges(cp)
     wlcg_sites = []
@@ -190,14 +216,16 @@ def main():
     plain_strng = ''
     for site, data in pledges['pledges']['atlas'].items():
         pledge = int(data['pledge'])
-        goal = data['efficiency'] * pledge * data['days_in_month'] * 24
-        vo = data['voNormWCT']
-        wlcg = data['wlcgNormWCT']
-        total = data['totalNormWCT']
+        goal = int(data['efficiency'] * pledge * data['days_in_month'] * 24)
+        vo = data['voNormCPU']
+        wlcg = data['wlcgNormCPU']
+        total = data['totalNormCPU']
         wlcg_perc = '%i%%' % int(wlcg/float(goal)*100)
         other_perc = '%i%%' % int((total-wlcg)/float(total)*100)
-        html_strng += html_table_row % (site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc)
-        plain_strng += plain_table_row % (site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc)
+        html_strng += html_table_row % (site, ftoa(pledge), ftoa(goal), \
+            ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
+        plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
+            ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
     atlas_html_table = html_table % html_strng
     atlas_plain_table = plain_table % plain_strng
 
@@ -205,14 +233,16 @@ def main():
     plain_strng = ''
     for site, data in pledges['pledges']['cms'].items():
         pledge = int(data['pledge'])
-        goal = data['efficiency'] * pledge * data['days_in_month'] * 24
-        vo = data['voNormWCT']
-        wlcg = data['wlcgNormWCT']
-        total = data['totalNormWCT']
+        goal = int(data['efficiency'] * pledge * data['days_in_month'] * 24)
+        vo = data['voNormCPU']
+        wlcg = data['wlcgNormCPU']
+        total = data['totalNormCPU']
         wlcg_perc = '%i%%' % int(wlcg/float(goal)*100)
         other_perc = '%i%%' % int((total-wlcg)/float(total)*100)
-        html_strng += html_table_row % (site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc)
-        plain_strng += plain_table_row % (site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc)
+        html_strng += html_table_row % (site, ftoa(pledge),ftoa(goal),ftoa(vo),\
+            ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
+        plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
+            ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
     cms_html_table = html_table % html_strng
     cms_plain_table = plain_table % plain_strng
 

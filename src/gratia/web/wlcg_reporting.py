@@ -22,13 +22,12 @@ def gratia_interval(year, month):
 
 class WLCGReporter(Authenticate):
 
-    def add_effort(self, site_info, site, VOMoU, apel_data, gratia_data):
-        if 'wlcgNormWCT' not in site_info:
-            site_info['wlcgNormWCT'] = 0
-        if 'voNormWCT' not in site_info:
-            site_info['voNormWCT'] = 0
-        if 'totalNormWCT' not in site_info:
-            site_info['totalNormWCT'] = 0
+    def add_effort(self, site_info, site, VOMoU, apel_data, gratia_data, \
+            gratia_cpu_data):
+        for key in ['wlcgNormWCT', 'voNormWCT', 'totalNormWCT', 'wlcgNormCPU',\
+                'voNormCPU', 'totalNormCPU']:
+            if key not in site_info:
+                site_info[key] = 0
         norm = None
         for row in apel_data:
             if str(row['ExecutingSite']) != site:
@@ -36,16 +35,21 @@ class WLCGReporter(Authenticate):
             norm = float(row['NormFactor'])
             if row['LCGUserVO'].find(VOMoU) >= 0:
                 site_info['voNormWCT'] += int(row['NormSumWCT'])
+                site_info['voNormCPU'] += int(row['NormSumCPU'])
             site_info['wlcgNormWCT'] += int(row['NormSumWCT'])
+            site_info['wlcgNormCPU'] += int(row['NormSumCPU'])
             site_info['norm'] = norm
         if norm:
             site_info['totalNormWCT'] += int(norm * gratia_data.get(site, 0))
+            site_info['totalNormCPU'] += int(norm * gratia_cpu_data.get(site,0))
                
 
     def t2_pledges(self, apel_data, year, month):
         # Get Gratia data
         gratia_data = self.globals['GratiaPieQueries'].osg_facility_hours( \
             **gratia_interval(year, month))[0]
+        gratia_cpu_data = self.globals['GratiaPieQueries'].\
+            osg_facility_cpu_hours( **gratia_interval(year, month))[0]
         lines = resource_stream('gratia.config', 'pledges.csv').read().split('\r')
         pledge_info = {}
         last_day = calendar.monthrange(year, month)[1]
@@ -79,7 +83,8 @@ class WLCGReporter(Authenticate):
                 site_info['pledge'] = my_pledge07
             site_info['efficiency'] = .6
             site_info['days_in_month'] = last_day
-            self.add_effort(site_info, site, VOMoU, apel_data, gratia_data)
+            self.add_effort(site_info, site, VOMoU, apel_data, gratia_data, \
+                gratia_cpu_data)
             sites = site_info.get('sites', [])
             site_info['sites'] = sites
             if site not in sites:

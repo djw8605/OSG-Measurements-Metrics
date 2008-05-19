@@ -9,6 +9,15 @@
 
 <h1>Data reported to the WLCG for $month_name, $year</h1>
 
+<style type="text/css">
+.yui-skin-sam .yui-dt td { 
+	    margin:0;padding:0; 
+	    border:none; 
+	    border-right:1px solid #CBCBCB; /* inner column border */ 
+	    text-align:right; 
+	} 
+</style>
+
 <script>
 my_data = {
   apel: [
@@ -105,25 +114,38 @@ my_data = {
 YAHOO.util.Event.addListener(window, "load", function() {
     fcn = new function() {
 
+        var num_formatter = function(elCell, oRecord, oColumn, oData) {
+            if (oData == null) return;
+            var nStr = String(oData);
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            }
+            elCell.innerHTML = x1 + x2;
+        };
+
         var wlcgColumnDefs = [
             {key:"Site", sortable:true, resizeable:true},
             {key:"VO", sortable:true, resizeable:true},
-            {key:"Njobs", label:"Number of Jobs", sortable:true, resizeable:true},
-            //{key:"SumCPU", label:"CPU Hours", sortable:true, resizeable:true},
-            //{key:"NormSumCPU", label:"Normalized CPU Hours", sortable:true, resizeable:true},
-            {key:"SumWCT", label:"Wall Hours", sortable:true, resizeable:true},
-            {key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true},
+            {key:"Njobs", label:"Number of Jobs", sortable:true, resizeable:true, formatter:num_formatter},
+            //{key:"SumCPU", label:"CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            //{key:"NormSumCPU", label:"Normalized CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"SumWCT", label:"Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Start", label:"Start Date", sortable:true, resizeable:true},
             {key:"End", label:"End Date", sortable:true, resizeable:true},
-            {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true}
+            {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true, formatter:num_formatter}
         ];
 
         var gipColumnDefs = [
             {key:"Site", sortable:true, resizeable:true},
             {key:"Subcluster", sortable:true, resizeable:true},
             {key:"Processor", label:"Processor Model", sortable:true, resizeable:true},
-            {key:"SI2K", label:"SI2K Score", sortable:true, resizeable:true},
-            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true}
+            {key:"SI2K", label:"SI2K Score", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true, formatter:num_formatter}
         ];
 
         var perc_formatter = function(elCell, oRecord, oColumn, oData) { 
@@ -141,26 +163,26 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
         var cmsColumnDefs = [
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true},
-            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true},
-            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
-            {key:"KSI2KAvail", label:"CMS KSI2K Availability", sortable:true, resizeable:true},
-            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
-            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
+            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"KSI2KAvail", label:"CMS KSI2K Availability", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"delivered", label:"Percent of WLCG goal ", sortable:true, resizeable:true, formatter:perc_formatter},
             {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
         var atlasColumnDefs = [
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true},
-            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true},
-            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true},
-            {key:"KSI2KAvail", label:"ATLAS KSI2K Availability", sortable:true, resizeable:true},
-            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true},
-            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true},
+            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"KSI2KAvail", label:"ATLAS KSI2K Availability", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"delivered", label:"Percent of WLCG goal", sortable:true, resizeable:true, formatter:perc_formatter},
             {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
@@ -168,9 +190,9 @@ YAHOO.util.Event.addListener(window, "load", function() {
         var availabilityColumnDefs = [
             {key:"Site", label:"OSG Site name", sortable:true, resizeable:true},
             {key:"Ownership", label:"MoU VO Ownership", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"KSI2KSize", label:"MoU VO Owned KSI2K Size", sortable:true, resizeable:true},
+            {key:"KSI2KSize", label:"MoU VO Owned KSI2K Size", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"RSVAvail", label:"RSV Availability", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"Availability", label:"Month's MoU VO KSI2K-Availability", sortable:true, resizeable:true}
+            {key:"Availability", label:"Month's MoU VO KSI2K-Availability", sortable:true, resizeable:true, formatter:num_formatter}
         ];
 
         var summaryColumnDefs = [
