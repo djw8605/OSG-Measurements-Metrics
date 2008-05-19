@@ -21,11 +21,13 @@
 <script>
 my_data = {
   apel: [
+  #if len($apel) > 0
     #for row in $apel[:-1]
         {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor},
     #end for
         #set row=$apel[-1]
         {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor}
+  #end if
   ],
 
   gip: [
@@ -55,16 +57,16 @@ my_data = {
     #for key in keys[:-1]
         #set val=$pledge['cms'][key]
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
-        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
+        #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU},
     #end for
         #set key=keys[-1]
         #set val=$pledge['cms'][key]
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
-        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
+        #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg}
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU}
   ],
 
   atlas_pledge: [
@@ -72,16 +74,16 @@ my_data = {
     #for key in keys[:-1]
         #set val=$pledge['atlas'][key]
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
-        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
+        #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg},
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU},
     #end for
         #set key = keys[-1]
         #set val=$pledge['atlas'][key]
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
-        #set delivered=int($val.wlcgNormWCT/float($goal)*100)
+        #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg}
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU}
   ],
 
   summary: [
@@ -131,11 +133,11 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Site", sortable:true, resizeable:true},
             {key:"VO", sortable:true, resizeable:true},
             {key:"Njobs", label:"Number of Jobs", sortable:true, resizeable:true, formatter:num_formatter},
-            //{key:"SumCPU", label:"CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
-            //{key:"NormSumCPU", label:"Normalized CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"SumCPU", label:"CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"SumWCT", label:"Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"Start", label:"Start Date", sortable:true, resizeable:true},
+            {key:"NormSumCPU", label:"Normalized CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            //{key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            //{key:"Start", label:"Start Date", sortable:true, resizeable:true},
             {key:"End", label:"End Date", sortable:true, resizeable:true},
             {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true, formatter:num_formatter}
         ];
@@ -165,26 +167,28 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
             {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Goal", label:"Month goal of Norm CPU hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgCPU", label:"Norm CPU hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"KSI2KAvail", label:"CMS KSI2K Availability", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"delivered", label:"Percent of WLCG goal ", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter}
+            {key:"OwnedWCT", label:"Norm Wall hours for CMS", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgWCT", label:"Norm Wall hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"totalWCT", label:"Norm Wall for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"delivered", label:"Percent of WLCG goal achieved", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"nonwlcg", label:"Percent of site's time delivered to non-WLCG VOs", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
         var atlasColumnDefs = [
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
             {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"Goal", label:"Month goal of KSI2K-hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Goal", label:"Month goal of CPU hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgCPU", label:"Norm CPU hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"KSI2KAvail", label:"ATLAS KSI2K Availability", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"OwnedWCT", label:"KSI2K-hours for owner VO", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"wlcgWCT", label:"KSI2K-hours for WLCG VOs", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"totalWCT", label:"KSI2K-hours for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"delivered", label:"Percent of WLCG goal", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"nonwlcg", label:"Percent non-WLCG", sortable:true, resizeable:true, formatter:perc_formatter}
+            {key:"OwnedWCT", label:"Norm Wall hours for ATLAS", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgWCT", label:"Norm Wall hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"totalWCT", label:"Norm Wall hours for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"delivered", label:"Percent of WLCG goal achieved", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"nonwlcg", label:"Percent of site's time delivered to non-WLCG VOs", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
         var availabilityColumnDefs = [
@@ -204,7 +208,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.wlcgDataSource = new YAHOO.util.DataSource(my_data.apel);
         this.wlcgDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.wlcgDataSource.responseSchema = {
-            fields: ["Site", "VO", "Njobs", "SumCPU", "NormSumCPU", "SumWCT", "NormSumWCT", "Start", "End", "Norm"]
+            fields: ["Site", "VO", "Njobs", "SumCPU", "SumWCT", "NormSumCPU", "End", "Norm"]
         };
 
         this.gipDataSource = new YAHOO.util.DataSource(my_data.gip);
@@ -222,13 +226,13 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.atlasDataSource = new YAHOO.util.DataSource(my_data.atlas_pledge);
         this.atlasDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.atlasDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
         };
 
         this.cmsDataSource = new YAHOO.util.DataSource(my_data.cms_pledge);
         this.cmsDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.cmsDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
         };
 
         this.availabilityDataSource = new YAHOO.util.DataSource(my_data.availability);
@@ -318,17 +322,19 @@ YAHOO.util.Event.addListener(window, "load", function() {
 <hr/>
 
 <h1>WLCG Pledge Information</h1>
-<p>Each WLCG site has pledged a certain amount of kSI2K for their site; in this section, we compare the amount of pledged KSI2K hours to this month's accounting data.  The accounting data is measured in KSI2K-hours, which is the number of hours recorded by the accounting system multiplied by the site normalization factor (shown above).  Each WLCG site should attempt to hit this month's goal, which is the KSI2K pledge amount times the number of hours in the month times an efficiency factor.  The efficiency factor is currently 60%.
+<p>Each WLCG site has pledged a certain amount of kSI2K for their site; in this section, we compare the amount of pledged KSI2K CPU hours to this month's accounting data.  The accounting data is measured in KSI2K-hours, which is the number of hours recorded by the accounting system multiplied by the site normalization factor (shown above).  We show data using both CPU hours and Wall (elapsed) hours.  Each WLCG site should attempt to hit this month's goal, which is the KSI2K pledge amount times the number of hours in the month times a CPU efficiency factor.  The CPU efficiency factor is currently 60%.
   The table below shows:
 <ul>
   <li><strong>$pledge_year KSI2K Pledge:</strong> $pledge_year KSI2K pledge in the WLCG MoU</li>
-  <li><strong>Month goal of KSI2K-hours:</strong> The corresponding number of KSI2K hours which should be achieved this month (assumes an efficiency of 60% from the pledged amount) </li>
-  <li><strong>KSI2K-hours for owner VO</strong> The number of KSI2K-hours contributed to the VO which owns the site.</li>
+  <li><strong>Month goal of CPU hours:</strong> The corresponding number of CPU hours which should be achieved this month (assumes a CPU efficiency of 60% from the pledged amount).</li>
+  <li><strong>Normalized CPU hours for all WLCG</strong> The number of normalized CPU hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
+  <li><strong>Measured KSI2K</strong>The measured KSI2K size from the GIP.</li>
   <li><strong>Owner VO's KSI2K-Availability</strong> <a href="#availability">Explained below</a>.  For each day of the month, multiply that day's available KSI2K times the owner VO's ownership percentage times the RSV-measured availability, then sum them up.</li>
-  <li><strong>KSI2K-hours for WLCG</strong> The number of KSI2K-hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
-  <li><strong>KSI2K-hours for all VOs</strong> The number of KSI2K-hours contributed to all VOs.</li>
-  <li><strong>Percent of WLCG goal</strong> The percentage of the goal delivered this month.  This is computed by (<strong>KSI2K-hours for WLCG</strong>)/(<strong>monthly goal</strong>). </li>
-  <li><strong>Percent non-WLCG</strong> The percentage of the KSI2K-hours delivered to non-WLCG VOs out of the site's total for this month</li>
+  <li><strong>Normalized wall hours for owner</strong> The number of normalized wall hours contributed to the VO which owns the site.</li>
+  <li><strong>Normalized wall hours for all WLCG</strong> The number of normalized wall hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
+  <li><strong>Normalized wall hours for all VOs</strong> The number of normalized wall hours contributed to all VOs.</li>
+  <li><strong>Percent of WLCG goal</strong> The percentage of the entire months's goal delivered.  This is computed by (<strong>Normalized CPU hours for WLCG</strong>)/(<strong>monthly goal</strong>). </li>
+  <li><strong>Percent of site's time delivered to non-WLCG VOs</strong> The percentage of the normalized wall hours delivered to non-WLCG VOs out of the site's total for this month</li>
 </ul>
 Please note that the mapping from OSG site to WLCG site is not one-to-one.
 Sometimes, several OSG sites put together compose a single WLCG site.  Further,

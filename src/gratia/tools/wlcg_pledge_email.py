@@ -16,6 +16,8 @@ from email.MIMEImage import MIMEImage
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formataddr
 
+from gratia.utility.make_table import Table
+
 ftoa_re = re.compile(r'(?<=\d)(?=(\d\d\d)+(\.|$))')
 def ftoa(s):
     """
@@ -120,7 +122,7 @@ OSG Metrics and Measurements
 </p>
 """
 
-html_table = """
+html_table_css = """
 <style type="text/css">
 table.mytable{
 	border-width: 1px 1px 1px 1px;
@@ -144,11 +146,18 @@ table.mytable td {
         text-align: right;
 }
 </style>
+"""
+
+html_table = html_table_css + """
 <table class="mytable">
 <thead><th>WLCG Accounting Name</th><th>2007 KSI2K Pledge</th><th>Month goal of KSI2K-hours</th><th>KSI2K-hours for owner VO</th><th>KSI2K-hours for WLCG VOs</th><th>KSI2K-hours for all VOs</th><th>Percent of WLCG goal achieved</th><th>Percent of site's time given to non-WLCG VOs</th></thead>
 %s
 </table>
 """
+
+table_headers = ['WLCG\nAccounting\nName', '2007 KSI2K\nPledge', 'Month goal\nof Norm.\nCPU hours', \
+    'Norm. CPU\nHours for\nowner VO', 'Norm. CPU\nHours for all\nWLCG VOs', 'Norm. CPU\nHours for\nall VOs', \
+    'Percent of\nWLCG goal\nachieved', 'Percent of site\'s\ntime given to\nnon-WLCG VOs']
 
 plain_table = """
 -------------------------------------------------------------------------------------------------------
@@ -212,8 +221,10 @@ def main():
         if site['ExecutingSite'] not in wlcg_sites:
             wlcg_sites.append(site['ExecutingSite'])
 
-    html_strng = '' 
-    plain_strng = ''
+    #html_strng = '' 
+    #plain_strng = ''
+    t = Table()
+    t.setHeaders(table_headers)
     for site, data in pledges['pledges']['atlas'].items():
         pledge = int(data['pledge'])
         goal = int(data['efficiency'] * pledge * data['days_in_month'] * 24)
@@ -222,15 +233,20 @@ def main():
         total = data['totalNormCPU']
         wlcg_perc = '%i%%' % int(wlcg/float(goal)*100)
         other_perc = '%i%%' % int((total-wlcg)/float(total)*100)
-        html_strng += html_table_row % (site, ftoa(pledge), ftoa(goal), \
-            ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
-        plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
-            ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
-    atlas_html_table = html_table % html_strng
-    atlas_plain_table = plain_table % plain_strng
+        #html_strng += html_table_row % (site, ftoa(pledge), ftoa(goal), \
+        #    ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
+        #plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
+        #    ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
+        t.addRow([site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc])
+    #atlas_html_table = html_table % html_strng
+    #atlas_plain_table = plain_table % plain_strng
+    atlas_html_table = html_table_css + t.html()
+    atlas_plain_table = t.plainText()
 
     html_strng = ''
     plain_strng = ''
+    t = Table()
+    t.setHeaders(table_headers)
     for site, data in pledges['pledges']['cms'].items():
         pledge = int(data['pledge'])
         goal = int(data['efficiency'] * pledge * data['days_in_month'] * 24)
@@ -239,12 +255,15 @@ def main():
         total = data['totalNormCPU']
         wlcg_perc = '%i%%' % int(wlcg/float(goal)*100)
         other_perc = '%i%%' % int((total-wlcg)/float(total)*100)
-        html_strng += html_table_row % (site, ftoa(pledge),ftoa(goal),ftoa(vo),\
-            ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
-        plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
-            ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
-    cms_html_table = html_table % html_strng
-    cms_plain_table = plain_table % plain_strng
+        #html_strng += html_table_row % (site, ftoa(pledge),ftoa(goal),ftoa(vo),\
+        #    ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
+        #plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
+        #    ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
+        t.addRow([site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc])
+    #cms_html_table = html_table % html_strng
+    #cms_plain_table = plain_table % plain_strng
+    cms_html_table = html_table_css + t.html()
+    cms_plain_table = t.plainText()
 
     email_info = {'atlas_html_table': atlas_html_table, 'cms_html_table': \
         cms_html_table, "report_time": pledges['report_time'], "year": year, "month": \
