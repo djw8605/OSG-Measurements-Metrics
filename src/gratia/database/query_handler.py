@@ -94,7 +94,7 @@ def rsv_daily_parser(data, **kw):
             new_site_data[key] = float(val[0]) / float(val[1])
     return new_data, kw
 
-def rsv_total_parser(data, **kw)
+def rsv_total_parser(data, **kw):
     data, kw = rsv_parser(data, **kw)
     kw['kind'] = 'pivot'
     new_data = {}
@@ -102,7 +102,7 @@ def rsv_total_parser(data, **kw)
         info = (0, 0)
         for key, val in site_data.items():
             info = (info[0] + val, info[1] + 1)
-        new_data[site] = float(info) / float(info)
+        new_data[site] = float(info[0]) / float(info[1])
     return new_data, kw
     
 

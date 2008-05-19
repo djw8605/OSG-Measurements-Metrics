@@ -136,6 +136,35 @@ group by
       <attribute name="column_units">Probes, Probes</attribute>
     </query>
 
+    <query name="rsv_reliability_total">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  ServiceURI,
+  Timestamp,
+  CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END,
+  CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility AND
+     MetricName regexp :metric
+group by
+  ServiceURI, Timestamp
+      </sql>
+      <results module="gratia.database.query_handler" function="rsv_total_parser"/>
+      <attribute name="graph_type"/>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="title">RSV Site Total Availability</attribute>
+    </query>
+
     <query name="rsv_metric_quality">
       <inputs>
         <input name="span" type="eval" kind="sql">7200</input>
