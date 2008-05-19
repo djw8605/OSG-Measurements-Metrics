@@ -1,6 +1,7 @@
 
 import re
 import sets
+import datetime
 
 from graphtool.database.query_handler import results_parser, simple_results_parser, pivot_group_parser_plus
 
@@ -37,6 +38,73 @@ def model_parser(pivot, **kw):
 
 def fake_parser(results, **kw):
     return results, kw
+
+def round_nearest_hour(d):
+    return datetime.datetime(d.year, d.month, d.day, (d.hour/2)*2, 0, 0)
+
+def rsv_parser(d, **kw):
+    kw['kind'] = 'pivot-group'
+    results = d
+    data = {}
+    for row in results:
+        site = row[0]
+        site_data = data.get(site, {})
+        data[site] = site_data
+        d = round_nearest_hour(row[1])
+        success, fail = row[2:4]
+        info = site_data.get(d, (0, 0))
+        site_data[d] = (info[0] + success, info[1] + fail)
+    new_data = {}
+    first_time = datetime.datetime(2222, 1, 1)
+    last_time = datetime.datetime(1901, 1, 1)
+    for site, site_data in data.items():
+        new_data[site] = {}
+        first_time = min(first_time, *site_data.keys())
+        last_time = max(last_time, *site_data.keys())
+    one_hour = datetime.timedelta(0, 2*3600)
+    for site, site_data in data.items():
+        cur_time = first_time
+        new_data_site = new_data[site]
+        while cur_time <= last_time:
+            info = site_data.get(cur_time, (0, 0))
+            if sum(info) == 0:
+                new_data_site[cur_time] = 0.0
+            elif info[1] > 0:
+                new_data_site[cur_time] = 0.0
+            else:
+                new_data_site[cur_time] = 1.0
+            cur_time += one_hour
+    return new_data, kw
+
+def round_nearest_day(d):
+    return datetime.datetime(d.year, d.month, d.day)
+
+def rsv_daily_parser(data, **kw):
+    data, kw = rsv_parser(data, **kw)
+    new_data = {}
+    for site, site_data in data.items():
+        new_data[site] = {}
+    for site, site_data in data.items():
+        new_site_data = new_data[site]
+        for key, val in site_data.items():
+            d = round_nearest_day(key)
+            info = new_site_data.get(d, (0, 0))
+            new_site_data[d] = (info[0] + val, info[1] + 1)
+        for key, val in new_site_data.items():
+            new_site_data[key] = float(val[0]) / float(val[1])
+    return new_data, kw
+
+def rsv_total_parser(data, **kw)
+    data, kw = rsv_parser(data, **kw)
+    kw['kind'] = 'pivot'
+    new_data = {}
+    for site, site_data in data.items():
+        info = (0, 0)
+        for key, val in site_data.items():
+            info = (info[0] + val, info[1] + 1)
+        new_data[site] = float(info) / float(info)
+    return new_data, kw
+    
 
 def table_parser(results, columns="column1, column2", **kw):
     columns = [i.strip() for i in columns.split(',')]

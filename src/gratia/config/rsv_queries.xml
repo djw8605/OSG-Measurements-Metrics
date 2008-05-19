@@ -57,6 +57,85 @@ group by
       <attribute name="column_units">Probes, Probes</attribute>
     </query>
 
+    <query name="rsv_reliability">
+      <inputs>
+        <input name="span" type="eval">7200</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="fixed-height">False</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+select
+  ServiceURI,
+  Timestamp,
+  CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END,
+  CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility AND
+     MetricName regexp :metric
+group by
+  ServiceURI, Timestamp
+      </sql>
+      <results module="gratia.database.query_handler" function="rsv_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Site Quality</attribute>
+      <attribute name="column_names">Successful, Failed</attribute>
+      <attribute name="column_units">Probes, Probes</attribute>
+    </query>
+
+    <query name="rsv_reliability_daily">
+      <inputs>
+        <input name="span" type="eval">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  ServiceURI,
+  Timestamp,
+  CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END,
+  CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility AND
+     MetricName regexp :metric
+group by
+  ServiceURI, Timestamp
+      </sql>
+      <results module="gratia.database.query_handler" function="rsv_daily_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Site Quality</attribute>
+      <attribute name="column_names">Successful, Failed</attribute>
+      <attribute name="column_units">Probes, Probes</attribute>
+    </query>
+
     <query name="rsv_metric_quality">
       <inputs>
         <input name="span" type="eval" kind="sql">7200</input>
