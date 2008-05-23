@@ -82,7 +82,7 @@
       </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> (CpuUserDuration + CpuSystemDuration)/WallDuration </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -101,7 +101,7 @@
       </inputs>
       <sql>
         <filler name="group"> R.VOName </filler>
-        <filler name="column"> (CpuUserDuration + CpuSystemDuration)/WallDuration </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">VO</attribute>

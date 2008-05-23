@@ -325,6 +325,10 @@ class WLCGReporter(Authenticate):
                 wlcg_sites.append(row['ExecutingSite'])
         return wlcg_sites
 
+    def stringToDatetime(self, s):
+        t_tuple = time.strptime(s, '%Y-%m-%d %H:%M:%S')
+        return datetime.datetime(*t_tuple[:6])
+
     def get_rsv_data(self, apel_data, 
             year=datetime.datetime.now().year, \
             month=datetime.datetime.now().month, **kw):
@@ -332,15 +336,22 @@ class WLCGReporter(Authenticate):
         daterange = gratia_interval(year, month)
         cur = daterange['starttime']
         end = min(daterange['endtime'], datetime.datetime.today())
-        data = {}
-        oneday = datetime.timedelta(1, 0)
+        data, _ = self.globals['RSVQueries'].rsv_reliability_daily( \
+            starttime=cur, endtime=end)
+        site_map, _ = self.globals['GIPQueries'].site_info()
+        new_data = {}
+        try:
+            one_key = data.keys()[0]
+        except:
+            return {}
+        default_vals = [(i, 0.0) for i in data[one_key]]
         for site in wlcg_sites:
-            data[site] = {}
-        while cur <= end:
-            for site in wlcg_sites:
-                data[site][cur] = 1.0
-            cur += oneday
-        return data
+            new_data[site] = dict(default_vals)
+        for key, val in data.items():
+            if key not in site_map:
+                continue
+            new_data[site_map[key]] = val
+        return new_data
 
     def parse_ownership(self, data, vo):
         r = re.compile("(\w+):([0-9]+)")
@@ -370,6 +381,7 @@ class WLCGReporter(Authenticate):
         end = min(info['endtime'], datetime.datetime.today())
         wlcg_sites = self.get_wlcg_sites(apel_data)
         data = {}
+        size_data = {}
         gip_smry = {}
         oneday = datetime.timedelta(1, 0)
         errors = {}
@@ -384,6 +396,7 @@ class WLCGReporter(Authenticate):
         wlcg_act_sites = site_map.keys()
         for site in wlcg_sites:
             data[site] = {}
+            size_data[site] = {}
             gip_smry[site] = {}
             if site not in rsv_data:
                 errors[site] = "RSV data not available.  "
@@ -444,6 +457,7 @@ class WLCGReporter(Authenticate):
                     val = self._avg(gip_val.values())
                 #print "Site", site, "Date", cur, "RSV data", rsv_data.get(site, {}).get(cur, 0), "GIP val", gip_val.get(cur, self._avg(gip_val.values()))
                 data[site][cur] = rsv_data.get(site, {}).get(cur, 0) * val
+                size_data[site][cur] = val
             cur += oneday
         act_data = {}
         for act_site in wlcg_act_sites:
@@ -454,8 +468,10 @@ class WLCGReporter(Authenticate):
         full_data = {}
         for site in wlcg_sites:
             full_data[site] = {}
-            full_data[site]['rsv'] = int(100*self._avg(rsv_data.get(site, {}).values()))
-            full_data[site]['size'] = int(self._avg(data.get(site, {}).values()))
+            full_data[site]['rsv'] = int(100*self._avg(rsv_data.get(site, \
+                {}).values()))
+            full_data[site]['size'] = int(self._avg(size_data.get(site, \
+                {}).values()))
             full_data[site]['ownership'] = vo_ownership[site]
             full_data[site]['availability'] = int(24*sum(data[site].values()))
         return data, act_data, full_data, errors

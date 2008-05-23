@@ -31,6 +31,7 @@ my_data = {
   ],
 
   gip: [
+  #if len($subclusters) > 0
     #set keys = sorted($subclusters.keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         #set val=$subclusters[key]
@@ -39,9 +40,11 @@ my_data = {
         #set key = keys[-1]
         #set val=$subclusters[key]
         {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), SI2K: $val[3], Ownership: '$val[4]'}
+  #end if
   ],
 
   sitenorm: [
+  #if len($site_norm) > 0
     #set keys = sorted($site_norm.keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         #set val=$site_norm[key]
@@ -50,9 +53,11 @@ my_data = {
         #set key = keys[-1]
         #set val=$site_norm[key]
         {Site: '$key', GIPNorm: $val[0], WLCGNorm: $val[1], Diff: $val[2]}
+  #end if
   ],
 
   cms_pledge: [
+  #if len($pledge['cms']) > 0
     #set keys = sorted($pledge['cms'].keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         #set val=$pledge['cms'][key]
@@ -67,9 +72,11 @@ my_data = {
         #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
         {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU}
+  #end if
   ],
 
   atlas_pledge: [
+  #if len($pledge['atlas']) > 0
     #set keys = sorted($pledge['atlas'].keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         #set val=$pledge['atlas'][key]
@@ -84,18 +91,22 @@ my_data = {
         #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
         {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU}
+  #end if
   ],
 
   summary: [
+  #if len($summary) > 0
     #set keys = sorted($summary.keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         {Site: '$key', WLCGAccounting: "$summary[$key]['accounting']", Subclusters: $summary[$key]['subclusters']},
     #end for
         #set key=keys[-1]
         {Site: '$key', WLCGAccounting: "$summary[$key]['accounting']", Subclusters: $summary[$key]['subclusters']}
+  #end if
   ],
 
   availability: [
+  #if len($availability) > 0
     #set keys = sorted($availability.keys(), $getVar('key_sorter', '', False))
     #for site in keys[:-1]
       #set val=$availability[$site]
@@ -104,6 +115,7 @@ my_data = {
       #set key = keys[-1]
       #set val=$availability[$site]
       {Site: '$site', Ownership: $val['ownership'], KSI2KSize: $val['size'], RSVAvail: $val['rsv'], Availability: $val['availability']}
+  #end if
   ]
 
 };
