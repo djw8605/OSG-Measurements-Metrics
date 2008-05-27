@@ -40,7 +40,8 @@ def fake_parser(results, **kw):
     return results, kw
 
 def round_nearest_hour(d):
-    return datetime.datetime(d.year, d.month, d.day, (d.hour/2)*2, 0, 0)
+    return d
+    #return datetime.datetime(d.year, d.month, d.day, (d.hour/2)*2, 0, 0)
 
 def rsv_parser(d, **kw):
     kw['kind'] = 'pivot-group'

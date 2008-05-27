@@ -65,7 +65,8 @@ class WLCGReporter(Authenticate):
             if pledge08 != '':
                 my_pledge08 = pledge08
             site = site.replace("Uflorida", "UFlorida")
-            if site[:6] == "Purdue" and site.find("Lear") < 0:
+            if site[:6] == "Purdue" and site.find("Lear") < 0 and \
+                    site.find("Steele") < 0:
                 site = "Purdue-RCAC"
             if site[:6] == 'Purdue' and site.find("Lear") >= 0:
                 site = "Purdue-Lear"

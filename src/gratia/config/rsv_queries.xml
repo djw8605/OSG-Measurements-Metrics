@@ -59,7 +59,7 @@ group by
 
     <query name="rsv_reliability">
       <inputs>
-        <input name="span" type="eval">7200</input>
+        <input name="span" kind="sql" type="eval">7200</input>
         <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
@@ -70,9 +70,9 @@ group by
       <sql>
 select
   ServiceURI,
-  Timestamp,
-  CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END,
-  CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END
+  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
+  sum(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  sum(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
   MetricRecord
 where
@@ -80,7 +80,7 @@ where
      ServiceURI regexp :facility AND
      MetricName regexp :metric
 group by
-  ServiceURI, Timestamp
+  ServiceURI, time
       </sql>
       <results module="gratia.database.query_handler" function="rsv_parser">
         <inputs>
@@ -109,9 +109,9 @@ group by
       <sql>
 select
   ServiceURI,
-  Timestamp,
-  CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END,
-  CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END
+  from_unixtime(truncate(unix_timestamp(Timestamp)/7200, 0)*7200) as time,
+  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
   MetricRecord
 where
@@ -119,7 +119,7 @@ where
      ServiceURI regexp :facility AND
      MetricName regexp :metric
 group by
-  ServiceURI, Timestamp
+  ServiceURI, time
       </sql>
       <results module="gratia.database.query_handler" function="rsv_daily_parser">
         <inputs>
@@ -147,9 +147,9 @@ group by
       <sql>
 select
   ServiceURI,
-  Timestamp,
-  CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END,
-  CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END
+  from_unixtime(truncate(unix_timestamp(Timestamp)/7200, 0)*7200) as time,
+  sum(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  sum(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
   MetricRecord
 where
@@ -157,7 +157,7 @@ where
      ServiceURI regexp :facility AND
      MetricName regexp :metric
 group by
-  ServiceURI, Timestamp
+  ServiceURI, time
       </sql>
       <results module="gratia.database.query_handler" function="rsv_total_parser"/>
       <attribute name="graph_type"/>
