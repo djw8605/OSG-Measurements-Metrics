@@ -2,11 +2,13 @@
 import re
 import sys
 import time
+import types
 import urllib2
 import calendar
 import datetime
 from xml.dom.minidom import parse
-            
+from ConfigParser import ConfigParser
+
 import cherrypy 
 from pkg_resources import resource_stream
 
@@ -21,6 +23,25 @@ def gratia_interval(year, month):
     return info
 
 class WLCGReporter(Authenticate):
+
+    def cpu_normalization(self, **kw):
+        """
+        Show a table of the CPU normalization factors used, with comments where
+        applicable.
+
+        This page is exposed to the web.
+        """
+        data = dict(kw)
+        data['error'] = None
+        fp = resource_stream("gratia.config", "gip.conf")
+        cp = ConfigParser()
+        cp.readfp(fp, "gip.conf")
+        data['cpus'] = eval(cp.get("cpu_count", "specint2k"), {}, {})
+        for key, val in data['cpus'].items():
+            if not isinstance(val, types.TupleType):
+                data['cpus'][key] = (val, "")
+        data['title'] = "CPU Normalization constants table"
+        return data
 
     def add_effort(self, site_info, site, VOMoU, apel_data, gratia_data, \
             gratia_cpu_data):

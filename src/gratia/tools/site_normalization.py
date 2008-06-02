@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import types
 
 from gratia.gip.ldap import read_bdii, config_file
 from gratia.gip.common import join_FK
@@ -15,6 +16,9 @@ def main():
     cluster_info = create_count_dict(entries)
     sc_info = sub_cluster_info(cluster_info.keys(), cp)
     specint = eval(cp.get("cpu_count", "specint2k"))
+    for key, val in specint.items():
+        if isinstance(val, types.TupleType):
+            specint[key] = val[0]
     ksi2k_info = {}
     site_dict = create_site_dict(entries, cp)
     sites = cp.get("site_normalization", "sites").split(",")

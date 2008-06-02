@@ -2,6 +2,7 @@
 
 import os
 import sys
+import types
 import datetime
 
 from gratia.gip.ldap import read_bdii, config_file
@@ -29,6 +30,9 @@ def main():
 
     curs.execute("DELETE FROM cpu_score");
     for cpu, score in specint.items():
+        if isinstance(score, types.TupleType):
+            score = score[0]
+            specint[cpu] = score
         curs.execute("INSERT INTO cpu_score VALUES (%s, %s, %s)", (cpu, \
             int(score), int(0)));
 

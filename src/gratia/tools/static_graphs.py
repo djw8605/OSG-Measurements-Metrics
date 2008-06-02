@@ -128,10 +128,11 @@ def generate(cp, entry=None):
             if e.errno != 17:
                 raise
         dest = os.path.join(dest, '%s' + suffix)
-        #generateImages(cp, timestamp, src, dest, replace=(replace or \
-        #    curDate==today), variables=variables)
-        #generateImages(cp, timestamp, src, dest, replace=replace, 
-        #               variables=variables)
+        generateImages(cp, timestamp, src, dest, replace=(replace or \
+            curDate==today), variables=variables)
+        generateImages(cp, timestamp, src, dest, replace=replace, 
+                       variables=variables)
+        generate_thumbnails(cp, dest)
         if curDate == today:
             dest = os.path.join(orig_dest, 'today')
             try:
@@ -170,8 +171,9 @@ def get_variable_values(url):
             retval.append(pivot_str)
     return retval
 
-def generate_thumbnails(cp):
-    dest = cp.get('General', 'Dest') + '/today'
+def generate_thumbnails(cp, dest=None):
+    if dest == None:
+        dest = cp.get('General', 'Dest') + '/today'
     for section in cp.sections():
         if not section.startswith('animated_thumbnail'):
             continue

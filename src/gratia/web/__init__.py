@@ -38,6 +38,7 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
         self.monbyvo = self.template('monbyvo.tmpl')(self.monbyvo)
         self.monbysite = self.template('monbysite.tmpl')(self.monbysite)
         self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(self.apel_data)
+        self.cpu_normalization = self.template('cpu_normalization.tmpl')(self.cpu_normalization)
         self.email_lookup = self.template('email_lookup.tmpl')(self.email_lookup)
 
         self._cp_config ={}

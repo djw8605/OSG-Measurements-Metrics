@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import types
 import optparse
 
 from gratia.gip.ldap import read_bdii, config_file
@@ -37,6 +38,9 @@ def main():
     cluster_info = create_count_dict(entries)
     sc_info = sub_cluster_info(cluster_info.keys(), cp)
     specint = eval(cp.get("cpu_count", "specint2k"))
+    for key, val in specint.items():
+        if isinstance(val, types.TupleType):
+            specint[key] = val[0]
     correction = eval(cp.get("cpu_count", "correction"))
     duplicate = eval(cp.get("cpu_count", "duplicate"))
     msi2k_ctr = 0.0

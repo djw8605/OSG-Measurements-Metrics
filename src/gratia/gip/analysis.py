@@ -1,5 +1,6 @@
 
 import sys
+import types
 import optparse
 
 from gratia.gip.ldap import read_bdii, config_file
