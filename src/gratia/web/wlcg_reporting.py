@@ -332,6 +332,8 @@ class WLCGReporter(Authenticate):
 
     def pledge_table(self, year=datetime.datetime.now().year, \
             month=datetime.datetime.now().month):
+        month = int(month)
+        year = int(year)
         apel_data, report_time = self.get_apel_data(year, month)
         pledges = self.t2_pledges(apel_data, year, month)
         cherrypy.response.headers['Content-Type'] = 'text/plain'
@@ -486,7 +488,8 @@ class WLCGReporter(Authenticate):
             act_data[act_site] = 0
         for act_site, sites in site_map.items():
             for site in sites:
-                act_data[act_site] += int(24*sum(data[site].values()))
+                if site in data:
+                    act_data[act_site] += int(24*sum(data[site].values()))
         full_data = {}
         for site in wlcg_sites:
             full_data[site] = {}

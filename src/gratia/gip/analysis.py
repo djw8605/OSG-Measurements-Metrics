@@ -29,7 +29,8 @@ def correct_sc_info(cluster, cpu, sc_info, specint):
         # The benchmark values are hardcoded to 400.  If the hardcoded
         # value has not been changed, then pull it from the lookup table
         # in the config file.
-        if int(sc.glue["HostBenchmarkSI00"]) == 400:
+        if "HostBenchmarkSI00" not in sc.glue or \
+                int(sc.glue["HostBenchmarkSI00"]) == 400:
             cpu_model = sc.glue["HostProcessorModel"]
             if cpu_model not in specint:
                 raise KeyError("Unknown CPU model: %s" % cpu_model)

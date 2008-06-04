@@ -45,6 +45,8 @@ def loadConfig():
         "list of config files.", default="")
     parser.add_option("-d", "--dev", dest="dev", action="store_true", \
         default=False, help="Development mode email.")
+    parser.add_option("-l", "--lastmonth", dest="lastmonth", \
+        action="store_true", default=False, help="Show last month's data.")
     (options, args) = parser.parse_args()
     for entry in options.config.split(','):
         entry = entry.strip()
@@ -55,8 +57,11 @@ def loadConfig():
     if not cp.has_section("info"):
         cp.add_section("info")
         cp.set("info", "url", "http://t2.unl.edu/gratia/pledge_table")
-    cp.set("info", "dev", options.dev)
-
+    cp.set("info", "dev", str(options.dev))
+    if options.lastmonth:
+        cp.set("info", "lastmonth", "True")
+    else:
+        cp.set("info", "lastmonth", "False")
     return cp
 
 #toStr = ['bbockelm@cse.unl.edu']
@@ -150,12 +155,12 @@ table.mytable td {
 
 html_table = html_table_css + """
 <table class="mytable">
-<thead><th>WLCG Accounting Name</th><th>2007 KSI2K Pledge</th><th>Month goal of KSI2K-hours</th><th>KSI2K-hours for owner VO</th><th>KSI2K-hours for WLCG VOs</th><th>KSI2K-hours for all VOs</th><th>Percent of WLCG goal achieved</th><th>Percent of site's time given to non-WLCG VOs</th></thead>
+<thead><th>WLCG Accounting Name</th><th>%(pledge_year)s KSI2K Pledge</th><th>Month goal of KSI2K-hours</th><th>KSI2K-hours for owner VO</th><th>KSI2K-hours for WLCG VOs</th><th>KSI2K-hours for all VOs</th><th>Percent of WLCG goal achieved</th><th>Percent of site's time given to non-WLCG VOs</th></thead>
 %s
 </table>
 """
 
-table_headers = ['WLCG\nAccounting\nName', '2007 KSI2K\nPledge', 'Month goal\nof Norm.\nCPU hours', \
+table_headers = ['WLCG\nAccounting\nName', '%(pledge_year)s KSI2K\nPledge', 'Month goal\nof Norm.\nCPU hours', \
     'Norm. CPU\nHours for\nowner VO', 'Norm. CPU\nHours for all\nWLCG VOs', 'Norm. CPU\nHours for\nall VOs', \
     'Percent of\nWLCG goal\nachieved', 'Percent of site\'s\ntime given to\nnon-WLCG VOs']
 
@@ -176,9 +181,10 @@ plain_table_row = \
 """| %15s | %6s | %6s | %11s | %11s | %11s | %9s | %9s |
 """
 
-def load_pledges(cp):
+def load_pledges(month, cp):
     url = cp.get("info", "url")
-    fp = urllib2.urlopen(url)
+    data = urllib.urlencode({'month': month})
+    fp = urllib2.urlopen(url, data)
     return eval(fp.read(), {}, {})
 
 def to_str(cp):
@@ -186,7 +192,7 @@ def to_str(cp):
     toStr = cp.get("email", "toStr")
     toNames = eval(toNames, {}, {})
     toStr = eval(toStr, {}, {})
-    if len(toNames) > 1 and cp.get_boolean("info", "dev"):
+    if len(toNames) > 1 and cp.getboolean("info", "dev"):
         raise Exception("Cannot send to multiple recipients in dev mode.")
     names = [formataddr(i) for i in zip(toNames, toStr)]
     return ', '.join(names)
@@ -206,24 +212,30 @@ def send_email(msg, cp):
 
 def main():
     now = datetime.datetime.now()
+    cp = loadConfig()
     year = now.year
     month = now.month
+    if cp.getboolean("info", "lastmonth"):
+        month -= 1
     #Bug fix - on the first day of the month, we're actually reporting the
     # previous month's usage.
-    if now.day == 1:
+    if now.day == 1 and not cp.getboolean("info", "lastmonth"):
         month_str = calendar.month_name[month-1]
     else:
         month_str = calendar.month_name[month]
-    cp = loadConfig()
-    pledges = load_pledges(cp)
+    pledges = load_pledges(month, cp)
     wlcg_sites = []
     for site in pledges['apel_data']:
         if site['ExecutingSite'] not in wlcg_sites:
             wlcg_sites.append(site['ExecutingSite'])
 
-    #html_strng = '' 
-    #plain_strng = ''
+    if year >= 2008 and month >= 4:
+        pledge_year = '2008'
+    else:
+        pledge_year = '2007'
+
     t = Table()
+    table_headers[1] = table_headers[1] % {'pledge_year': pledge_year}
     t.setHeaders(table_headers)
     for site, data in pledges['pledges']['atlas'].items():
         pledge = int(data['pledge'])
@@ -233,13 +245,7 @@ def main():
         total = data['totalNormCPU']
         wlcg_perc = '%i%%' % int(wlcg/float(goal)*100)
         other_perc = '%i%%' % int((total-wlcg)/float(total)*100)
-        #html_strng += html_table_row % (site, ftoa(pledge), ftoa(goal), \
-        #    ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
-        #plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
-        #    ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
         t.addRow([site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc])
-    #atlas_html_table = html_table % html_strng
-    #atlas_plain_table = plain_table % plain_strng
     atlas_html_table = html_table_css + t.html()
     atlas_plain_table = t.plainText()
 
@@ -255,25 +261,19 @@ def main():
         total = data['totalNormCPU']
         wlcg_perc = '%i%%' % int(wlcg/float(goal)*100)
         other_perc = '%i%%' % int((total-wlcg)/float(total)*100)
-        #html_strng += html_table_row % (site, ftoa(pledge),ftoa(goal),ftoa(vo),\
-        #    ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
-        #plain_strng += plain_table_row % (site, ftoa(pledge), ftoa(goal), \
-        #    ftoa(vo), ftoa(wlcg), ftoa(total), wlcg_perc, other_perc)
         t.addRow([site, pledge, goal, vo, wlcg, total, wlcg_perc, other_perc])
-    #cms_html_table = html_table % html_strng
-    #cms_plain_table = plain_table % plain_strng
     cms_html_table = html_table_css + t.html()
     cms_plain_table = t.plainText()
 
-    email_info = {'atlas_html_table': atlas_html_table, 'cms_html_table': \
-        cms_html_table, "report_time": pledges['report_time'], "year": year, "month": \
-        month_str, "atlas_plain_table": atlas_plain_table, "cms_plain_table": \
-        cms_plain_table}
-
-    if year >= 2008 and month >= 4:
-        email_info['pledge_year'] = '2008'
+    if cp.getboolean("info", "lastmonth"):
+        report_time = "the end of the month"
     else:
-        email_info['pledge_year'] = '2007'
+        report_time = pledge
+    email_info = {'atlas_html_table': atlas_html_table, 'cms_html_table': \
+        cms_html_table, "report_time": report_time, "year": year, "month": \
+        month_str, "atlas_plain_table": atlas_plain_table, "cms_plain_table": \
+        cms_plain_table, "pledge_year": pledge_year}
+
     fromName = cp.get("email", "fromName")
     fromStr = cp.get("email", "fromStr")
     fromHeader = '"%s" <%s>' % (fromName, fromStr)
