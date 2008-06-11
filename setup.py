@@ -42,11 +42,16 @@ setup(name="OSG-Gratia-Viewer",
               'wlcg_pledge_email = gratia.tools.wlcg_pledge_email:main',
               'cms_summary = gratia.summary.dashboard_slurp:main',
               'ligo_summary = gratia.summary.ligo_query:main',
+              'make_daemon_gratia = gratia.other.make_daemon:main',
           ],
           'setuptools.installation' : [
               'eggsecutable = gratia.tools.gratia_web:main'
           ]
       },
+
+      data_files=[('/etc/init.d', ['config/GratiaWeb']),
+          ('/etc/', ['config/wlcg_email.conf.rpmnew']),
+      ],
 
       namespace_packages = ['gratia']
       )

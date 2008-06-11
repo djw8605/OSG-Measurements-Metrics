@@ -1,0 +1,97 @@
+
+Did not pass option favicon_ico!
+Try adding '-favicon_ico=<some value>' to your arguments
+
+[20/Jan/2008:19:34:04] HTTP Serving HTTP on http://0.0.0.0:8086/
+ 
+            select STR_TO_DATE(concat(Week,' Monday'), '%x-%v %W') as Date,
+             ExitCode as ExitCode,
+             sum(Njobs) as JobCount
+            from VOJobStatusSummary VS
+            join VONameCorrection VC on (VS.VOcorrid = VC.corrid)
+            join VO on (VC.void = VO.void)
+            where
+             STR_TO_DATE(concat(Week,' Monday'), '%x-%v %W') > %s AND
+             STR_TO_DATE(concat(Week,' Monday'), '%x-%v %W') <= %s AND
+             VO.VOName regexp %s
+            group by Date, ExitCode
+          (datetime.datetime(2007, 1, 21, 1, 34, 9), datetime.datetime(2008, 1, 21, 1, 34, 9), '.*')
+[20/Jan/2008:19:34:09] HTTP Traceback (most recent call last):
+  File "/home/brian/software/cms/slc3_ia32_gcc323/external/python/2.4.3/lib/python2.4/site-packages/cherrypy/_cprequest.py", line 551, in respond
+    cherrypy.response.body = self.handler()
+  File "/home/brian/software/cms/slc3_ia32_gcc323/external/python/2.4.3/lib/python2.4/site-packages/cherrypy/_cpdispatch.py", line 24, in __call__
+    return self.callable(*self.args, **self.kwargs)
+  File "/home/brian/projects/GraphTool/src/graphtool/web/__init__.py", line 62, in content_func
+    results = func( *args, **kw )
+  File "/home/brian/projects/GraphTool/src/graphtool/base/iterator.py", line 69, in run
+    results, metadata = cmd_func( *cmd_args, **kw )
+  File "/home/brian/projects/GraphTool/src/graphtool/database/queries.py", line 66, in __call__
+    return self.query( *args, **kw )
+  File "/home/brian/projects/GraphTool/src/graphtool/database/queries.py", line 102, in query
+    results = self.queries_obj.execute_sql( sql_string, sql_vars, **vars )
+  File "/home/brian/projects/GraphTool/src/graphtool/database/__init__.py", line 185, in execute_sql
+    raise Exception( out.getvalue() )
+Exception: 
+Unable to successfully query database, exception follows:
+
+Exception caught while making SQL query:
+int argument required
+Traceback (most recent call last):
+  File "/home/brian/projects/GraphTool/src/graphtool/database/connection_manager.py", line 138, in execute_statement
+    results = self._execute_statement( statement, vars )
+  File "/home/brian/projects/GraphTool/src/graphtool/database/connection_manager.py", line 334, in _execute_statement
+    curs.execute( my_string, my_tuple )
+  File "/build/eulisse/bs5/slc3_ia32_gcc323/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/MySQLdb/cursors.py", line 132, in execute
+  File "/build/eulisse/bs5/slc3_ia32_gcc323/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/MySQLdb/connections.py", line 33, in defaulterrorhandler
+TypeError: int argument required
+ 
+
+Used sql:
+ 
+            select STR_TO_DATE(concat(Week,' Monday'), '%x-%v %W') as Date,
+             ExitCode as ExitCode,
+             sum(Njobs) as JobCount
+            from VOJobStatusSummary VS
+            join VONameCorrection VC on (VS.VOcorrid = VC.corrid)
+            join VO on (VC.void = VO.void)
+            where
+             STR_TO_DATE(concat(Week,' Monday'), '%x-%v %W') > :starttime AND
+             STR_TO_DATE(concat(Week,' Monday'), '%x-%v %W') <= :endtime AND
+             VO.VOName regexp :vo
+            group by Date, ExitCode
+         
+Used vars: {'endtime': datetime.datetime(2008, 1, 21, 1, 34, 9), 'starttime': datetime.datetime(2007, 1, 21, 1, 34, 9), 'vo': '.*'} 
+
+Traceback (most recent call last):
+  File "/home/brian/projects/GraphTool/src/graphtool/database/__init__.py", line 170, in execute_sql
+    results = conn.execute_statement( sql_string, sql_var )
+  File "/home/brian/projects/GraphTool/src/graphtool/database/connection_manager.py", line 143, in execute_statement
+    raise Exception( "Exception caught while making SQL query:\n%s\n%s" % (str(e), st.getvalue()) )
+Exception: Exception caught while making SQL query:
+int argument required
+Traceback (most recent call last):
+  File "/home/brian/projects/GraphTool/src/graphtool/database/connection_manager.py", line 138, in execute_statement
+    results = self._execute_statement( statement, vars )
+  File "/home/brian/projects/GraphTool/src/graphtool/database/connection_manager.py", line 334, in _execute_statement
+    curs.execute( my_string, my_tuple )
+  File "/build/eulisse/bs5/slc3_ia32_gcc323/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/MySQLdb/cursors.py", line 132, in execute
+  File "/build/eulisse/bs5/slc3_ia32_gcc323/external/py2-mysqldb/1.2.0/lib/python2.4/site-packages/MySQLdb/connections.py", line 33, in defaulterrorhandler
+TypeError: int argument required
+
+
+
+[20/Jan/2008:19:34:09] HTTP 
+Request Headers:
+  COOKIE: __utma=247552835.1177434312.1198707701.1198707701.1199666345.2; __utmz=247552835.1198707701.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmz=139185782.1197516944.325.4.utmccn=(referral)|utmcsr=hotspot.blastcomm.com|utmcct=/login|utmcmd=referral; __utma=139185782.1519860987.1182526033.1200857747.1200874975.367; __utmc=139185782; trac_form_token=c2807500502712c895a6ffaf; trac_auth=947ee9ef66ede0ff8773909b0b9b4d89
+  HOST: t2.unl.edu:8086
+  CACHE-CONTROL: max-age=0
+  ACCEPT: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+  ACCEPT-CHARSET: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+  USER-AGENT: Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en; rv:1.8.1.11) Gecko/20071128 Camino/1.5.4
+  CONNECTION: keep-alive
+  Remote-Addr: 68.13.117.193
+  ACCEPT-LANGUAGE: en-US,en;q=0.5
+  ACCEPT-ENCODING: gzip,deflate
+  KEEP-ALIVE: 300
+68.13.117.193 - - [20/Jan/2008:19:34:09] "GET /xml/exitcode_bar HTTP/1.1" 500 4660 "" ""
+[20/Jan/2008:19:34:16] ENGINE <Ctrl-C> hit: shutting down app engine

@@ -132,7 +132,8 @@ def generate(cp, entry=None):
             curDate==today), variables=variables)
         generateImages(cp, timestamp, src, dest, replace=replace, 
                        variables=variables)
-        generate_thumbnails(cp, dest)
+        destdir = os.path.join(orig_dest, curDate.strftime('%Y/%m/%d'))
+        generate_thumbnails(cp, destdir)
         if curDate == today:
             dest = os.path.join(orig_dest, 'today')
             try:

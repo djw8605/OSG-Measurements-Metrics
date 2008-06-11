@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# chkconfig: 5 99 99
+# description: Starts and stops the PBS graphs daemon.
+# processname: PBSWeb
+# config: /etc/DBParam.xml
+
+export LANG=C
+. /etc/init.d/functions
+
+export ARGS=''
+export USER='daemon'
+export HOME=/tmp
+
+export CMD="make_daemon_grata --user=$USER --cmdName=GratiaWeb --cmd=/usr/bin/gratia_web --args=$ARGS"
+
+case "$1" in
+  start)
+        if [ ! -e /var/log/GratiaWeb-access.log ]; then
+            touch /var/log/GratiaWeb-access.log
+        fi
+        if [ ! -e /var/log/GratiaWeb-error.log ]; then
+            touch /var/log/GratiaWeb-error.log
+        fi
+        chown $USER /var/log/GratiaWeb-access.log
+        chown $USER /var/log/GratiaWeb-error.log
+        $CMD start
+        ;;
+  stop)
+        $CMD stop
+        ;;
+  restart)
+    $CMD stop
+    $CMD status
+    ;;
+  reload)
+        $CMD reload
+        ;;
+  status)
+        $CMD status
+        ;;
+  *)
+        echo $"Usage: $prog {start|stop|status|restart|reload}"
+        exit 1
+esac
+
+exit $?
+
+

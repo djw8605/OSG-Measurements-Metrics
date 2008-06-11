@@ -176,7 +176,8 @@ class WLCGReporter(Authenticate):
     def get_apel_data(self, year=datetime.datetime.now().year, month=datetime.datetime.now().month):
         year = int(year)
         month = int(month)
-        apel_url = self.metadata.get('apel_url', 'http://home.fnal.gov/~weigand/apel-wlcg/%i-%02i.xml' % (year, month))
+        apel_url = self.metadata.get('apel_url', 'http://home.fnal.gov/~weigand/apel-wlcg/%i-%02i.OSG_DATA.xml'\
+            % (year, month))
         xmldoc = urllib2.urlopen(apel_url)
         dom = parse(xmldoc)
         apel_data = []

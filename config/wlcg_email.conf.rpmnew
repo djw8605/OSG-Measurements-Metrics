@@ -1,0 +1,16 @@
+
+[info]
+# The location of the Gratia web interface; the pledge table is a simple 
+# python dump of all our relevant information
+url = http://t2.unl.edu/gratia/pledge_table
+
+[email]
+
+# Who to send the emails to
+toStr = ['bbockelm@cse.unl.edu', 'weigand@fnal.gov']
+toNames = ["Brian Bockelman", "John Weigand"]
+
+# Who it should appear to be from
+fromStr = bbockelm@math.unl.edu
+fromName = Brian Bockelman
+

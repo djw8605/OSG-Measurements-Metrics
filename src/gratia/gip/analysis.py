@@ -190,11 +190,14 @@ def correct_count(core_info, ksi2k_info, ownership, correction, duplicate):
         if cluster in correction:
             old_cores = cores
             old_ksi2k = ksi2k
-            cores = eval(correction[cluster], core_locals)
-            ksi2k = eval(correction[cluster], ksi2k_locals)
-            print "Correction factor for %s; before %i cores, %i KSI2K; after" \
-                " %i cores, %i KSI2K" % (cluster, old_cores, old_ksi2k, \
-                cores, ksi2k)
+            try:
+                cores = eval(correction[cluster], core_locals)
+                ksi2k = eval(correction[cluster], ksi2k_locals)
+                print "Correction factor for %s; before %i cores, %i KSI2K; " \
+                    "after %i cores, %i KSI2K" % (cluster, old_cores, \
+                    old_ksi2k, cores, ksi2k)
+            except Exception, e:
+                print e
         core_count += cores
         msi2k_count += ksi2k/1000.0
         if cluster not in ownership:
