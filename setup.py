@@ -50,7 +50,11 @@ setup(name="OSG-Gratia-Viewer",
       },
 
       data_files=[('/etc/init.d', ['config/GratiaWeb']),
-          ('/etc/', ['config/wlcg_email.conf.rpmnew']),
+          ('/etc/', ['config/wlcg_email.conf.rpmnew',
+                     'config/DBParam.xml.rpmnew']),
+          ('/usr/share/GratiaWeb/', ['config/gip_schema',
+                                     'config/registration_schema']),
+          ('/etc/cron.d/', ['config/gratia_data.cron']),
       ],
 
       namespace_packages = ['gratia']

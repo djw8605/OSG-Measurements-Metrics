@@ -1,0 +1,69 @@
+<graphtool-config>
+
+  <import module="graphtool.database.connection_manager"> ConnectionManager </import>
+
+  <class name="GratiaConnMan" type="ConnectionManager">
+    <attribute name="default"> gratia </attribute>
+    
+    <connection name="gratia">
+      <attribute name="Interface"> MySQL </attribute>
+      <attribute name="Database"> gratia </attribute>
+      <attribute name="Host"> gratia-db01.fnal.gov </attribute>
+      <attribute name="AuthDBUsername"> ****** </attribute>
+      <attribute name="AuthDBPassword"> ****** </attribute>
+      <attribute name="Port"> 3320 </attribute>
+    </connection>
+
+    <connection name="gratia-itb">
+      <attribute name="Interface"> MySQL </attribute>
+      <attribute name="Database"> gratia_itb </attribute>
+      <attribute name="Host"> gratia-db01.fnal.gov </attribute>
+      <attribute name="AuthDBUsername"> ****** </attribute>
+      <attribute name="AuthDBPassword"> ****** </attribute>
+      <attribute name="Port"> 3320 </attribute>
+    </connection>
+
+  </class>
+
+  <class name="GIPConnMan" type="ConnectionManager">
+    <attribute name="default"> gip </attribute>
+    
+    <connection name="gip"> 
+      <attribute name="Interface"> MySQL </attribute>
+      <attribute name="Database"> gip </attribute>
+      <attribute name="Host"> osg-test2.unl.edu </attribute>
+      <attribute name="Port">49152</attribute>
+      <attribute name="AuthDBUsername"> ****** </attribute>
+      <attribute name="AuthDBPassword"> ****** </attribute>
+    </connection>
+
+  </class>
+
+  <class name="RSVConnMan" type="ConnectionManager">
+    <attribute name="default"> rsv </attribute>
+    
+    <connection name="rsv"> 
+      <attribute name="Interface"> MySQL </attribute>
+      <attribute name="Database"> gratia </attribute>
+      <attribute name="Host"> sonofsam.uits.indiana.edu </attribute>
+      <attribute name="Port">49152</attribute>
+      <attribute name="AuthDBUsername"> ****** </attribute>
+      <attribute name="AuthDBPassword"> ****** </attribute>
+    </connection>
+
+  </class>
+
+  <class name="RegistrationDB" type="ConnectionManager">
+
+    <attribute name="default"> regdb </attribute>
+
+    <connection name="regdb">
+      <attribute name="Interface"> MySQL </attribute>
+      <attribute name="Database"> registration </attribute>
+      <attribute name="AuthDBUsername"> ****** </attribute>
+      <attribute name="AuthDBPassword"> ****** </attribute>
+    </connection>
+
+  </class>
+
+</graphtool-config>

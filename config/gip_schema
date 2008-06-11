@@ -1,0 +1,84 @@
+create database `gip`;
+
+CREATE TABLE `ce_info` (
+  `time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `runningJobs` int(11) default NULL,
+  `totalCpus` int(11) default NULL,
+  `lrmsType` varchar(10) default NULL,
+  `lrmsVersion` varchar(32) default NULL,
+  `freeCpus` int(11) default NULL,
+  `hostName` varchar(63) default NULL,
+  `waitingJobs` int(11) default NULL,
+  KEY `time_key` (`time`),
+  KEY `host_key` (`hostName`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+create index time_key on ce_info(time);
+create index host_key on ce_info(hostName);
+
+CREATE TABLE `compactor` (
+  `size` varchar(32) default NULL,
+  `last` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `cpu_score` (
+  `cpu` varchar(255) default NULL,
+  `si2k` int(11) default NULL,
+  `si2k6` int(11) default NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `se_info` (
+  `date` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `se` varchar(255) default NULL,
+  `site` varchar(255) default NULL,
+  `total` bigint(20) default NULL,
+  `free` bigint(20) default NULL,
+  UNIQUE KEY `se_info_idx` (`date`,`se`),
+  KEY `se_info_date` (`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+create unique index se_info_idx on se_info(date, se);
+create index se_info_date on se_info(date);
+
+CREATE TABLE `site_info` (
+  `sitename` varchar(255) default NULL,
+  `cename` varchar(255) default NULL,
+  UNIQUE KEY `site_pair` (`sitename`,`cename`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+create unique index site_pair on site_info(sitename, cename);
+
+CREATE TABLE `subcluster_score` (
+  `timestamp` datetime default NULL,
+  `site` varchar(255) default NULL,
+  `cluster` varchar(255) default NULL,
+  `subcluster` varchar(255) default NULL,
+  `ncores` int(11) default NULL,
+  `si2k_score` int(11) default NULL,
+  `ownership` varchar(255) default NULL,
+  `proc` varchar(255) default NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `vo_info` (
+  `time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `runningJobs` int(11) default NULL,
+  `totalCpus` int(11) default NULL,
+  `freeJobSlots` int(11) default NULL,
+  `maxTotalJobs` int(11) default NULL,
+  `totalJobs` int(11) default NULL,
+  `status` varchar(32) default NULL,
+  `lrmsType` varchar(10) default NULL,
+  `lrmsVersion` varchar(32) default NULL,
+  `vo` varchar(32) default NULL,
+  `assignedJobSlots` int(11) default NULL,
+  `freeCpus` int(11) default NULL,
+  `waitingJobs` int(11) default NULL,
+  `maxRunningJobs` int(11) default NULL,
+  `hostName` varchar(64) default NULL,
+  `queue` varchar(32) default NULL,
+  KEY `host_idx` (`hostName`),
+  KEY `time_idx` (`time`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+create index host_idx on vo_info(hostName, time);
+

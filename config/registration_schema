@@ -1,0 +1,9 @@
+
+create database registration;
+
+CREATE TABLE `vo_to_rs` (
+  `VO Name` longtext character set utf8,
+  `Site Name` varchar(255) character set utf8 default NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+

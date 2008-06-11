@@ -33,12 +33,12 @@ def loadConfig():
     cp = ConfigParser.ConfigParser()
 
     fps = []
-
     try:
         from pkg_resources import resource_stream
         fps.append(resource_stream("gratia.config", "wlcg_email.conf"))
     except:
         pass
+    fps.append('/etc/wlcg_email.conf')
 
     parser = optparse.OptionParser()
     parser.add_option("-c", "--config", dest="config", help="Comma-separated "\
