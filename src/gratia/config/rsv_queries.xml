@@ -165,6 +165,56 @@ group by
       <attribute name="title">RSV Site Total Availability</attribute>
     </query>
 
+    <query name="rsv_wlcg_availability">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.Timestamp, MR.MetricStatus
+        FROM MetricRecord MR
+        LEFT OUTER JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        WHERE
+            MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+            ServiceURI regexp :facility AND
+            MetricName regexp :metric
+        </sql>
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="graph_type"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">WLCG Site Availability</attribute>
+    </query>
+
+    <query name="wlcg_last_status">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI) as SiteName, MR.MetricName, MR.Timestamp, MR.MetricStatus
+        FROM (SELECT ServiceURI, MetricName, max(Timestamp) AS Timestamp FROM MetricRecord
+              WHERE
+                  Timestamp &lt;= :starttime AND
+                  ServiceURI regexp :facility AND
+                  MetricName regexp :metric
+              GROUP BY ServiceURI, MetricName) AS foo
+        JOIN MetricRecord MR ON MR.ServiceURI=foo.ServiceURI AND MR.MetricName=foo.MetricName AND MR.Timestamp=foo.Timestamp
+        LEFT OUTER JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        </sql>
+        <results module="gratia.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots">0,1</input>
+                <input name="results">3</input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">Last Test Status</attribute>
+    </query>
+
     <query name="rsv_metric_quality">
       <inputs>
         <input name="span" type="eval" kind="sql">7200</input>

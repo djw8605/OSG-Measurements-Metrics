@@ -153,6 +153,8 @@ def sendSummary(info):
     r.VOName('ligo')
     r.ReportableVOName('ligo')
     r.Njobs(info['Njobs'])
+    r.VOName('ligo')
+    r.ReportableVOName('ligo')
     print Gratia.Send(r)
 
 def getLastDay():

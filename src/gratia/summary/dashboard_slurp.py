@@ -210,6 +210,8 @@ def sendSummaryData(startTime, data):
         r.Grid('OSG')
         r.Njobs(values['Njobs'])
         r.AdditionalInfo('NumberOfEvents', values['NoEventsPerRun'])
+        r.VOName('cms')
+        r.ReportableVOName('uscms')
         print Gratia.Send(r), key, values
 
 def main():
