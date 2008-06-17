@@ -155,20 +155,24 @@ def sendSummary(info):
     r.Njobs(info['Njobs'])
     r.VOName('ligo')
     r.ReportableVOName('ligo')
+    r.JobName('Ligo Daily Summary')
     print Gratia.Send(r)
 
-def getLastDay():
+def getLastDay(days=0):
     today = datetime.date.today() - datetime.timedelta(1, 0)
     #yest = today - datetime.timedelta(7)
     year, month, date = today.year, today.month, today.day
     start = datetime.datetime(year, month, date, 00, 00, 00)
     end = datetime.datetime(year, month, date, 23, 59, 59)
+    start -= datetime.timedelta(days, 0)
     return start, end
 
 def parseArgs():
     parser = optparse.OptionParser()
     parser.add_option("-d", "--database", dest="database", default="itb", \
         help="The Gratia DB to send results to.")
+    parser.add_option("-s", "--start", dest="days", default="0",
+        help="The number of days in the report.")
     return parser.parse_args()
 
 def main():
@@ -177,8 +181,14 @@ def main():
         filename = resource_filename("gratia.summary", "LigoProbeConfigProd")
     else:
         filename = resource_filename("gratia.summary", "LigoProbeConfigItb")
+    try:
+        days = int(options.days)
+    except:
+        days = 0
+        print >> sys.stderr, "Improper format for number of days: %s" % \
+            options.days
     Gratia.Initialize(customConfig=filename)
-    startTime, endTime = getLastDay()
+    startTime, endTime = getLastDay(days=days)
     info = queryLigo(startTime-datetime.timedelta(1, 0), endTime)
     info = filterOSG(info)
     info = organizeByKeys(info, "Name", "Timestamp")
@@ -190,7 +200,7 @@ def main():
     map = getSiteMap()
     for key in keys:
         items = info[key]
-        items['Site'] = map[items['Name']]
+        items['Site'] = map.get(items['Name'], items['Name'])
         print "Sending jobs for site", items['Name'], "date", \
             items['Timestamp'].strftime('%x')
         njobs = int(items['Submitted']-items['Active']-items['Pending'])

@@ -167,13 +167,13 @@ group by
 
     <query name="rsv_wlcg_availability">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
             <input name="endtime" type="datetime" kind="sql">time.time()</input>
             <input name="facility" kind="sql">.*</input>
             <input name="metric" kind="sql">.*</input>
         </inputs>
         <sql>
-        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.Timestamp, MR.MetricStatus
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp, MR.MetricStatus
         FROM MetricRecord MR
         LEFT OUTER JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
         WHERE
@@ -182,7 +182,6 @@ group by
             MetricName regexp :metric
         </sql>
         <results module="gratia.database.query_handler" function="wlcg_availability"/>
-        <attribute name="graph_type"/>
         <attribute name="pivot_name">Site</attribute>
         <attribute name="title">WLCG Site Availability</attribute>
     </query>
@@ -198,6 +197,7 @@ group by
         FROM (SELECT ServiceURI, MetricName, max(Timestamp) AS Timestamp FROM MetricRecord
               WHERE
                   Timestamp &lt;= :starttime AND
+                  Timestamp &gt; DATE_SUB(:starttime, INTERVAL 1 DAY) AND
                   ServiceURI regexp :facility AND
                   MetricName regexp :metric
               GROUP BY ServiceURI, MetricName) AS foo
@@ -210,7 +210,6 @@ group by
                 <input name="results">3</input>
             </inputs>
         </results>
-        <attribute name="graph_type"/>
         <attribute name="pivot_name">Site</attribute>
         <attribute name="title">Last Test Status</attribute>
     </query>

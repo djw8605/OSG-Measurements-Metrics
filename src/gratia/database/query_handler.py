@@ -4,6 +4,50 @@ import sets
 import datetime
 
 from graphtool.database.query_handler import results_parser, simple_results_parser, pivot_group_parser_plus
+from graphtool.tools.common import convert_to_datetime
+
+# TODO: OIM does not yet store this mapping...
+# TODO: I really hate having data in code; I'm sorry, programming god!
+CE_WLCGResourceMap = {
+    'T2_US_Nebraska': ['Nebraska'],
+    'T2_US_Caltech': ['CIT_CMS_T2'],
+    'T2_US_Florida': ['UFlorida-HPC', 'UFlorida-PG', 'UFlorida-IHEPA'],
+    'T2_US_MIT': ['MIT_CMS'],
+    'T2_US_Purdue': ['Purdue-Lear', 'Purdue-RCAC', 'Purdue-Steele'],
+    'T2_US_UCSD': ['UCSDT2'],
+    'T2_US_Wisconsin': ['GLOW'],
+    'US-AGLT2': ['AGLT2'],
+    'US-MWT2': ['IU_OSG', 'MWT2_IU', 'MWT2_UC', 'UC_ATLAS_MWT2'],
+    'US-NET2': ['BU_ATLAS_Tier2'],
+    'US-SWT2': ['OU_OCHEP_SWT2', 'SWT2_CPB', 'UTA_SWT2'],
+    'US-WT2': ['PROD_SLAC'],
+}
+
+SE_WLCGResourceMap = {
+    'US-MWT2': ['MWT2_IU_Gridftp', 'uct2-dc1.uchicago.edu', 'MWT2_IU_SRM'],
+    'US-WT2': ['osgserv04.slac.stanford.edu'],
+    'T2_US_Caltech': ['CIT_CMS_T2srm_v1'],
+    'T2_US_Purdue': ['dcache.rcac.purdue.edu'],
+}
+
+def makeResourceWLCGMap(wlcgMap):
+    resourceMap = {}
+    for wlcg, resources in wlcgMap.items():
+        for resource in resources:
+            resourceMap[resource] = wlcg
+    return resourceMap
+CE_ResourceWLCGMap = makeResourceWLCGMap(CE_WLCGResourceMap)
+SE_ResourceWLCGMap = makeResourceWLCGMap(SE_WLCGResourceMap)
+
+ResourceWLCGMap = {
+    'CE': CE_ResourceWLCGMap,
+    'SE': SE_ResourceWLCGMap,
+}
+
+WLCGResourceMap = {
+    'CE': CE_WLCGResourceMap,
+    'SE': SE_WLCGResourceMap,
+}
 
 def displayName(*args, **kw):
     dn = args[0]
@@ -76,6 +120,242 @@ def rsv_parser(d, **kw):
                 new_data_site[cur_time] = 1.0
             cur_time += one_hour
     return new_data, kw
+
+def or_summaries(serviceSummaries, starttime, endtime):
+    resultSummary = {starttime: [endTime, "CRITICAL"]}
+    for serviceSummary in serviceSummaries:
+        for key, val in serviceSummary.items():
+            if val[1] != 'MAINTENANCE':
+                continue
+            set_service_summary(resultSummary, key, val[0], "MAINTENANCE")
+    for serviceSummary in serviceSummaries:
+        for key, val in serviceSummary.items():
+            if val[1] != 'UNKNOWN':
+                continue
+            set_service_summary(resultSummary, key, val[0], "UNKNOWN")
+    for serviceSummary in serviceSummaries:
+        for key, val in serviceSummary.items():
+            if val[1] != 'OK':
+                continue
+            set_service_summary(resultSummary, key, val[0], "OK")
+    return resultSummary
+
+
+def set_service_summary(serviceData, starttime, endtime, status):
+    #print serviceData, starttime, endtime, status
+    keys_inbetween = [i for i in serviceData if i >= starttime and i < endtime]
+    previous_keys = [i for i in serviceData if i < starttime]
+    if len(previous_keys) == 0:
+        previous_key = starttime
+        assert previous_key == min(serviceData.keys())
+        assert previous_key in serviceData
+    else:
+        previous_key = max(previous_keys)
+    #print previous_key
+    next_key = min([i for i in serviceData if i >= endtime])
+    if len(keys_inbetween) > 0:
+        last_status = serviceData[max(keys_inbetween)][1]
+    else:
+        last_status = serviceData[previous_key][1]
+    serviceData[previous_key][0] = starttime
+    for key in keys_inbetween:
+        del serviceData[key]
+    if starttime != endtime:
+        serviceData[starttime] = [endtime, status]
+    if endtime != next_key:
+        serviceData[endtime] = [next_key, last_status]
+    #print serviceData
+    check_overlap(serviceData)
+
+def check_overlap(serviceData):
+    keys = serviceData.keys()
+    keys.sort()
+    for i in range(len(keys)-1):
+        assert serviceData[keys[i]][0] == keys[i+1]
+
+def filter_summaries(status, serviceNames, metricNames, serviceData,
+        serviceSummary):
+    for serviceName in serviceNames:
+        for metricName in metricNames:
+            myData = serviceData[serviceName, metricName]
+            sorted_timestamps = myData.keys()
+            sorted_timestamps.sort()
+            len_timestamps = len(sorted_timestamps)
+            for i in range(len_timestamps-1):
+                starttime = sorted_timestamps[i]
+                myStatus = myData[starttime]
+                if myStatus != status:
+                    continue
+                for j in range(i+1, len_timestamps):
+                    endtime = sorted_timestamps[j]
+                    if myData[endtime] != myStatus:
+                        break
+                set_service_summary(serviceSummary[serviceName], starttime,
+                    endtime, myStatus)
+
+def build_availability(serviceSummary, reliability=False):
+    availability = {}
+    for serviceName, events in serviceSummary.items():
+        #print serviceName, '\n', events
+        total_time = max(events) - min(events)
+        total_time = float(total_time.days * 86400 + total_time.seconds)
+        availability[serviceName] = {'OK': 0, 'UNKNOWN': 0, 'CRITICAL': 0}
+        if reliability:
+            availability[serviceName]['MAINTENANCE'] = 0
+        for startevent, edata in events.items():
+            endevent, status = edata
+            event_time = endevent - startevent
+            event_time = event_time.days * 86400 + event_time.seconds
+            availability[serviceName][status] += event_time/total_time
+    return availability
+
+def add_last_data(globals, starttime, facility, metric, serviceData, \
+        serviceNames, metricNames):
+    last_status, _ = globals['RSVQueries'].wlcg_last_status(starttime=\
+        kw['starttime'], facility=kw.get('facility', '.*'),
+        metric=kw.get('metric'))
+    for key, val in last_status.items():
+        if key not in serviceData:
+            serviceData[key] = {}
+        serviceNames.add(key[0])
+        metricNames.add(key[1])
+        serviceData[key][startTime] = val
+
+def init_data(d, serviceData, serviceNames, metricNames):
+    for row in d:
+        serviceName, metricName, timestamp, status = row
+        metricNames.add(metricName)
+        serviceNames.add(serviceName)
+        key = (serviceName, metricName)
+        if key not in serviceData:
+            serviceData[key] = {}
+        serviceData[key][timestamp] = status
+
+def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
+        startTime, endTime):
+    for serviceName in serviceNames:
+        for metricName in metricNames:
+            key = serviceName, metricName
+            if key not in serviceData:
+                serviceData[key] = {}
+            vals = serviceData[key]
+            if startTime not in vals:
+                vals[startTime] = 'UNKNOWN'
+            if endTime not in vals:
+                vals[endTime] = 'OK'
+        serviceSummary[serviceName] = {}
+        serviceSummary[serviceName][startTime] = [endTime, 'OK']
+        serviceSummary[serviceName][endTime] = [endTime, 'OK']
+
+
+def wlcg_availability(d, globals=globals(), **kw):
+    kw['kind'] = 'pivot-group'
+    startTime = convert_to_datetime(kw['starttime'])
+    endTime = convert_to_datetime(kw['endtime'])
+    metricNames = sets.Set()
+    serviceNames = sets.Set()
+    serviceData = {}
+    # initialize data
+    init_data(d, serviceData, serviceNames, metricNames)
+
+    # add "Last Data" here
+    add_last_data(globals, kw['starttime'], kw.get('facility', '.*'),
+        kw.get('metric', '.*'), serviceData, serviceNames, metricNames)
+
+    serviceSummary = {}
+    # Make sure all the data is present and has a start and end status
+    init_service_summary(serviceSummary, serviceData, serviceNames,
+        metricNames, startTime, endTime)
+
+    # Calculate when the status changes occur
+    filter_summaries("UNKNOWN", serviceNames, metricNames, serviceData,
+        serviceSummary)
+    filter_summaries("CRITICAL", serviceNames, metricNames, serviceData,
+        serviceSummary)
+    if "MAINTENANCE" in metricNames:
+        filter_summaries("CRITICAL", serviceNames, metricNames, serviceData,
+            serviceSummary)
+    return build_availability(serviceSummary), kw
+    
+def wlcg_site_availability(d, globals=globals(), **kw):
+    kw['kind'] = 'pivot-group'
+    startTime = convert_to_datetime(kw['starttime'])
+    endTime = convert_to_datetime(kw['endtime'])
+    metricNames = sets.Set()
+    serviceNames = sets.Set()
+    serviceData = {}
+    # initialize data
+    init_data(d, serviceData, serviceNames, metricNames)
+
+    typeMetricMap = {}
+    serviceTypeMap = {}
+    typeServiceMap = {}
+    for serviceType, serviceMap in ResourceWLCGMap.items():
+        typeServiceMap[serviceType] = []
+        for service in serviceNames:
+            if service in serviceMap:
+                serviceTypeMap[service] = serviceType
+                typeServiceMap[serviceType].append(service)
+ 
+    for key, val in kw.items():
+        if not key.startswith('critical_'):
+            continue
+        serviceType = key[len('critical_'):]
+        typeMetricMap[serviceType] = []
+        critical_re = re.compile(val)
+        for metric in metricNames:
+            if critical_re.search(metric):
+                typeMetricMap[serviceType].append(metric)
+
+    serviceTypeData = {}
+    for service in serviceType:
+        serviceTypeData[service] = {}
+        for key, val in serviceData.items():
+            if key[1] not in typeMetricMap[service]:
+                continue
+            serviceTypeData[service][key] = val
+
+    serviceTypeSummary = {}
+    siteTypeSummary = {}
+    allSites = Set()
+
+    for service, serviceData in serviceTypeData.items():
+        # add "Last Data" here
+        add_last_data(globals, kw['starttime'], kw.get('facility', '.*'), 
+            kw.get('critical_' + service, '.*'), serviceData,
+            typeServiceMap[service], typeMetricMap[service])
+
+        serviceSummary = {}
+        # Make sure all the data is present and has a start and end status
+        init_service_summary(serviceSummary, serviceData, typeServiceMap[service],
+            typeMetricMap[service], startTime, endTime)
+
+        # Calculate when the status changes occur
+        filter_summaries("UNKNOWN", typeServiceMap[service],
+            typeMetricMap[service], serviceData, serviceSummary)
+        filter_summaries("CRITICAL", typeServiceMap[service],
+            typeMetricMap[service], serviceData, serviceSummary)
+        if "MAINTENANCE" in metricNames:
+            filter_summaries("CRITICAL", typeServiceMap[service], 
+                stypeMetricMap[service], serviceData, erviceSummary)
+
+        serviceTypeSummary[service] = {}
+
+        for site, resources in WLCGResourceMap[service].items():
+            allSites.add(site)
+            resourcesSummary = [serviceSummary[i] for i in resource]
+            siteTypeSummary[service][site] = or_summaries(resourcesSummary,
+                startTime, endTime)
+
+    finalSummary = {}
+    for site in allSites:
+        siteServiceSummaries = []
+        for service, siteSummary in siteTypeSummary.items():
+            if site in siteSummary:
+                siteServiceSummaries.append(siteSummary[site])
+        finalSummary[site] = and_summaries(siteServiceSummaries)
+
+    return build_availability(serviceSummary), kw
 
 def round_nearest_day(d):
     return datetime.datetime(d.year, d.month, d.day)

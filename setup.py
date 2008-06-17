@@ -26,7 +26,7 @@ setup(name="OSG-Gratia-Viewer",
       #setup_requires=["MySQL-python>1.2.0"],
       dependency_links = ['http://effbot.org/downloads/Imaging-1.1.6.tar.gz'
                           '#egg=PIL-1.1.6'],
-      install_requires=["PIL", "setuptools"],
+      #install_requires=["PIL", "setuptools"],
 
       entry_points={
           'console_scripts': [

@@ -212,6 +212,7 @@ def sendSummaryData(startTime, data):
         r.AdditionalInfo('NumberOfEvents', values['NoEventsPerRun'])
         r.VOName('cms')
         r.ReportableVOName('uscms')
+        r.JobName('CMS Dashboard Daily Summary')
         print Gratia.Send(r), key, values
 
 def main():

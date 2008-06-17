@@ -3,10 +3,10 @@
 
     UseGratiaCertificates="0"
 
-    SSLHost="gratia.opensciencegrid.org:8881"
+    SSLHost="gratia.opensciencegrid.org:8884"
     SSLCollectorService="/gratia-servlets/rmi"
 
-    SOAPHost="gratia.opensciencegrid.org:8881"
+    SOAPHost="gratia.opensciencegrid.org:8884"
     CollectorService="/gratia-servlets/rmi" 
     UseSoapProtocol="0"
     
