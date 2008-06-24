@@ -215,7 +215,7 @@ group by
             <input name="metric" kind="sql">.*</input>
         </inputs>
         <sql>
-        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp, MR.MetricStatus
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,null,MR.MetricStatus
             FROM MetricRecord MR
             LEFT OUTER JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
             WHERE
@@ -223,16 +223,7 @@ group by
                 ServiceURI regexp :facility AND
                 MetricName regexp :metric
         UNION
-        SELECT OIMR.Name, "Maintenance", RD.start_time, "MAINTENANCE"
-            FROM oim.resource_downtime RD
-            JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
-            WHERE
-                ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
-                (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
-                (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
-                OIMR.fqdn regexp :facility
-        UNION
-        SELECT OIMR.Name, "Maintenance", RD.end_time, "OK"
+        SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
             FROM oim.resource_downtime RD
             JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
             WHERE
