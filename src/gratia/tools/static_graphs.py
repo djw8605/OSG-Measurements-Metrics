@@ -88,6 +88,9 @@ def generateImages(cp, timestamp, src, dest, replace=False, variables={},
 def generateImage(filename, image_path, timestamp, src, dest, replace):
         source = src + image_path
         source = source.replace(':today', str(timestamp))
+        if os.path.exists(filename) and not replace:
+            print "Not overwritting", filename
+            return
         try:
             print "Saving image %s to %s." % (source, filename)
             stopwatch = -time.time()

@@ -2,6 +2,7 @@
 import re
 import sets
 import datetime
+import copy
 
 from graphtool.database.query_handler import results_parser, simple_results_parser, pivot_group_parser_plus
 from graphtool.tools.common import convert_to_datetime
@@ -25,9 +26,11 @@ CE_WLCGResourceMap = {
 
 SE_WLCGResourceMap = {
     'US-MWT2': ['MWT2_IU_Gridftp', 'uct2-dc1.uchicago.edu', 'MWT2_IU_SRM'],
-    'US-WT2': ['osgserv04.slac.stanford.edu'],
+    'US-WT2': ['osgserv04.slac.stanford.edu', 'PROD_SLAC_SE'],
+    'US-SWT2': ['UTA_SWT2', 'gk04.swt2.uta.edu:8446'],
     'T2_US_Caltech': ['CIT_CMS_T2srm_v1'],
     'T2_US_Purdue': ['dcache.rcac.purdue.edu'],
+    'T2_US_Nebraska': ['T2_Nebraska_Storage'],
 }
 
 def makeResourceWLCGMap(wlcgMap):
@@ -81,7 +84,7 @@ def model_parser(pivot, **kw):
     return None
 
 def fake_parser(results, **kw):
-    return results, kw
+    return copy.deepcopy(results), kw
 
 def round_nearest_hour(d):
     return d
@@ -122,7 +125,10 @@ def rsv_parser(d, **kw):
     return new_data, kw
 
 def or_summaries(serviceSummaries, starttime, endtime):
-    resultSummary = {starttime: [endTime, "CRITICAL"]}
+    #print "or_summaries"
+    #for sum in serviceSummaries: print sum
+    resultSummary = {starttime: [endtime, "CRITICAL"],
+        endtime: [endtime, "CRITICAL"]}
     for serviceSummary in serviceSummaries:
         for key, val in serviceSummary.items():
             if val[1] != 'MAINTENANCE':
@@ -138,8 +144,31 @@ def or_summaries(serviceSummaries, starttime, endtime):
             if val[1] != 'OK':
                 continue
             set_service_summary(resultSummary, key, val[0], "OK")
+    #print resultSummary
     return resultSummary
 
+def and_summaries(serviceSummaries, starttime, endtime):
+    #print "and_summaries"
+    resultSummary = {starttime: [endtime, "OK"], endtime: [endtime, "OK"]}
+    #for sum in serviceSummaries:
+    #    print sum
+    for serviceSummary in serviceSummaries:
+        for key, val in serviceSummary.items():
+            if val[1] != 'UNKNOWN':
+                continue
+            set_service_summary(resultSummary, key, val[0], "UNKNOWN")
+    for serviceSummary in serviceSummaries:
+        for key, val in serviceSummary.items():
+            if val[1] != 'MAINTENANCE':
+                continue
+            set_service_summary(resultSummary, key, val[0], "MAINTENANCE")
+    for serviceSummary in serviceSummaries:
+        for key, val in serviceSummary.items():
+            if val[1] != 'CRITICAL':
+                continue
+            set_service_summary(resultSummary, key, val[0], "CRITICAL")
+    #print resultSummary
+    return resultSummary
 
 def set_service_summary(serviceData, starttime, endtime, status):
     #print serviceData, starttime, endtime, status
@@ -175,6 +204,9 @@ def check_overlap(serviceData):
 
 def filter_summaries(status, serviceNames, metricNames, serviceData,
         serviceSummary):
+    """
+    Given a status, apply the set_service_summary option to that status.
+    """
     for serviceName in serviceNames:
         for metricName in metricNames:
             myData = serviceData[serviceName, metricName]
@@ -212,14 +244,13 @@ def build_availability(serviceSummary, reliability=False):
 def add_last_data(globals, starttime, facility, metric, serviceData, \
         serviceNames, metricNames):
     last_status, _ = globals['RSVQueries'].wlcg_last_status(starttime=\
-        kw['starttime'], facility=kw.get('facility', '.*'),
-        metric=kw.get('metric'))
+        starttime, facility=facility, metric=metric)
     for key, val in last_status.items():
         if key not in serviceData:
             serviceData[key] = {}
         serviceNames.add(key[0])
         metricNames.add(key[1])
-        serviceData[key][startTime] = val
+        serviceData[key][starttime] = val
 
 def init_data(d, serviceData, serviceNames, metricNames):
     for row in d:
@@ -255,6 +286,10 @@ def wlcg_availability(d, globals=globals(), **kw):
     metricNames = sets.Set()
     serviceNames = sets.Set()
     serviceData = {}
+    # Add all the metric names:
+    for metric in kw['metric'].split('|'):
+        metricNames.add(metric)
+
     # initialize data
     init_data(d, serviceData, serviceNames, metricNames)
 
@@ -268,10 +303,15 @@ def wlcg_availability(d, globals=globals(), **kw):
         metricNames, startTime, endTime)
 
     # Calculate when the status changes occur
+    #for metric in metricNames:
+    #    print metric, serviceData['Nebraska', metric]
+    #print serviceSummary["AGLT2"]
     filter_summaries("UNKNOWN", serviceNames, metricNames, serviceData,
         serviceSummary)
+    #print serviceSummary["AGLT2"]
     filter_summaries("CRITICAL", serviceNames, metricNames, serviceData,
         serviceSummary)
+    #print serviceSummary["AGLT2"]
     if "MAINTENANCE" in metricNames:
         filter_summaries("CRITICAL", serviceNames, metricNames, serviceData,
             serviceSummary)
@@ -291,24 +331,30 @@ def wlcg_site_availability(d, globals=globals(), **kw):
     serviceTypeMap = {}
     typeServiceMap = {}
     for serviceType, serviceMap in ResourceWLCGMap.items():
-        typeServiceMap[serviceType] = []
+        typeServiceMap[serviceType] = sets.Set()
         for service in serviceNames:
             if service in serviceMap:
                 serviceTypeMap[service] = serviceType
-                typeServiceMap[serviceType].append(service)
- 
+                typeServiceMap[serviceType].add(service)
+
+    serviceTypes = [] 
     for key, val in kw.items():
         if not key.startswith('critical_'):
             continue
         serviceType = key[len('critical_'):]
-        typeMetricMap[serviceType] = []
+        serviceTypes.append(serviceType)
+        typeMetricMap[serviceType] = sets.Set()
         critical_re = re.compile(val)
         for metric in metricNames:
             if critical_re.search(metric):
-                typeMetricMap[serviceType].append(metric)
+                typeMetricMap[serviceType].add(metric)
+        for metric in val.split('|'):
+            typeMetricMap[serviceType].add(metric)
 
     serviceTypeData = {}
-    for service in serviceType:
+    for service in serviceTypes:
+        if 'Maintenance' in metricNames:
+            typeMetricMap[service].add('Maintenance')
         serviceTypeData[service] = {}
         for key, val in serviceData.items():
             if key[1] not in typeMetricMap[service]:
@@ -317,7 +363,7 @@ def wlcg_site_availability(d, globals=globals(), **kw):
 
     serviceTypeSummary = {}
     siteTypeSummary = {}
-    allSites = Set()
+    allSites = sets.Set()
 
     for service, serviceData in serviceTypeData.items():
         # add "Last Data" here
@@ -325,27 +371,45 @@ def wlcg_site_availability(d, globals=globals(), **kw):
             kw.get('critical_' + service, '.*'), serviceData,
             typeServiceMap[service], typeMetricMap[service])
 
+        print serviceData.keys()
+
         serviceSummary = {}
         # Make sure all the data is present and has a start and end status
         init_service_summary(serviceSummary, serviceData, typeServiceMap[service],
             typeMetricMap[service], startTime, endTime)
 
         # Calculate when the status changes occur
+        #print 'serviceSummary["MWT2_UC"]', serviceSummary['MWT2_UC']
         filter_summaries("UNKNOWN", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
+        #print serviceSummary['MWT2_UC']
         filter_summaries("CRITICAL", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
+        #print serviceSummary['MWT2_UC']
         if "MAINTENANCE" in metricNames:
             filter_summaries("CRITICAL", typeServiceMap[service], 
-                stypeMetricMap[service], serviceData, erviceSummary)
+                typeMetricMap[service], serviceData, serviceSummary)
 
-        serviceTypeSummary[service] = {}
+        #for key, val in serviceData.items():
+        #    if key[0].startswith('MWT2'):
+        #        print key, val
+
+        siteTypeSummary[service] = {}
 
         for site, resources in WLCGResourceMap[service].items():
             allSites.add(site)
-            resourcesSummary = [serviceSummary[i] for i in resource]
+            resourcesSummary = [serviceSummary[i] for i in resources if i in \
+                serviceSummary]
+            resourcesDict = dict([(i, serviceSummary[i]) for i in resources if i in \
+                serviceSummary])
             siteTypeSummary[service][site] = or_summaries(resourcesSummary,
                 startTime, endTime)
+            #print site
+            #if site == 'US-MWT2':
+            #    for resource, resourceSummary in resourcesDict.items():
+            #        print resource, resourceSummary, build_availability({'US-MWT2': resourceSummary})
+            #    print site, service, siteTypeSummary[service][site]
+            #    print build_availability({'US-MWT2': siteTypeSummary[service][site]})
 
     finalSummary = {}
     for site in allSites:
@@ -353,9 +417,10 @@ def wlcg_site_availability(d, globals=globals(), **kw):
         for service, siteSummary in siteTypeSummary.items():
             if site in siteSummary:
                 siteServiceSummaries.append(siteSummary[site])
-        finalSummary[site] = and_summaries(siteServiceSummaries)
+        finalSummary[site] = and_summaries(siteServiceSummaries, startTime,
+            endTime)
 
-    return build_availability(serviceSummary), kw
+    return build_availability(finalSummary), kw
 
 def round_nearest_day(d):
     return datetime.datetime(d.year, d.month, d.day)

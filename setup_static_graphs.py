@@ -5,7 +5,7 @@ ez_setup.use_setuptools()
 from setuptools import setup, find_packages
 
 setup(name="GratiaStaticGraphs",
-      version="0.1",
+      version="0.2",
       author="Brian Bockelman",
       author_email="bbockelm@math.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
