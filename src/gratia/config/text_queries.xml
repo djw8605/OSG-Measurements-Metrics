@@ -22,6 +22,7 @@
     <queryobj> GridScanQueries </queryobj>
     <queryobj> GIPQueries </queryobj>
     <queryobj> RSVQueries </queryobj>
+    <queryobj> RSVSummaryQueries </queryobj>
   </class>
 
   <class type="XmlGenerator" name="site_xml">

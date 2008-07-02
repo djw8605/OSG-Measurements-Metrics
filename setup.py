@@ -43,6 +43,7 @@ setup(name="OSG-Gratia-Viewer",
               'cms_summary = gratia.summary.dashboard_slurp:main',
               'ligo_summary = gratia.summary.ligo_query:main',
               'make_daemon_gratia = gratia.other.make_daemon:main',
+              'rsv_calc = gratia.tools.rsv_calc:main',
           ],
           'setuptools.installation' : [
               'eggsecutable = gratia.tools.gratia_web:main'

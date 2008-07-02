@@ -8,6 +8,192 @@
 
   <import file="$HOME/dbinfo/DBParam.xml" />
 
+  <class type="SqlQueries" name="RSVSummaryQueries">
+
+    <attribute name="display_name"> RSV Graphs </attribute>
+    <attribute name="connection_manager"> RegistrationDB </attribute>
+
+    <query name="all_summaries">
+      <inputs>
+        <input name="days" type="eval" kind="sql">35</input>
+      </inputs>
+      <sql>
+SELECT
+    starttime, time_length, 1
+FROM rsv_summary
+WHERE
+    starttime > DATE_SUB(CURDATE(), INTERVAL :days DAY)
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0,1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="reli_summary_hourly">
+      <inputs>
+        <input name="span">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="kind" kind="sql">Resource</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  name,
+  DATE_ADD(starttime, INTERVAL 5 HOUR),
+  up,
+  1-up-maintenance-unknown
+from
+  rsv_summary
+where
+     DATE_ADD(starttime, INTERVAL 6 HOUR) &gt;= :starttime AND starttime &lt; :endtime AND
+     time_length = 3600 AND
+     name regexp :facility AND
+     resource_type=lower(:kind)
+order by starttime asc
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+          <input name="suppress_zeros"> False </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Hourly RSV $kind Reliability</attribute>
+      <attribute name="column_names">Reliability</attribute>
+      <attribute name="column_units">%</attribute>
+    </query>
+
+    <query name="avail_summary_hourly">
+      <inputs>
+        <input name="span">3600</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="kind" kind="sql">Resource</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  name,
+  DATE_ADD(starttime, INTERVAL 5 HOUR),
+  up,
+  unknown+critical+maintenance
+from
+  rsv_summary
+where
+     DATE_ADD(starttime, INTERVAL 6 HOUR) &gt;= :starttime AND starttime &lt; :endtime AND
+     time_length = 3600 AND
+     name regexp :facility AND
+     resource_type=lower(:kind)
+order by starttime asc
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input> 
+          <input name="suppress_zeros"> False </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Hourly RSV $kind Availability</attribute>
+      <attribute name="column_names">Availability</attribute>
+      <attribute name="column_units">%</attribute>
+    </query>
+
+    <query name="reli_summary_daily">
+      <inputs>
+        <input name="span" kind="sql">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="kind" kind="sql">Resource</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  name,
+  starttime,
+  up,
+  1-up-maintenance-unknown
+from
+  rsv_summary
+where
+     DATE_ADD(starttime, INTERVAL 24+6 HOUR) &gt;= :starttime AND starttime &lt; :endtime AND
+     time_length = :span AND
+     name regexp :facility AND
+     resource_type=lower(:kind)
+order by starttime asc
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input> 
+          <input name="suppress_zeros"> False </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Daily RSV $kind Reliability</attribute>
+      <attribute name="column_names">Reliability</attribute>
+      <attribute name="column_units">%</attribute>
+    </query>
+
+    <query name="avail_summary_daily">
+      <inputs>
+        <input name="span">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="kind" kind="sql">Resource</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  name,
+  DATE_ADD(starttime, INTERVAL 5 HOUR),
+  up,
+  unknown+critical+maintenance
+from
+  rsv_summary
+where
+     DATE_ADD(starttime, INTERVAL 24+6 HOUR) &gt;= :starttime AND starttime &lt; :endtime AND
+     time_length = 86400 AND
+     name regexp :facility AND
+     resource_type=lower(:kind)
+order by starttime asc
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input> 
+          <input name="suppress_zeros"> False </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Daily RSV $kind Availability</attribute>
+      <attribute name="column_names">Availability</attribute>
+      <attribute name="column_units">%</attribute>
+    </query>
+
+  </class>
+
   <class type="SqlQueries" name="RSVQueries">
 
     <attribute name="display_name"> RSV Graphs </attribute>
@@ -186,6 +372,36 @@ group by
         <attribute name="title">WLCG Site Availability</attribute>
     </query>
 
+    <query name="rsv_wlcg_reliability">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,null,MR.MetricStatus
+            FROM MetricRecord MR
+            LEFT OUTER JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            WHERE
+                MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                ServiceURI regexp :facility AND
+                MetricName regexp :metric
+        UNION
+        SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
+            FROM oim.resource_downtime RD
+            JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
+            WHERE
+                ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
+                (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
+                (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
+                OIMR.fqdn regexp :facility
+        </sql>
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">WLCG Site Availability</attribute>
+    </query>
+
     <query name="wlcg_site_avail">
         <inputs>
             <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
@@ -244,7 +460,7 @@ group by
             <input name="metric" kind="sql">.*</input>
         </inputs>
         <sql>
-        SELECT COALESCE(OIMR.Name, MR.ServiceURI) as SiteName, MR.MetricName, MR.Timestamp, MR.MetricStatus
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI) as SiteName, MR.MetricName, foo.Timestamp, MR.MetricStatus
         FROM (SELECT ServiceURI, MetricName, max(Timestamp) AS Timestamp FROM MetricRecord
               WHERE
                   Timestamp &lt;= :starttime AND
@@ -257,7 +473,7 @@ group by
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">
             <inputs>
-                <input name="pivots">0,1</input>
+                <input name="pivots">0,1,2</input>
                 <input name="results">3</input>
             </inputs>
         </results>

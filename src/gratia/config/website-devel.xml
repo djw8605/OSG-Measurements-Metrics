@@ -41,6 +41,7 @@
     <mount location="/gratia_dev/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>
     <mount location="/gratia_dev/gip_graphs" content="image/png"> <instance name="gip_grapher" /> </mount>
     <mount location="/gratia_dev/rsv_graphs" content="image/png"> <instance name="rsv_grapher" /> </mount>
+    <mount location="/gratia_dev/rsv_summary_graphs" content="image/png"> <instance name="rsv_summary_grapher" /> </mount>
     <mount location="/gratia_dev/xml" content="text/xml"> <instance name="query_xml" /> </mount>
     <mount location="/gratia_dev/csv" content="text/plain"> <instance name="query_csv" /> </mount>
     <mount location="/gratia_dev/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>

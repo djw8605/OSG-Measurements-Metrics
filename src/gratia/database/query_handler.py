@@ -28,7 +28,6 @@ SE_WLCGResourceMap = {
     'US-MWT2': ['MWT2_IU_Gridftp', 'uct2-dc1.uchicago.edu', 'MWT2_IU_SRM'],
     'US-WT2': ['osgserv04.slac.stanford.edu', 'PROD_SLAC_SE'],
     'US-SWT2': ['UTA_SWT2', 'gk04.swt2.uta.edu:8446'],
-    'T2_US_Caltech': ['CIT_CMS_T2srm_v1'],
     'T2_US_Purdue': ['dcache.rcac.purdue.edu'],
     #'T2_US_Nebraska': ['T2_Nebraska_Storage'],
 }
@@ -172,6 +171,9 @@ def and_summaries(serviceSummaries, starttime, endtime):
 
 def set_service_summary(serviceData, starttime, endtime, status):
     #print serviceData, starttime, endtime, status
+    if starttime == endtime:
+        check_overlap(serviceData)
+        return
     keys_inbetween = [i for i in serviceData if i >= starttime and i < endtime]
     previous_keys = [i for i in serviceData if i < starttime]
     if len(previous_keys) == 0:
@@ -194,7 +196,11 @@ def set_service_summary(serviceData, starttime, endtime, status):
     if endtime != next_key:
         serviceData[endtime] = [next_key, last_status]
     #print serviceData
-    check_overlap(serviceData)
+    try:
+        check_overlap(serviceData)
+    except:
+        print serviceData, starttime, endtime, status
+        raise
 
 def check_overlap(serviceData):
     keys = serviceData.keys()
@@ -208,6 +214,8 @@ def filter_summaries(status, serviceNames, metricNames, serviceData,
     Given a status, apply the set_service_summary option to that status.
     """
     for serviceName in serviceNames:
+        startInterval = min(serviceSummary[serviceName])
+        endInterval = max(serviceSummary[serviceName])
         for metricName in metricNames:
             myData = serviceData[serviceName, metricName]
             sorted_timestamps = myData.keys()
@@ -222,6 +230,13 @@ def filter_summaries(status, serviceNames, metricNames, serviceData,
                     endtime = sorted_timestamps[j]
                     if myData[endtime] != myStatus:
                         break
+                # Expire tests after 24 hours
+                endtime = min(endtime, starttime + datetime.timedelta(0, 86400))
+
+                # Make sure that our start and end times are within the
+                # appropriate interval
+                starttime = max(starttime, startInterval)
+                endtime = min(endtime, endInterval)
                 set_service_summary(serviceSummary[serviceName], starttime,
                     endtime, myStatus)
 
@@ -241,16 +256,16 @@ def build_availability(serviceSummary):
             availability[serviceName][status] += event_time/total_time
     return availability
 
-def add_last_data(globals, starttime, facility, metric, serviceData, \
+def add_last_data(globals, starttime, endtime, facility, metric, serviceData, \
         serviceNames, metricNames):
     last_status, _ = globals['RSVQueries'].wlcg_last_status(starttime=\
         starttime, facility=facility, metric=metric)
     for key, val in last_status.items():
-        if key not in serviceData:
-            serviceData[key] = {}
+        if key[:2] not in serviceData:
+            serviceData[key[:2]] = {}
         serviceNames.add(key[0])
         metricNames.add(key[1])
-        serviceData[key][starttime] = val
+        serviceData[key[:2]][key[2]] = val
 
 def init_data(d, serviceData, serviceNames, metricNames, starttime, endtime):
     for row in d:
@@ -287,13 +302,13 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
             else:
                 startStatus = 'UNKNOWN'
             vals = serviceData[key]
-            if startTime not in vals:
-                vals[startTime] = 'OK'
+            if startTime not in vals and not [i for i in vals if i < startTime]:
+                vals[startTime] = startStatus
             if endTime not in vals:
-                vals[endTime] = 'OK'
+                vals[endTime] = startStatus
         serviceSummary[serviceName] = {}
-        serviceSummary[serviceName][startTime] = [endTime, 'OK']
-        serviceSummary[serviceName][endTime] = [endTime, 'OK']
+        serviceSummary[serviceName][startTime] = [endTime, 'UNKNOWN']
+        serviceSummary[serviceName][endTime] = [endTime, 'UNKNOWN']
 
 
 def wlcg_availability(d, globals=globals(), **kw):
@@ -310,25 +325,31 @@ def wlcg_availability(d, globals=globals(), **kw):
     # initialize data
     init_data(d, serviceData, serviceNames, metricNames, startTime, endTime)
 
+    serviceSummary = {}
+
     # add "Last Data" here
-    add_last_data(globals, kw['starttime'], kw.get('facility', '.*'),
+    add_last_data(globals, startTime, endTime, kw.get('facility', '.*'),
         kw.get('metric', '.*'), serviceData, serviceNames, metricNames)
 
-    serviceSummary = {}
     # Make sure all the data is present and has a start and end status
     init_service_summary(serviceSummary, serviceData, serviceNames,
         metricNames, startTime, endTime)
 
     # Calculate when the status changes occur
-    #for metric in metricNames:
-    #    print metric, serviceData['Nebraska', metric]
-    #print serviceSummary["AGLT2"]
+    for metric in metricNames:
+        print metric, serviceData['Purdue-Steele', metric]
+        keys = serviceData['Purdue-Steele', metric].keys(); keys.sort()
+        print keys
+    print serviceSummary["Purdue-Steele"]
+    filter_summaries("OK", serviceNames, metricNames, serviceData,
+        serviceSummary)
+    print serviceSummary["Purdue-Steele"]
     filter_summaries("UNKNOWN", serviceNames, metricNames, serviceData,
         serviceSummary)
-    #print serviceSummary["AGLT2"]
+    print serviceSummary["Purdue-Steele"]
     filter_summaries("CRITICAL", serviceNames, metricNames, serviceData,
         serviceSummary)
-    #print serviceSummary["AGLT2"]
+    print serviceSummary["Purdue-Steele"]
     if "Maintenance" in metricNames:
         filter_summaries("MAINTENANCE", serviceNames, metricNames, serviceData,
             serviceSummary)
@@ -384,19 +405,20 @@ def wlcg_site_availability(d, globals=globals(), **kw):
 
     for service, serviceData in serviceTypeData.items():
 
+        serviceSummary = {}
+
         # add "Last Data" here
-        add_last_data(globals, kw['starttime'], kw.get('facility', '.*'), 
+        add_last_data(globals, startTime, endTime, kw.get('facility', '.*'), 
             kw.get('critical_' + service, '.*'), serviceData,
             typeServiceMap[service], typeMetricMap[service])
 
-        serviceSummary = {}
         # Make sure all the data is present and has a start and end status
         init_service_summary(serviceSummary, serviceData,
             typeServiceMap[service], typeMetricMap[service], startTime, endTime)
-        
-        for key, val in serviceData.items():
-            if key[1] == 'Maintenance':
-                print key, val
+
+        #for key, val in serviceData.items():
+        #    if key[1] == 'Maintenance':
+        #        print key, val
 
         # Calculate when the status changes occur
         #print 'serviceSummary["UCSDT2"]', serviceSummary['UCSDT2']

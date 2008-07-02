@@ -68,4 +68,9 @@
     <queryobj> RSVQueries </queryobj>
   </class>
 
+  <class type="Grapher" name="rsv_summary_grapher">
+    <attribute name="display_name"> RSV Summary Graphs </attribute>
+    <queryobj> RSVSummaryQueries </queryobj>
+  </class>
+
 </graphtool-config>

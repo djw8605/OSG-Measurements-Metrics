@@ -676,6 +676,161 @@ group by
       <attribute name="column_units"/>
     </query>
 
+    <query name="se_space_free">
+      <inputs>
+          <input name="span" kind="sql">86400</input>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-14*86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="sekind" kind="sql">srm</input>
+      </inputs>
+      <sql>
+        SELECT site, DATE_SUB(date, INTERVAL 5 HOUR) as timestamp, CASE WHEN free > 3000000 THEN free/1073741824 ELSE free END
+        FROM se_info
+        WHERE
+          date &gt;= :starttime AND date &lt; :endtime AND
+          site regexp :facility AND 
+          ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedBar </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">OSG Free Space By Facility</attribute>
+      <attribute name="column_names">Free Space</attribute>
+      <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="se_space">
+      <inputs>
+          <input name="span" kind="sql">86400</input>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-14*86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="sekind" kind="sql">srm</input>
+      </inputs>
+      <sql>
+        SELECT site, DATE_SUB(date, INTERVAL 5 HOUR), CASE WHEN total > 3000000 THEN total/1073741824 ELSE total END
+        FROM se_info
+        WHERE
+          date &gt;= :starttime AND date &lt; :endtime AND
+          site regexp :facility AND
+          ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedBar </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">OSG Total Space By Facility</attribute>
+      <attribute name="column_names">Total Space</attribute>
+      <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="se_info">
+      <inputs>
+          <input name="span" kind="sql">86400</input>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="sekind" kind="sql">srm</input>
+      </inputs>
+      <sql>
+        SELECT site, max(CASE WHEN total-free > 3000000 THEN total-free/1073741824 ELSE total-free END), max(CASE WHEN free > 3000000 THEN free/1073741824 ELSE free END)
+        FROM se_info 
+        WHERE
+          date &gt;= :starttime AND date &lt; :endtime AND
+          site regexp :facility AND 
+          ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
+        GROUP BY site
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedBar </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">OSG Total Space By Facility</attribute>
+      <attribute name="column_names">Total Space</attribute>
+      <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="se_space_pie">
+      <inputs>
+          <input name="span" kind="sql">86400</input>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-7*86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="sekind" kind="sql">srm</input>
+      </inputs>
+      <sql>
+        SELECT site, MAX(CASE WHEN total > 3000000 THEN total/1073741824 ELSE total END)
+        FROM se_info
+        WHERE
+          date &gt;= :starttime AND date &lt; :endtime AND
+          site regexp :facility AND
+          ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
+        GROUP BY site
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="title">OSG Current Total Space By Facility</attribute>
+      <attribute name="column_names">Total Space</attribute>
+      <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="se_space_free_pie">
+      <inputs>
+          <input name="span" kind="sql">86400</input>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-7*86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="sekind" kind="sql">srm</input>
+      </inputs>
+      <sql>
+        SELECT site, MAX(CASE WHEN free > 3000000 THEN free /1073741824 ELSE free END)
+        FROM se_info
+        WHERE
+          date &gt;= :starttime AND date &lt; :endtime AND
+          site regexp :facility AND
+          ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
+        GROUP BY site
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="title">OSG Current Free Space By Facility</attribute>
+      <attribute name="column_names">Free Space</attribute>
+      <attribute name="column_units">GB</attribute>
+    </query>
+
+
   </class>
 
 </graphtool-config>

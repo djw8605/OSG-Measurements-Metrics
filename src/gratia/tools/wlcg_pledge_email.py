@@ -38,7 +38,11 @@ def loadConfig():
         fps.append(resource_stream("gratia.config", "wlcg_email.conf"))
     except:
         pass
-    fps.append('/etc/wlcg_email.conf')
+    try:
+        fp2 = open('/etc/wlcg_email.conf', 'r')
+        fps.append(fp2)
+    except:
+        pass
 
     parser = optparse.OptionParser()
     parser.add_option("-c", "--config", dest="config", help="Comma-separated "\
@@ -268,7 +272,7 @@ def main():
     if cp.getboolean("info", "lastmonth"):
         report_time = "the end of the month"
     else:
-        report_time = pledge
+        report_time = now.strftime('%x')
     email_info = {'atlas_html_table': atlas_html_table, 'cms_html_table': \
         cms_html_table, "report_time": report_time, "year": year, "month": \
         month_str, "atlas_plain_table": atlas_plain_table, "cms_plain_table": \
