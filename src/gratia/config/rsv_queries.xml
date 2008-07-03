@@ -351,6 +351,25 @@ group by
       <attribute name="title">RSV Site Total Availability</attribute>
     </query>
 
+    <query name="service_to_resource">
+        <!-- Build a map from (service_type, resource_name) -> parent resource -->
+        <sql>
+            SELECT OIMS.name as service_type, OIMR.name, COALESCE(OIMR2.name, OIMR.name) as parent_name
+            FROM oim.resource_service OIMRS
+            JOIN oim.service OIMS ON OIMS.service_id = OIMRS.service_id
+            JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.resource_id
+            LEFT OUTER JOIN oim.resource OIMR2 ON OIMR2.resource_id = OIMR.parent_resource_id
+            JOIN oim.resource_ext_attributes OIME on OIME.resource_id = OIMR.resource_id
+            WHERE OIME.interop_monitoring = 1 and OIMR.osg_grid_type_id=1
+        </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots">0, 1</input>
+          <input name="results">2</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="rsv_wlcg_availability">
         <inputs>
             <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
@@ -398,6 +417,57 @@ group by
                 OIMR.fqdn regexp :facility
         </sql>
         <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">WLCG Site Availability</attribute>
+    </query>
+
+    <query name="rsv_sam_availability">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp, MR.MetricStatus
+        FROM MetricRecord MR
+        LEFT OUTER JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        WHERE
+            MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+            ServiceURI regexp :facility AND
+            MetricName regexp :metric
+        </sql>
+        <results module="gratia.database.query_handler" function="sam_site_availability"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">WLCG Site Availability</attribute>
+    </query>
+        
+    <query name="rsv_sam_reliability">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,null,MR.MetricStatus
+            FROM MetricRecord MR
+            LEFT OUTER JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            WHERE
+                MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                ServiceURI regexp :facility AND
+                MetricName regexp :metric
+        UNION   
+        SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
+            FROM oim.resource_downtime RD
+            JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
+            WHERE
+                ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
+                (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
+                (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
+                OIMR.fqdn regexp :facility
+        </sql>
+        <results module="gratia.database.query_handler" function="sam_site_availability"/>
         <attribute name="pivot_name">Site</attribute>
         <attribute name="title">WLCG Site Availability</attribute>
     </query>
