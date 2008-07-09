@@ -37,6 +37,7 @@
             SELECT site, cluster, subcluster, timestamp, coalesce(proc, "Unknown"), ncores, si2k_score, ownership
             FROM subcluster_score
             WHERE timestamp=(select max(timestamp) from subcluster_score where timestamp &lt;= :endtime) 
+            GROUP BY site, cluster, subcluster
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">
             <inputs>
@@ -753,7 +754,7 @@ group by
           date &gt;= :starttime AND date &lt; :endtime AND
           site regexp :facility AND 
           ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
-        GROUP BY site
+        GROUP BY se
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -785,7 +786,7 @@ group by
           date &gt;= :starttime AND date &lt; :endtime AND
           site regexp :facility AND
           ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
-        GROUP BY site
+        GROUP BY se
       </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -815,7 +816,7 @@ group by
           date &gt;= :starttime AND date &lt; :endtime AND
           site regexp :facility AND
           ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
-        GROUP BY site
+        GROUP BY se 
       </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>

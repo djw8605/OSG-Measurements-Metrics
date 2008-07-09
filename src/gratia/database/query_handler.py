@@ -16,16 +16,16 @@ critical_tests = {
    'org.osg.general.osg-version',
    'org.osg.certificates.cacert-expiry',
    'org.osg.certificates.crl-expiry',
-   'org.osg.general.osg-directories-CE-permissions ',],
+   'org.osg.general.osg-directories-CE-permissions',],
   'SRMv2': \
   ['org.osg.srm.srmping',
-    'org.osg.srm.srmcp-readwrite',],
+   'org.osg.srm.srmcp-readwrite',],
   'SRMv1': \
   ['org.osg.srm.srmping',
-    'org.osg.srm.srmcp-readwrite',],
+   'org.osg.srm.srmcp-readwrite',],
   'BestmanXrootd': \
   ['org.osg.srm.srmping',
-    'org.osg.srm.srmcp-readwrite',],
+   'org.osg.srm.srmcp-readwrite',],
   'GridFtp': \
   ['org.osg.globus.gridftp-simple'],
 }
@@ -422,9 +422,12 @@ def sam_site_summary(d, globals=globals(), **kw):
         if 'Maintenance' in metricNames:
             typeMetricMap[service].add('Maintenance')
         serviceTypeData[service] = {}
+        print service, typeMetricMap[service]
         for key, val in serviceData.items():
+            if key[0] == 'GLOW-CMS-SE':  print "!", key
             if key[1] not in typeMetricMap[service]:
                 continue
+            if key[0] == 'GLOW-CMS-SE':  print "*", val
             serviceTypeData[service][key] = val
 
     serviceTypeSummary = {}
@@ -437,30 +440,30 @@ def sam_site_summary(d, globals=globals(), **kw):
         
         # add "Last Data" here 
         add_last_data(globals, startTime, endTime, kw.get('facility', '.*'),
-            kw.get('critical_' + service, '.*'), serviceData,
+            '|'.join(typeMetricMap[service]), serviceData,
             typeServiceMap[service], typeMetricMap[service])
         
         # Make sure all the data is present and has a start and end status
         init_service_summary(serviceSummary, serviceData,
             typeServiceMap[service], typeMetricMap[service], startTime, endTime)
         
-        #for key, val in serviceData.items():
-        #    if key[1] == 'Maintenance':
-        #        print key, val
+        for key, val in serviceData.items():
+            if key[0] == 'GLOW-CMS-SE':
+                print key, val
         
         # Calculate when the status changes occur
+        print service
+        if service == 'SRMv2': print 'pre serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
         filter_summaries("OK", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
-
+        if service == 'SRMv2': print 'post-OK serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
         filter_summaries("UNKNOWN", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
-        #print 'serviceSummary["UCSDT2"]', serviceSummary['UCSDT2']
-        filter_summaries("UNKNOWN", typeServiceMap[service],
-            typeMetricMap[service], serviceData, serviceSummary)
-        #print serviceSummary['UCSDT2']
+        if service == 'SRMv2': print 'post-UNKNOWN serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
         filter_summaries("CRITICAL", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
-        #print serviceSummary['UCSDT2']
+        if service == 'SRMv2': print 'post-CRITICAL serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
+        if service == 'SRMv2': print serviceSummary['GLOW-CMS-SE']
         if "Maintenance" in metricNames:
             filter_summaries("MAINTENANCE", typeServiceMap[service],
                 typeMetricMap[service], serviceData, serviceSummary)

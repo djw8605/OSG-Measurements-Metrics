@@ -1,6 +1,7 @@
 
 import os
 import sys
+import traceback
 from sets import Set
 from httplib import HTTPSConnection
 from xml.dom.minidom import parse
@@ -79,13 +80,13 @@ def mapVos():
     urls = gumsConfigUrls()
     vos = {}
     for vo, url in urls.items():
-        #print vo, url
+        print vo, url
         try:
             members = listMembers(url)
         except Exception, e:
             #raise
             print >> sys.stdout, "Failed to pull update for VO: %s" % vo
-            print >> sys.stderr, e
+            print >> sys.stderr, traceback.print_exc()
             continue
         vos[vo] = vos.get(vo, Set())
         for member in members:

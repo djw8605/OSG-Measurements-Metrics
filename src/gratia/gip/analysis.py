@@ -98,7 +98,11 @@ def ownership_info(ce_entries, cp):
     # Determine the site's advertised ownership.
     for ce in ce_entries:
         # First, we join the CE to the cluster:
-        cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
+        try:
+            cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
+        except:
+            print "Unable to find cluster for CE; skipping\n%s" % ce
+            continue
         # Then, join the cluster to the site:
         try:
             site = join_FK(cluster, site_entries, "SiteUniqueID")
