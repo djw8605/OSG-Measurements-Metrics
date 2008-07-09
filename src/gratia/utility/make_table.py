@@ -21,6 +21,7 @@ class Table:
         self.headerLengths = []
         self.maxHeaderLen = 0
         self.data = []
+        self.colors = []
         self.headerLines = 1
 
     def setHeaders(self, headers):
@@ -40,12 +41,15 @@ class Table:
             return ftoa(entry)
         return str(entry)
 
-    def addRow(self, data):
+    def addRow(self, data, colors=None):
         assert len(data) == len(self.headerLengths)
+        if colors:
+            assert len(data) == len(colors)
         data = [self.formatEntry(i) for i in data]
         for i in range(len(data)):
             self.headerLengths[i] = max(self.headerLengths[i], len(data[i]))
         self.data.append(data)
+        self.colors.append(colors)
 
     def plainTextHeader(self):
         table_len = 1 + sum([i+3 for i in self.headerLengths])
@@ -75,8 +79,12 @@ class Table:
         for row in self.data:
             output += '|'
             for i in range(header_cnt):
-                output += (' %%%is |' % self.headerLengths[i]) % \
-                    row[i]
+                if i == 0:
+                    output += (' %%-%is |' % self.headerLengths[i]) % \
+                        row[i]
+                else:
+                    output += (' %%%is |' % self.headerLengths[i]) % \
+                        row[i]
             output += '\n'
         return output
 
@@ -90,11 +98,19 @@ class Table:
             header += "<th>%s</th>" % ' '.join(entry)
         output = """<table class="%s">\n\t<thead>%s</thead>\n""" % \
             (css_class, header)
+        ctr = 0
         for row in self.data:
             output += "\t<tr> "
+            col_ctr = 0
             for entry in row:
-                output += "<td>%s</td>" % entry
+                if self.colors[ctr] and self.colors[ctr][col_ctr]:
+                    output += '<td style="background-color: %s;">%s</td>' % \
+                        (self.colors[ctr][col_ctr], entry)
+                else:
+                    output += "<td>%s</td>" % entry
+                col_ctr += 1
             output += " </tr>\n"
+            ctr += 1
         output += "</table>"
         return output
 
