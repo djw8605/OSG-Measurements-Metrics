@@ -21,7 +21,7 @@ from navigate import Navigation
 from wlcg_reporting import WLCGReporter
 from subcluster_report import SubclusterReport
 
-class Gratia(ImageMap, WLCGReporter, Navigation):
+class Gratia(ImageMap, SubclusterReport, WLCGReporter, Navigation):
 
     def __init__(self, *args, **kw):
         super(Gratia, self).__init__(*args, **kw)
@@ -41,7 +41,7 @@ class Gratia(ImageMap, WLCGReporter, Navigation):
         self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(self.apel_data)
         self.cpu_normalization = self.template('cpu_normalization.tmpl')(self.cpu_normalization)
         self.email_lookup = self.template('email_lookup.tmpl')(self.email_lookup)
-        self.subclusters = self.template('subclusters.tmpl')(self.subclusters)
+        self.subclusters = self.template('subcluster.tmpl')(self.subclusters)
 
         self._cp_config ={}
         self.index = self.overview

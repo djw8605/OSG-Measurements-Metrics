@@ -21,7 +21,7 @@ my_data = {
         #set val=$subclusters[key]
         {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), SI2K: $val[3], Ownership: '$val[4]', KSI2KTotal: $int($int($val[2])*$int($val[3])/1000)}
   #end if
-  ],
+  ]
 };
 
 // Patch for width and/or minWidth Column values bug in non-scrolling DataTables
@@ -50,7 +50,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Subcluster", sortable:true, resizeable:true},
             {key:"Processor", label:"Processor Model", sortable:true, resizeable:true},
             {key:"SI2K", label:"SI2K Score Per Core", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true, formatter:num_formatter}
+            {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"KSI2KTotal", label:"Total KSI2K Score", sortable:true, resizeable:true, formatter:num_formatter}
         ];
 
@@ -59,6 +59,9 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.gipDataSource.responseSchema = {
             fields: ["Site", "Cluster", "Subcluster", "Timestamp", "Processor", "Cores", "SI2K", "Ownership", "KSI2KTotal"]
         };
+
+        this.myDataTable = new YAHOO.widget.DataTable("gip",
+                gipColumnDefs, this.gipDataSource, {sortedBy:{key:"Site"}});
 
     };
 });

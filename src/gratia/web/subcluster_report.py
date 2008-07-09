@@ -4,6 +4,18 @@ from auth import Authenticate
 class SubclusterReport(Authenticate):
 
     def subclusters(self, timestamp=None):
+        data = {}
+
+        # This helps us sort the keys during the template generation
+        def key_sorter(key1, key2):
+            if key1 < key2:
+                return -1
+            if key1 == key2:
+                return 0
+            return 1
+        data['key_sorter'] = key_sorter
+
+
         if timestamp==None:
             subclusters = self.globals['GIPQueries'].subcluster_latest()[0]
         else:
