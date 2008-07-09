@@ -243,6 +243,45 @@ group by
       <attribute name="column_units">Probes, Probes</attribute>
     </query>
 
+    <query name="rsv_results">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="status" kind="sql">UNKNOWN|WARNING|CRITICAL</input>
+        <input name="limit" type="int" kind="sql">30</input>
+      </inputs>
+      <sql>
+SELECT
+  ServiceURI,
+  MetricName,
+  MetricStatus,
+  Timestamp,
+  DetailsData
+FROM
+  MetricRecord
+WHERE
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceURI regexp :facility AND
+     MetricName regexp :metric AND
+     MetricStatus regexp :status
+ORDER BY Timestamp desc
+LIMIT :limit
+      </sql>
+      <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1,2,3,4 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"/>
+      <attribute name="pivot_name">Service FQDN</attribute>
+      <attribute name="title">RSV Individual Results</attribute>
+      <attribute name="column_names">Metric, Status, Time, Output</attribute>
+      <attribute name="column_units">,,,</attribute>
+    </query>
+
     <query name="rsv_reliability">
       <inputs>
         <input name="span" kind="sql" type="eval">7200</input>

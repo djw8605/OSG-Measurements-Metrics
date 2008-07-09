@@ -260,6 +260,8 @@ def filter_summaries(status, serviceNames, metricNames, serviceData,
                 # appropriate interval
                 starttime = max(starttime, startInterval)
                 endtime = min(endtime, endInterval)
+                if serviceName == 'AGLT2' and metricName == 'org.osg.general.osg-directories-CE-permissions' and status == 'OK':
+                    print starttime, endtime, serviceSummary[serviceName]
                 set_service_summary(serviceSummary[serviceName], starttime,
                     endtime, myStatus)
 
@@ -329,10 +331,49 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
                 vals[startTime] = startStatus
             if endTime not in vals:
                 vals[endTime] = startStatus
-        serviceSummary[serviceName] = {}
-        serviceSummary[serviceName][startTime] = [endTime, 'UNKNOWN']
-        serviceSummary[serviceName][endTime] = [endTime, 'UNKNOWN']
+        #serviceSummary[serviceName] = {}
+        #serviceSummary[serviceName][startTime] = [endTime, 'UNKNOWN']
+        #serviceSummary[serviceName][endTime] = [endTime, 'UNKNOWN']
 
+    serviceSummaries = []
+    for metricName in metricNames:
+            tmpSummary = {}
+            for serviceName in serviceNames:
+                tmpSummary[serviceName] = {}
+            for serviceName in serviceNames:
+                tmpSummary[serviceName] = {startTime: [endTime, 'UNKNOWN'],
+                    endTime: [endTime, 'UNKNOWN']}
+                myData = serviceData[serviceName, metricName]
+                sorted_timestamps = myData.keys()
+                sorted_timestamps.sort()
+                len_timestamps = len(sorted_timestamps)
+                for i in range(len_timestamps-1):
+                    starttime = sorted_timestamps[i]
+                    myStatus = myData[starttime]
+                    if myStatus != 'OK':
+                        continue
+                    for j in range(i+1, len_timestamps):
+                        endtime = sorted_timestamps[j]
+                        if myData[endtime] != myStatus:
+                            break
+                    # Expire tests after 24 hours
+                    endtime = min(endtime, starttime + datetime.timedelta(0,
+                        86400))
+
+                    # Make sure that our start and end times are within the
+                    # appropriate interval
+                    starttime = max(starttime, startTime)
+                    endtime = min(endtime, endTime)
+                    #if serviceName == 'AGLT2' and metricName == 'org.osg.general.osg-directories-CE-permissions':
+                    #    print starttime, endtime, tmpSummary[serviceName]
+                    set_service_summary(tmpSummary[serviceName], starttime,
+                        endtime, 'OK')
+            serviceSummaries.append(tmpSummary)
+    for serviceName in serviceNames:
+        #print '\n'.join([str(i.keys()) for i in serviceSummaries])
+        tmpSummary = and_summaries([i[serviceName] for i in serviceSummaries],
+            startTime, endTime)
+        serviceSummary[serviceName] = tmpSummary
 
 def wlcg_availability(d, globals=globals(), **kw):
     kw['kind'] = 'pivot-group'
@@ -364,8 +405,8 @@ def wlcg_availability(d, globals=globals(), **kw):
     #    keys = serviceData['Purdue-Steele', metric].keys(); keys.sort()
     #    print keys
     #print serviceSummary["Purdue-Steele"]
-    filter_summaries("OK", serviceNames, metricNames, serviceData,
-        serviceSummary)
+    #filter_summaries("OK", serviceNames, metricNames, serviceData,
+    #    serviceSummary)
     #print serviceSummary["Purdue-Steele"]
     filter_summaries("UNKNOWN", serviceNames, metricNames, serviceData,
         serviceSummary)
@@ -422,12 +463,12 @@ def sam_site_summary(d, globals=globals(), **kw):
         if 'Maintenance' in metricNames:
             typeMetricMap[service].add('Maintenance')
         serviceTypeData[service] = {}
-        print service, typeMetricMap[service]
+        #print service, typeMetricMap[service]
         for key, val in serviceData.items():
-            if key[0] == 'GLOW-CMS-SE':  print "!", key
+            #if key[0] == 'GLOW-CMS-SE':  print "!", key
             if key[1] not in typeMetricMap[service]:
                 continue
-            if key[0] == 'GLOW-CMS-SE':  print "*", val
+            #if key[0] == 'GLOW-CMS-SE':  print "*", val
             serviceTypeData[service][key] = val
 
     serviceTypeSummary = {}
@@ -442,28 +483,27 @@ def sam_site_summary(d, globals=globals(), **kw):
         add_last_data(globals, startTime, endTime, kw.get('facility', '.*'),
             '|'.join(typeMetricMap[service]), serviceData,
             typeServiceMap[service], typeMetricMap[service])
-        
+       
+        if service == 'CE':
+            print "AGLT2 CE Service Data.", serviceData['AGLT2', 'org.osg.general.osg-directories-CE-permissions']
+ 
         # Make sure all the data is present and has a start and end status
         init_service_summary(serviceSummary, serviceData,
             typeServiceMap[service], typeMetricMap[service], startTime, endTime)
         
-        for key, val in serviceData.items():
-            if key[0] == 'GLOW-CMS-SE':
-                print key, val
-        
         # Calculate when the status changes occur
-        print service
-        if service == 'SRMv2': print 'pre serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
-        filter_summaries("OK", typeServiceMap[service],
-            typeMetricMap[service], serviceData, serviceSummary)
-        if service == 'SRMv2': print 'post-OK serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
+        #print service
+        if service == 'CE': print 'pre serviceSummary["AGLT2"]', serviceSummary['AGLT2']
+        #filter_summaries("OK", typeServiceMap[service],
+        #    typeMetricMap[service], serviceData, serviceSummary)
+        if service == 'CE': print 'post-OK serviceSummary["AGLT2"]', serviceSummary['AGLT2']
         filter_summaries("UNKNOWN", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
-        if service == 'SRMv2': print 'post-UNKNOWN serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
+        #if service == 'SRMv2': print 'post-UNKNOWN serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
         filter_summaries("CRITICAL", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
-        if service == 'SRMv2': print 'post-CRITICAL serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
-        if service == 'SRMv2': print serviceSummary['GLOW-CMS-SE']
+        #if service == 'SRMv2': print 'post-CRITICAL serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']
+        #if service == 'SRMv2': print serviceSummary['GLOW-CMS-SE']
         if "Maintenance" in metricNames:
             filter_summaries("MAINTENANCE", typeServiceMap[service],
                 typeMetricMap[service], serviceData, serviceSummary)
@@ -489,10 +529,10 @@ def sam_site_summary(d, globals=globals(), **kw):
             #    print build_availability({'Purdue-Steele': siteTypeSummary[service][site]})
 
     for service, siteSummary in typeSiteSummary.items():
-        print service
+        #print service
         b = build_availability(siteSummary)
-        for site, info in b.items():
-            print site, info
+        #for site, info in b.items():
+        #    print site, info
 
     finalSummary = {}
     for site in allSites:
