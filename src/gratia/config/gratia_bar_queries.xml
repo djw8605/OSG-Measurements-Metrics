@@ -95,6 +95,20 @@
       </results>
     </query>
 
+    <query name="vo_efficiency_summary" base="GratiaGenericQuery.simple_summary">
+      <inputs>
+          <input name="vo" kind="sql">dzero</input>
+      </inputs>
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">CPU Efficiency</attribute>
+      <attribute name="graph_type">QualityBarGraph</attribute>
+    </query>
+
     <query name="vo_cpu_efficiency" base="GratiaGenericQuery.jobs_summary_query">
       <inputs>
           <input name="vo" kind="sql">cms</input>
