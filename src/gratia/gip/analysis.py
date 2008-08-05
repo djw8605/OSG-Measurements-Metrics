@@ -70,6 +70,8 @@ def sub_cluster_info(ce_list, cp):
         my_sc = sc_info.get(ce, [])
         sc_info[ce] = my_sc
         for sc in sc_entries:
+            if "999999" in sc.glue['SubClusterLogicalCPUs']:
+                continue
             desired_ck = "GlueClusterUniqueID=%s" % ce
             if "ChunkKey" in sc.glue and sc.glue["ChunkKey"] == desired_ck:
                 my_sc.append(sc)
@@ -131,8 +133,10 @@ def ownership_info(ce_entries, cp):
                 ctr += 100
             else:
                 try:
-                    refined.append((vo, int(info[1])))
-                    ctr += int(info[1])
+                    amt = info[1]
+                    amt = amt.replace("'", "")
+                    refined.append((vo, int(amt)))
+                    ctr += int(amt)
                 except:
                     print entry
                     raise

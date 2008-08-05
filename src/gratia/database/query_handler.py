@@ -15,7 +15,6 @@ critical_tests = {
    'org.osg.globus.gram-authentication',
    'org.osg.general.osg-version',
    'org.osg.certificates.cacert-expiry',
-   'org.osg.certificates.crl-expiry',
    'org.osg.general.osg-directories-CE-permissions',],
   'SRMv2': \
   ['org.osg.srm.srmping',
@@ -484,8 +483,8 @@ def sam_site_summary(d, globals=globals(), **kw):
             '|'.join(typeMetricMap[service]), serviceData,
             typeServiceMap[service], typeMetricMap[service])
        
-        if service == 'CE':
-            print "AGLT2 CE Service Data.", serviceData['AGLT2', 'org.osg.general.osg-directories-CE-permissions']
+        #if service == 'CE':
+        #    print "AGLT2 CE Service Data.", serviceData['AGLT2', 'org.osg.general.osg-directories-CE-permissions']
  
         # Make sure all the data is present and has a start and end status
         init_service_summary(serviceSummary, serviceData,
@@ -493,10 +492,10 @@ def sam_site_summary(d, globals=globals(), **kw):
         
         # Calculate when the status changes occur
         #print service
-        if service == 'CE': print 'pre serviceSummary["AGLT2"]', serviceSummary['AGLT2']
+        #if service == 'CE': print 'pre serviceSummary["AGLT2"]', serviceSummary['AGLT2']
         #filter_summaries("OK", typeServiceMap[service],
         #    typeMetricMap[service], serviceData, serviceSummary)
-        if service == 'CE': print 'post-OK serviceSummary["AGLT2"]', serviceSummary['AGLT2']
+        #if service == 'CE': print 'post-OK serviceSummary["AGLT2"]', serviceSummary['AGLT2']
         filter_summaries("UNKNOWN", typeServiceMap[service],
             typeMetricMap[service], serviceData, serviceSummary)
         #if service == 'SRMv2': print 'post-UNKNOWN serviceSummary["GLOW-CMS-SE"]', serviceSummary['GLOW-CMS-SE']

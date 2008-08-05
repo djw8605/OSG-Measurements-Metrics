@@ -13,8 +13,9 @@ REPLACE INTO rsv_summary (name, resource_type, time_length, starttime,
      %(endtime)s, %(OK)s, %(UNKNOWN)s, %(CRITICAL)s, %(MAINTENANCE)s)
 """
 
-CECriticalTests = ['org.osg.globus.gridftp-simple', 'org.osg.general.osg-version', 'org.osg.general.osg-directories-CE-permissions', 'org.osg.certificates.crl-expiry']
+CECriticalTests = ['org.osg.general.osg-version', 'org.osg.general.osg-directories-CE-permissions', 'org.osg.certificates.cacert-expiry', 'org.osg.globus.gram-authentication', 'org.osg.general.ping-host']
 SECriticalTests = ['org.osg.srm.srmping', 'org.osg.srm.srmcp-readwrite']
+GridFtpCriticalTests = ['org.osg.globus.gridftp-simple']
 
 def parseOptions():
     parser = optparse.OptionParser()
