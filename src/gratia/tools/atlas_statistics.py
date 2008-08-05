@@ -30,8 +30,8 @@ def dostats(now):
     next_year = now.year + int(now.month == 12)
     next_month = (now.month % 12) + 1
     end = datetime.datetime(next_year, next_month, 1)
-    print "Statistics for %s to %s." % (now.strftime('%Y-%m-%d'),
-        end.strftime('%Y-%m-%d'))
+    #print "Statistics for %s to %s." % (now.strftime('%Y-%m-%d'),
+    #    end.strftime('%Y-%m-%d'))
     now = now.strftime('%Y-%m-%d %H:%M')
     end = end.strftime('%Y-%m-%d %H:%M')
     info = {'name': 'BNL', 'fromDate': now, 'toDate': end}
@@ -42,7 +42,7 @@ def dostats(now):
     url = dashboard_url + '?' + info
     amt2 = parse_and_print(url)
     print "\tBNL to/from USATLAS T2s: %i GB" % amt2
-    print "\tTotal: %.3f PB" % ((amt1+amt2)/1000.**2)
+    print "\tATLAS Transfer Total: %.3f PB" % ((amt1+amt2)/1000.**2)
 
 def main():
     if len(sys.argv) != 3:
