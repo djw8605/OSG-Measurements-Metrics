@@ -43,12 +43,12 @@ CE_WLCGResourceMap = {
     'US-MWT2': ['IU_OSG', 'MWT2_IU', 'MWT2_UC', 'UC_ATLAS_MWT2'],
     'US-NET2': ['BU_ATLAS_Tier2'],
     'US-SWT2': ['OU_OCHEP_SWT2', 'SWT2_CPB', 'UTA_SWT2'],
-    'US-WT2': ['PROD_SLAC'],
+    'US-WT2': ['WT2'],
 }
 
 SE_WLCGResourceMap = {
     'US-MWT2': ['MWT2_IU_Gridftp', 'uct2-dc1.uchicago.edu', 'MWT2_IU_SRM'],
-    'US-WT2': ['osgserv04.slac.stanford.edu', 'PROD_SLAC_SE'],
+    'US-WT2': ['WT2', 'WT2_SE'],
     'US-SWT2': ['UTA_SWT2', 'gk04.swt2.uta.edu:8446'],
     'T2_US_Purdue': ['dcache.rcac.purdue.edu'],
     #'T2_US_Nebraska': ['T2_Nebraska_Storage'],
@@ -259,8 +259,8 @@ def filter_summaries(status, serviceNames, metricNames, serviceData,
                 # appropriate interval
                 starttime = max(starttime, startInterval)
                 endtime = min(endtime, endInterval)
-                if serviceName == 'AGLT2' and metricName == 'org.osg.general.osg-directories-CE-permissions' and status == 'OK':
-                    print starttime, endtime, serviceSummary[serviceName]
+                #if serviceName == 'AGLT2' and metricName == 'org.osg.general.osg-directories-CE-permissions' and status == 'OK':
+                #    print starttime, endtime, serviceSummary[serviceName]
                 set_service_summary(serviceSummary[serviceName], starttime,
                     endtime, myStatus)
 
