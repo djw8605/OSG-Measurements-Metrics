@@ -1,0 +1,20 @@
+<query>
+#if not $is_authenticated or not $is_vo_member
+#if not $is_authenticated
+ <error>Not authenticated</error>
+#else if not $is_vo_member
+ <error>Not an OSG VO member</error>
+#end if
+#else if not $is_query
+ <error>No query</error>
+#else
+#for key, val in $results.items()
+ <result>
+ <dn>$key[0]</dn>
+ <name>$displayName($key[0])</name>
+ <vo>$key[1]</vo>
+ <email>$val</email>
+ </result>
+#end for
+#end if
+</query>

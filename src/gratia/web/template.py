@@ -1,4 +1,6 @@
 
+import cherrypy
+
 from pkg_resources import resource_stream, resource_filename
 from Cheetah.Template import Template as CTemplate
 
@@ -16,6 +18,19 @@ class Template(XmlConfig):
     def defaultData(self, data):
         base_url = self.metadata.get('base_url', '')
         data['base_url'] = base_url
+
+    def plain_template(self, name=None, content_type='text/html'):
+        template_fp = resource_stream("gratia.templates", name)
+        tclass = CTemplate.compile(source=template_fp.read())
+        def template_decorator(func):
+            def func_wrapper(*args, **kw):
+                data = func(*args, **kw)
+                self.defaultData(data)
+                cherrypy.response.headers['Content-Type'] = content_type
+                return str(tclass(namespaces=[data]))
+            func_wrapper.exposed = True
+            return func_wrapper
+        return template_decorator
 
     def template(self, name=None):
         main_filename = resource_filename("gratia.templates", name)

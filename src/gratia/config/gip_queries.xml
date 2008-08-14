@@ -88,630 +88,129 @@
         <results module="graphtool.database.query_handler" function="simple_results_parser"/>
     </query>
 
-    <query name="gip_vo_pie">
-      <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_vo_pie" base="GipGeneric.non_host_rt">
       <sql>
-select
-  vo,
-  avg(runningJobs)
-from
-(select time, vo, sum(runningJobs) as runningJobs from
-  (select
-     time,
-     vo,
-     hostName,
-     sum(runningJobs) as runningJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, vo, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where 
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by vo, time) as foo2
-group by
-  vo
+        <filler name="group">vo</filler>
+        <filler name="column">runningJobs</filler>
       </sql>
-      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
-      <attribute name="graph_type"> GratiaPie </attribute>
-      <attribute name="pivot_name">VO</attribute>
       <attribute name="title">Count of Running Jobs by VO</attribute>
       <attribute name="column_names">Running Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_free_cpu_realtime">
-      <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>   
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_free_cpu_realtime" base="GipGeneric.ce_info_rt">
       <sql>
-select
-  hostName,
-  avg(freeCpus)
-from
-  (select 
-     time,
-     hostName,
-     sum(freeCpus) as freeCpus
-   from
-     ce_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime
-   group by
-     time, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where 
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by
-  hostName
+        <filler name="column">freeCpus</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
-      <attribute name="graph_type"> GratiaPie </attribute>
-      <attribute name="pivot_name">Facility</attribute>
+      <results/>
       <attribute name="title">Count of Free CPUs by Facility</attribute>
       <attribute name="column_names">Free CPUs</attribute>
-      <attribute name="column_units"/>
     </query>
 
-
-    <query name="gip_facility_pie">
-      <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_facility_pie" base="GipGeneric.host_rt">
       <sql>
-select
-  hostName,
-  avg(runningJobs)
-from
-  (select
-     time,
-     hostName,
-     sum(runningJobs) as runningJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by
-  hostName
+        <filler name="column">runningJobs</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
-      <attribute name="graph_type"> GratiaPie </attribute>
+      <results/>
       <attribute name="pivot_name">Facility</attribute>
       <attribute name="title">Count of Running Jobs by Facility</attribute>
       <attribute name="column_names">Running Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_vo_waiting_pie">
-      <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_vo_waiting_pie" base="GipGeneric.non_host_rt">
       <sql>
-select
-  vo,
-  avg(waitingJobs)
-from
-(select time, vo, sum(waitingJobs) as waitingJobs from
-  (select
-     time,
-     vo,
-     hostName,
-     sum(waitingJobs) as waitingJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, vo, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by vo, time) as foo2
-group by
-  vo
+        <filler name="column">runningJobs</filler>
+        <filler name="group">queue</filler>
       </sql>
-      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
-      <attribute name="graph_type"> GratiaPie </attribute>
-      <attribute name="pivot_name">VO</attribute>
+      <results/>
       <attribute name="title"> Count of Waiting Jobs by VO</attribute>
       <attribute name="column_names">Waiting Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_facility_waiting_pie">
-      <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_facility_waiting_pie" base="GipGeneric.host_rt">
       <sql>
-select
-  hostName,
-  avg(waitingJobs)
-from
-  (select
-     time,
-     hostName,
-     sum(waitingJobs) as waitingJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by
-  hostName
+        <filler name="column">waitingJobs</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
-      <attribute name="graph_type"> GratiaPie </attribute>
-      <attribute name="pivot_name">Facility</attribute>
+      <results/>
       <attribute name="title"> Count of Waiting Jobs by Facility</attribute>
       <attribute name="column_names">Waiting Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_vo">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_vo" base="GipGeneric.non_host_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  vo,
-  avg(runningJobs)
-from
-(select time, vo, sum(runningJobs) as runningJobs from
-  (select
-     time,
-     vo,
-     hostName,
-     sum(runningJobs) as runningJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, vo, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by time, vo
-) as foo2
-group by
-  time,
-  vo
+        <filler name="column">runningJobs</filler>
+        <filler name="group">vo</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="pivot_group_parser_plus">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
-      <attribute name="pivot_name">VO</attribute>
-      <attribute name="grouping_name">Time</attribute>
+      <results/>
       <attribute name="title">Count of Running Jobs by VO</attribute>
       <attribute name="column_names">Running Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_queue">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_queue" base="GipGeneric.non_host_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  queue,
-  avg(runningJobs)
-from
-(select time, queue, sum(runningJobs) as runningJobs from
-  (select
-     time,
-     queue,
-     hostName,
-     sum(runningJobs) as runningJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, queue, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by time, queue) as foo2
-group by
-  time,
-  queue
+        <filler name="column">runningJobs</filler>
+        <filler name="group">queue</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="pivot_group_parser_plus">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <results/>
       <attribute name="pivot_name">Queue</attribute>
-      <attribute name="grouping_name">Time</attribute>
       <attribute name="title">Count of Running Jobs by Queue</attribute>
       <attribute name="column_names">Running Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_vo_waiting">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_vo_waiting" base="GipGeneric.non_host_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  vo,
-  avg(waitingJobs)
-from
-(select time, vo, sum(waitingJobs) as waitingJobs from 
-  (select
-     time,
-     vo,
-     hostName,
-     sum(waitingJobs) as waitingJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, vo
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by time, vo
-) as foo2
-group by
-  time,
-  vo
+        <filler name="column">waitingJobs</filler>
+        <filler name="group">vo</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="pivot_group_parser_plus">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
-      <attribute name="pivot_name">VO</attribute>
-      <attribute name="grouping_name">Time</attribute>
+      <results/>
       <attribute name="title">Count of Waiting Jobs by VO</attribute>
       <attribute name="column_names">Waiting Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_queue_waiting">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_queue_waiting" base="GipGeneric.non_host_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  queue,
-  avg(waitingJobs)
-from
-(select time, queue, sum(waitingJobs) as waitingJobs from
-  (select
-     time,
-     queue,
-     hostName,
-     sum(waitingJobs) as waitingJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, queue, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by queue, time
-) as foo2
-group by
-  time,
-  queue 
+        <filler name="column">waitingJobs</filler>
+        <filler name="group">queue</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <results/>
       <attribute name="pivot_name">Queue</attribute>
-      <attribute name="grouping_name">Time</attribute>
       <attribute name="title">Count of Waiting Jobs by Queue</attribute>
       <attribute name="column_names">Waiting Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_facility_waiting">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_facility_waiting" base="GipGeneric.host_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  hostName,
-  avg(waitingJobs)
-from
-  (select
-     time,
-     hostName,
-     sum(waitingJobs) as waitingJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by
-  time,
-  hostName
+        <filler name="column">waitingJobs</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
-      <attribute name="pivot_name">Facility</attribute>
-      <attribute name="grouping_name">Time</attribute>
+      <results/>
       <attribute name="title">Count of Waiting Jobs by Facility</attribute>
       <attribute name="column_names">Waiting Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_facility">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="vo" kind="sql">.*</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_facility" base="GipGeneric.host_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  hostName,
-  avg(runningJobs)
-from
-  (select
-     time,
-     hostName,
-     sum(runningJobs) as runningJobs
-   from
-     vo_info
-   where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
-   group by
-     time, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by
-  time,
-  hostName
+        <filler name="column">runningJobs</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
-      <attribute name="pivot_name">Facility</attribute>
-      <attribute name="grouping_name">Time</attribute>
+      <results/>
       <attribute name="title">Count of Running Jobs by Facility</attribute>
       <attribute name="column_names">Running Jobs</attribute>
-      <attribute name="column_units">Count</attribute>
     </query>
 
-    <query name="gip_free_cpus_history">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_free_cpus_history" base="GipGeneric.ce_info_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  hostName,
-  avg(freeCpus)
-from
-  (select
-     time,
-     hostName,
-     sum(freeCpus) as freeCpus
-   from
-     ce_info
-   join site_info s on ce_info.hostName=s.cename
-   where
-     time &gt;= :starttime AND time &lt; :endtime
-   group by
-     time, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where 
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by
-  time,
-  hostName
+        <filler name="column">freeCpus</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
-      <attribute name="pivot_name">Facility</attribute>
-      <attribute name="grouping_name">Time</attribute>
+      <results/>
       <attribute name="title">Count of Free CPUs by Facility</attribute>
       <attribute name="column_names">Free CPUs</attribute>
-      <attribute name="column_units"/>
     </query>
 
-    <query name="gip_total_cpus_history">
-      <inputs>
-        <input name="span" type="eval" kind="sql">1800</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
-        <input name="facility" kind="sql">.*</input>
-        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
-      </inputs>
+    <query name="gip_total_cpus_history" base="GipGeneric.ce_info_ts">
       <sql>
-select
-  truncate(unix_timestamp(time)/:span, 0)*:span as time,
-  hostName,
-  avg(totalCpus)
-from
-  (select
-     time,
-     hostName,
-     sum(totalCpus) as totalCpus
-   from
-     ce_info
-   join site_info s on ce_info.hostName=s.cename
-   where
-     time &gt;= :starttime AND time &lt; :endtime
-   group by
-     time, hostName
-  ) as foo
-join site_info s on foo.hostName=s.cename
-where 
-  s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
-group by
-  time,
-  hostName
+        <filler name="column">totalCpus</filler>
       </sql>
-      <results module="gratia.database.query_handler" function="gip_parser">
-        <inputs>
-          <input name="pivots"> 1 </input>
-          <input name="grouping"> 0 </input>
-          <input name="results"> 2 </input>
-          <input name="grouping_transform"> make_int </input>
-        </inputs>
-      </results>
-      <attribute name="graph_type"> GratiaStackedLine </attribute>
-      <attribute name="pivot_name">Facility</attribute>
-      <attribute name="grouping_name">Time</attribute>
+      <results/>
       <attribute name="title">Count of Total CPUs by Facility</attribute>
       <attribute name="column_names">Total CPUs</attribute>
-      <attribute name="column_units"/>
     </query>
 
     <query name="se_space_free">

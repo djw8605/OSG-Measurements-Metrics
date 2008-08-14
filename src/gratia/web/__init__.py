@@ -41,6 +41,7 @@ class Gratia(ImageMap, SubclusterReport, WLCGReporter, Navigation):
         self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(self.apel_data)
         self.cpu_normalization = self.template('cpu_normalization.tmpl')(self.cpu_normalization)
         self.email_lookup = self.template('email_lookup.tmpl')(self.email_lookup)
+        self.email_lookup_xml = self.plain_template('email_lookup_xml.tmpl', content_type='text/xml')(self.email_lookup_xml)
         self.subclusters = self.template('subcluster.tmpl')(self.subclusters)
 
         self._cp_config ={}
@@ -643,6 +644,8 @@ class Gratia(ImageMap, SubclusterReport, WLCGReporter, Navigation):
             data['results'] = self.globals['GratiaSecurity'].email_lookup(dn=dn)[0]
             data['displayName'] = displayName
         return data
+
+    email_lookup_xml = email_lookup
 
     def uscms_t2_site_avail(self):
         url = self.metadata['dashboard_sam_url']

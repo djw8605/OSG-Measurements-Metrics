@@ -123,7 +123,7 @@
       <sql>
         SELECT
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
           JobUsageRecord J
@@ -149,7 +149,7 @@
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span
+          time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -180,7 +180,7 @@
       <sql>
        SELECT
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
           VOProbeSummary R
@@ -202,7 +202,7 @@
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 )
+          time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -218,6 +218,280 @@
       <attribute name="title" />
       <attribute name="column_names" />
       <attribute name="column_units" />
+    </query>
+
+  </class>
+
+  <class type="SqlQueries" name="GipGeneric">
+
+    <attribute name="connection_manager"> GIPConnMan </attribute>
+    <aggregate>
+      <connection> gip </connection>
+    </aggregate>
+
+    <query name="non_host_rt">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  myGroup,
+  avg(myStat)
+from
+(select time, myGroup, sum(myStat) as myStat from
+  (select
+     time,
+     <slot name="group"/> as myGroup,
+     hostName,
+     sum(<slot name="column"/>) as myStat
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo
+   group by
+     time, myGroup, hostName
+  ) as foo
+join site_info s on foo.hostName=s.cename
+where 
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by myGroup, time) as foo2
+group by
+  myGroup
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="column_units"/>
+    </query>    
+
+    <query name="host_rt">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  hostName,
+  avg(myStat)
+from
+  (select
+     time,
+     hostName,
+     sum(<slot name="column"/>) as myStat
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo
+   group by
+     time, hostName
+  ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by
+  hostName
+      </sql>
+      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="ce_info_rt">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-1800</input>   
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  hostName,
+  avg(myStat)
+from
+  (select
+     time,
+     hostName,
+     sum(<slot name="column"/>) as myStat
+   from
+     ce_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime
+   group by
+     time, hostName
+  ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by
+  hostName
+      </sql>
+      <results module="gratia.database.query_handler" function="gip_parser_simple"/>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="non_host_ts">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  myGroup,
+  avg(myStat)
+from
+(select time, myGroup, sum(myStat) as myStat from
+  (select
+     time,
+     <slot name="group"/> as myGroup,
+     hostName,
+     sum(<slot name="column"/>) as myStat
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo
+   group by
+     time, myGroup, hostName
+  ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by time, myGroup
+) as foo2
+group by
+  time,
+  myGroup
+      </sql>
+      <results module="gratia.database.query_handler" function="pivot_group_parser_plus">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="host_ts">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  hostName,
+  avg(myStat)
+from
+  (select
+     time,
+     hostName,
+     sum(<slot name="column"/>) as myStat
+   from
+     vo_info
+   where
+     time &gt;= :starttime AND time &lt; :endtime AND
+     vo regexp :vo
+   group by
+     time, hostName
+  ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by
+  time,
+  hostName
+      </sql>
+      <results module="gratia.database.query_handler" function="gip_parser">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="ce_info_ts">
+      <inputs>
+        <input name="span" type="eval" kind="sql">1800</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+              <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(time)/:span, 0)*:span as time,
+  hostName,
+  avg(myStat)
+from
+  (select
+     time,
+     hostName,
+     sum(<slot name="column"/>) as myStat
+   from
+     ce_info
+   join site_info s on ce_info.hostName=s.cename
+   where
+     time &gt;= :starttime AND time &lt; :endtime
+   group by
+     time, hostName
+  ) as foo 
+join site_info s on foo.hostName=s.cename
+where 
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by
+  time,
+  hostName
+      </sql>
+      <results module="gratia.database.query_handler" function="gip_parser">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
     </query>
 
   </class>
@@ -365,7 +639,7 @@
       <sql>
        SELECT
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
           DataTransferRecord
@@ -381,7 +655,7 @@
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 )
+          time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -413,7 +687,7 @@
       <sql>
        SELECT
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
           DataTransferRecord
@@ -430,7 +704,7 @@
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 )
+          time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -463,7 +737,7 @@
       <sql>
        SELECT
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
           DataTransferRecord
@@ -478,7 +752,7 @@
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 )
+          time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
