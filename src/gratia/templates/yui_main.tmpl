@@ -40,7 +40,7 @@
 		#for viewer, pages in $navigation.items()
                     var viewNode = new YAHOO.widget.TextNode("$viewer View", tree.getRoot(), true);
                     #for $pagename, $url in $pages.items()
-                        var pageInfo = {label:"$pagename", href:"$url"}
+                        var pageInfo = {label:"$pagename", href:"$base_url/$url"}
                         var pageNode = new YAHOO.widget.TextNode(pageInfo, viewNode, false);
                     #end for
                 #end for

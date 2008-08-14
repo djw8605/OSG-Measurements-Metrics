@@ -393,13 +393,33 @@ group by
     <query name="service_to_resource">
         <!-- Build a map from (service_type, resource_name) -> parent resource -->
         <sql>
-            SELECT OIMS.name as service_type, OIMR.name, COALESCE(OIMR2.name, OIMR.name) as parent_name
+            SELECT OIMS.name as service_type, OIMR.name, OIMRG.name as parent_name
             FROM oim.resource_service OIMRS
             JOIN oim.service OIMS ON OIMS.service_id = OIMRS.service_id
             JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.resource_id
-            LEFT OUTER JOIN oim.resource OIMR2 ON OIMR2.resource_id = OIMR.parent_resource_id
+            JOIN oim.resource_resource_group OIMRRG ON OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
             JOIN oim.resource_ext_attributes OIME on OIME.resource_id = OIMR.resource_id
-            WHERE OIME.interop_monitoring = 1 and OIMR.osg_grid_type_id=1
+            WHERE OIME.interop_monitoring = 1 and OIMRG.osg_grid_type_id=1
+        </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots">0, 1</input>
+          <input name="results">2</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="service_to_resource_all">
+        <!-- Build a map from (service_type, resource_name) -> parent resource -->
+        <sql>
+            SELECT OIMS.name as service_type, OIMR.name, OIMRG.name as parent_name
+            FROM oim.resource_service OIMRS
+            JOIN oim.service OIMS ON OIMS.service_id = OIMRS.service_id
+            JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.resource_id
+            JOIN oim.resource_resource_group OIMRRG ON OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
+            WHERE OIMRG.osg_grid_type_id=1
         </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -420,8 +440,10 @@ group by
         SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,  CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
         FROM MetricRecord MR
         JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+        JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
         WHERE
-            OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+            OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
             MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
             ServiceURI regexp :facility AND
             MetricName regexp :metric
@@ -442,8 +464,10 @@ group by
         SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,null, CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
             FROM MetricRecord MR
             JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             WHERE
-               OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+               OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
                 MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
                 ServiceURI regexp :facility AND
                 MetricName regexp :metric
@@ -451,8 +475,10 @@ group by
         SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
             FROM oim.resource_downtime RD
             JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             WHERE
-                OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
                 ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
                 (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
                 (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
@@ -468,17 +494,17 @@ group by
             <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
             <input name="endtime" type="datetime" kind="sql">time.time()</input>
             <input name="facility" kind="sql">.*</input>
-            <input name="metric" kind="sql">.*</input>
         </inputs>
         <sql>
         SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp, CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
         FROM MetricRecord MR
         JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+        JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
         WHERE
-            OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+            OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
             MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-            ServiceURI regexp :facility AND
-            MetricName regexp :metric
+            ServiceURI regexp :facility
         </sql>
         <results module="gratia.database.query_handler" function="sam_site_availability"/>
         <attribute name="pivot_name">Site</attribute>
@@ -490,23 +516,25 @@ group by
             <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
             <input name="endtime" type="datetime" kind="sql">time.time()</input>
             <input name="facility" kind="sql">.*</input>
-            <input name="metric" kind="sql">.*</input>
         </inputs>
         <sql>
         SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,null, CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
             FROM MetricRecord MR
             JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             WHERE
-                OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
                 MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-                ServiceURI regexp :facility AND
-                MetricName regexp :metric
+                ServiceURI regexp :facility
         UNION   
         SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
             FROM oim.resource_downtime RD
             JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             WHERE
-                OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
                 ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
                 (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
                 (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
@@ -528,8 +556,10 @@ group by
         SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END 
         FROM MetricRecord MR
         JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+        JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
         WHERE
-            OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+            OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
             MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
             ServiceURI regexp :facility AND
             MetricName regexp :metric
@@ -550,8 +580,10 @@ group by
         SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,null,CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
             FROM MetricRecord MR
             JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             WHERE
-                OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
                 MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
                 ServiceURI regexp :facility AND
                 MetricName regexp :metric
@@ -559,8 +591,10 @@ group by
         SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
             FROM oim.resource_downtime RD
             JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             WHERE
-                OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1 AND
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
                 ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
                 (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
                 (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
@@ -588,7 +622,9 @@ group by
               GROUP BY ServiceURI, MetricName) AS foo
         JOIN MetricRecord MR ON MR.ServiceURI=foo.ServiceURI AND MR.MetricName=foo.MetricName AND MR.Timestamp=foo.Timestamp
         JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
-        WHERE OIMR.active=1 AND OIMR.disable=0 AND OIMR.osg_grid_type_id=1
+        JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+        JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+        WHERE OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">
             <inputs>

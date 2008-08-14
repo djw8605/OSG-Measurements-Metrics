@@ -101,20 +101,25 @@ select
   vo,
   avg(runningJobs)
 from
+(select time, vo, sum(runningJobs) as runningJobs from
   (select
      time,
      vo,
+     hostName,
      sum(runningJobs) as runningJobs
    from
      vo_info
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     hostName regexp :facility AND
-     NOT (hostName regexp :excludefacility)
+     vo regexp :vo
    group by
-     time, vo
+     time, vo, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where 
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by vo, time) as foo2
 group by
   vo
       </sql>
@@ -144,14 +149,15 @@ from
      sum(freeCpus) as freeCpus
    from
      ce_info
-   join site_info s on ce_info.hostName=s.cename
    where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     time &gt;= :starttime AND time &lt; :endtime
    group by
      time, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where 
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
 group by
   hostName
       </sql>
@@ -183,15 +189,16 @@ from
      sum(runningJobs) as runningJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
      time, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
 group by
   hostName
       </sql>
@@ -216,21 +223,25 @@ select
   vo,
   avg(waitingJobs)
 from
+(select time, vo, sum(waitingJobs) as waitingJobs from
   (select
      time,
      vo,
+     hostName,
      sum(waitingJobs) as waitingJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
-     time, vo
+     time, vo, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by vo, time) as foo2
 group by
   vo
       </sql>
@@ -261,15 +272,16 @@ from
      sum(waitingJobs) as waitingJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
      time, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
 group by
   hostName
       </sql>
@@ -296,21 +308,26 @@ select
   vo,
   avg(runningJobs)
 from
+(select time, vo, sum(runningJobs) as runningJobs from
   (select
      time,
      vo,
+     hostName,
      sum(runningJobs) as runningJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
-     time, vo
+     time, vo, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by time, vo
+) as foo2
 group by
   time,
   vo
@@ -346,21 +363,25 @@ select
   queue,
   avg(runningJobs)
 from
+(select time, queue, sum(runningJobs) as runningJobs from
   (select
      time,
      queue,
+     hostName,
      sum(runningJobs) as runningJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
-     time, queue
+     time, queue, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by time, queue) as foo2
 group by
   time,
   queue
@@ -396,21 +417,26 @@ select
   vo,
   avg(waitingJobs)
 from
+(select time, vo, sum(waitingJobs) as waitingJobs from 
   (select
      time,
      vo,
+     hostName,
      sum(waitingJobs) as waitingJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
      time, vo
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by time, vo
+) as foo2
 group by
   time,
   vo
@@ -446,21 +472,26 @@ select
   queue,
   avg(waitingJobs)
 from
+(select time, queue, sum(waitingJobs) as waitingJobs from
   (select
      time,
      queue,
+     hostName,
      sum(waitingJobs) as waitingJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
-     time, queue
+     time, queue, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+group by queue, time
+) as foo2
 group by
   time,
   queue 
@@ -502,15 +533,16 @@ from
      sum(waitingJobs) as waitingJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
      time, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
 group by
   time,
   hostName
@@ -552,15 +584,16 @@ from
      sum(runningJobs) as runningJobs
    from
      vo_info
-   join site_info s on vo_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     vo regexp :vo
    group by
      time, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
 group by
   time,
   hostName
@@ -603,12 +636,14 @@ from
      ce_info
    join site_info s on ce_info.hostName=s.cename
    where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     time &gt;= :starttime AND time &lt; :endtime
    group by
      time, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where 
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
 group by
   time,
   hostName
@@ -651,12 +686,14 @@ from
      ce_info
    join site_info s on ce_info.hostName=s.cename
    where
-     time &gt;= :starttime AND time &lt; :endtime AND
-     s.sitename regexp :facility AND
-     NOT (s.sitename regexp :excludefacility)
+     time &gt;= :starttime AND time &lt; :endtime
    group by
      time, hostName
   ) as foo
+join site_info s on foo.hostName=s.cename
+where 
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
 group by
   time,
   hostName

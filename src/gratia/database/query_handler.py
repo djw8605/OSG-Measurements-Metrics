@@ -1,8 +1,9 @@
 
 import re
 import sets
-import datetime
+import time
 import copy
+import datetime
 
 from graphtool.database.query_handler import results_parser, simple_results_parser, pivot_group_parser_plus
 from graphtool.tools.common import convert_to_datetime
@@ -291,13 +292,18 @@ def add_last_data(globals, starttime, endtime, facility, metric, serviceData, \
         metricNames.add(key[1])
         serviceData[key[:2]][key[2]] = val
 
-def init_data(d, serviceData, serviceNames, metricNames, starttime, endtime):
+def init_data(d, serviceData, serviceNames, metricNames, starttime, endtime,
+        filter_metrics=False):
     for row in d:
         if len(row) == 4:
             serviceName, metricName, timestamp, status = row
             endtimestamp = False
         else:
             serviceName, metricName, timestamp, endtimestamp, status = row
+        if filter_metrics and (metricName not in metricNames):
+            continue
+        else:
+            metricNames.add(metricName)
         is_maint = bool(endtimestamp)
         if timestamp < starttime:
             timestamp = starttime
@@ -305,7 +311,6 @@ def init_data(d, serviceData, serviceNames, metricNames, starttime, endtime):
             timestamp = endtime
         if is_maint and endtimestamp > endtime:
             endtimestamp = endtime
-        metricNames.add(metricName)
         serviceNames.add(serviceName)
         key = (serviceName, metricName)
         if key not in serviceData:
@@ -346,18 +351,32 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
                 sorted_timestamps = myData.keys()
                 sorted_timestamps.sort()
                 len_timestamps = len(sorted_timestamps)
+                max_j = 0
+                max_j_endtime = sorted_timestamps[0]
                 for i in range(len_timestamps-1):
                     starttime = sorted_timestamps[i]
+                    diff = max_j_endtime - starttime
+                    diff = diff.days*86400 + diff.seconds
+                    next_diff = max_j_endtime - sorted_timestamps[i+1]
+                    next_diff = next_diff.days*86400 + next_diff.seconds
+                    if i < max_j and diff > 0 and next_diff > 0:
+                        continue
                     myStatus = myData[starttime]
                     if myStatus != 'OK':
                         continue
                     for j in range(i+1, len_timestamps):
                         endtime = sorted_timestamps[j]
                         if myData[endtime] != myStatus:
+                            max_j = j
                             break
+
+                    #if serviceName == 'UCSDT2-B':
+                    #    print serviceName, starttime, endtime, 'OK', metricName
+
                     # Expire tests after 24 hours
                     endtime = min(endtime, starttime + datetime.timedelta(0,
                         86400))
+                    max_j_endtime = endtime
 
                     # Make sure that our start and end times are within the
                     # appropriate interval
@@ -368,11 +387,13 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
                     set_service_summary(tmpSummary[serviceName], starttime,
                         endtime, 'OK')
             serviceSummaries.append(tmpSummary)
+    t1 = -time.time()
     for serviceName in serviceNames:
         #print '\n'.join([str(i.keys()) for i in serviceSummaries])
         tmpSummary = and_summaries([i[serviceName] for i in serviceSummaries],
             startTime, endTime)
         serviceSummary[serviceName] = tmpSummary
+    print "Anding results.", t1+time.time()
 
 def wlcg_availability(d, globals=globals(), **kw):
     kw['kind'] = 'pivot-group'
@@ -386,7 +407,8 @@ def wlcg_availability(d, globals=globals(), **kw):
         metricNames.add(metric)
 
     # initialize data
-    init_data(d, serviceData, serviceNames, metricNames, startTime, endTime)
+    init_data(d, serviceData, serviceNames, metricNames, startTime, endTime,
+        filter_metrics=True)
 
     serviceSummary = {}
 
@@ -427,10 +449,15 @@ def sam_site_summary(d, globals=globals(), **kw):
     serviceNames = sets.Set()
     serviceData = {}
     # Lookup mappings from service_type, service_name -> Parent resource
-    service_to_resource, _ = globals['RSVQueries'].service_to_resource()
+    if 'all' in kw and kw['all'] == 'True':
+        service_to_resource, _ = globals['RSVQueries'].service_to_resource_all()
+    else:
+        service_to_resource, _ = globals['RSVQueries'].service_to_resource()
 
     # initialize data
+    print "Initializing data."
     init_data(d, serviceData, serviceNames, metricNames, startTime, endTime)
+    print "Done with initial data."
 
     # Build a map from service_type->parent_resource->(child resource list)
     typeParentChildMap = {}
@@ -446,6 +473,8 @@ def sam_site_summary(d, globals=globals(), **kw):
     serviceTypeMap = {}
     typeServiceMap = {}
     for service_type, service_name in service_to_resource.keys():
+        if service_type not in critical_tests:
+            continue
         if service_type not in typeServiceMap:
             typeServiceMap[service_type] = sets.Set()
         if service_name not in serviceTypeMap:
@@ -475,21 +504,22 @@ def sam_site_summary(d, globals=globals(), **kw):
     allSites = sets.Set()
 
     for service, serviceData in serviceTypeData.items():
-        
+        print "Starting evaluation of service %s; %i entries." % (service,
+            len(serviceData))
         serviceSummary = {}
         
         # add "Last Data" here 
         add_last_data(globals, startTime, endTime, kw.get('facility', '.*'),
             '|'.join(typeMetricMap[service]), serviceData,
             typeServiceMap[service], typeMetricMap[service])
-       
+        print "Added last data"
         #if service == 'CE':
         #    print "AGLT2 CE Service Data.", serviceData['AGLT2', 'org.osg.general.osg-directories-CE-permissions']
  
         # Make sure all the data is present and has a start and end status
         init_service_summary(serviceSummary, serviceData,
             typeServiceMap[service], typeMetricMap[service], startTime, endTime)
-        
+        print "Finished service summary."
         # Calculate when the status changes occur
         #print service
         #if service == 'CE': print 'pre serviceSummary["AGLT2"]', serviceSummary['AGLT2']
