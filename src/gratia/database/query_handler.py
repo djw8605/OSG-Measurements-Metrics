@@ -78,6 +78,7 @@ def displayName(*args, **kw):
     dn = args[0]
     parts = dn.split('/')
     display = 'Unknown'
+    cns = []
     for part in parts:
         if len(part) == 0:
             continue
@@ -87,6 +88,13 @@ def displayName(*args, **kw):
             continue
         if attr == 'CN':
             display = val
+            cns.append(val)
+    while len(cns) > 1:
+        if display.lower().find('uid') >= 0:
+            cns.pop(-1)
+            display = cns[-1]
+        else:
+            break
     try:
         parts = display.split()
         dummy = int(parts[-1])
