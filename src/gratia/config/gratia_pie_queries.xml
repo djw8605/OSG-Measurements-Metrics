@@ -55,6 +55,85 @@
       <attribute name="title"> Computational Hours by VO </attribute>
     </query>
 
+    <query name="osg_user_count">
+      <inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">2007-10-01 00:00:00</input>
+            <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="vo" kind="sql"> .* </input>
+            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="user" kind="sql"> .* </input>
+            <input name="exclude-user" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+        SELECT VOName, count(*) FROM (
+          SELECT
+            VO.VOName,
+            CASE WHEN left(CommonName,4)='/CN=' THEN substring(CommonName,5) ELSE CommonName END as USER
+          FROM MasterSummaryData MSD
+          JOIN
+            VONameCorrection VC ON (VC.corrid=MSD.VOcorrid)
+          JOIN
+            VO on (VC.void = VO.void)
+          WHERE EndTime >= :starttime AND
+          EndTime &lt; :endtime AND
+          CommonName regexp :user AND
+          not (CommonName regexp :exclude-user)
+          GROUP BY VO.VOName, user
+        ) as foo
+        WHERE VOName regexp :vo and not (VOName regexp :exclude-vo)
+        GROUP BY VOName
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaPie</attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">User count per VO</attribute>
+      <attribute name="column_names">User Count</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="vo_users">
+      <inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">2007-10-01 00:00:00</input>
+            <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="vo" kind="sql"> .* </input>
+            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="user" kind="sql"> .* </input>
+            <input name="exclude-user" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+        SELECT
+          VO.VOName,
+          CASE WHEN left(CommonName,4)='/CN=' THEN substring(CommonName,5) ELSE CommonName END as USER
+        FROM MasterSummaryData MSD
+        JOIN
+          VONameCorrection VC ON (VC.corrid=MSD.VOcorrid)
+        JOIN
+          VO on (VC.void = VO.void)
+        WHERE EndTime >= :starttime AND
+        EndTime &lt; :endtime AND
+        CommonName regexp :user AND
+        not (CommonName regexp :exclude-user) AND
+        VO.VOName regexp :vo and not (VO.VOName regexp :exclude-vo)
+        GROUP BY VO.VOName, user
+      </sql>
+      <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"/>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">User count per VO</attribute>
+      <attribute name="column_names">User Count</attribute>
+      <attribute name="column_units"/>
+    </query>
+
     <query name="osg_facility_hours" base="GratiaGenericQuery.simple_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>

@@ -1,4 +1,5 @@
 
+import re
 import sys
 import types
 import optparse
@@ -88,6 +89,7 @@ def correct_vo(vo, cp):
         vo = correct_vos[vo]
     return vo
 
+ownership_re =  re.compile('(.+?)(?:(?:,\s*)|\s+|$)')
 def ownership_info(ce_entries, cp):
     """
     Determine ownership of clusters from the sites's SiteSponsor attribute.
@@ -125,7 +127,8 @@ def ownership_info(ce_entries, cp):
         val = val.lower()
         refined = []
         ctr = 0
-        for entry in val.split():
+        #print val, ownership_re.findall(val)
+        for entry in ownership_re.findall(val):
             info = entry.split(':')
             vo = correct_vo(info[0], cp)
             if len(info) == 1:

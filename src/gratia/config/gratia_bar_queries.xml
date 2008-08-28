@@ -26,6 +26,24 @@
       <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>
 
+    <query name="vo_job_cnt" base="GratiaGenericQuery.jobs_summary_query">
+      <sql>
+        <filler name="group"> R.VOName </filler>
+        <filler name="column"> sum(Njobs) </filler>
+        <filler name="where"> </filler>
+      </sql>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name"> VO </attribute>
+      <attribute name="title"> Job Count by VO </attribute>
+      <attribute name="column_names"> Number of Jobs </attribute>
+      <attribute name="column_units"/>
+      <attribute name="graph_type"> GratiaStackedBar </attribute>
+    </query>
+
     <query name="osg_wall_hours" base="GratiaGenericQuery.jobs_summary_query">
         <inputs>
             <input name="span" type="eval" kind="sql">7*86400</input>

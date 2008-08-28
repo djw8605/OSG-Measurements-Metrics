@@ -121,8 +121,9 @@ def generate(cp, entry=None):
     today = datetime.datetime(today_date.year, today_date.month, today_date.day)
     one_day = datetime.timedelta(1, 0)
     time_tuple = time.strptime(start_str, '%Y-%m-%d')
-    curDate = datetime.datetime(*time_tuple[0:3])
-    while curDate <= today:
+    firstDate = datetime.datetime(*time_tuple[0:3])
+    curDate = today
+    while curDate >= firstDate:
         timestamp = int(curDate.strftime('%s')) + 3600*utcOffset
         dest = os.path.join(orig_dest, curDate.strftime('%Y/%m/%d'))
         try:
@@ -147,7 +148,7 @@ def generate(cp, entry=None):
             dest = os.path.join(dest, '%s' + suffix)
             generateImages(cp, timestamp, src, dest, replace=True, \
                 variables=variables, entry=entry)
-        curDate = curDate + one_day
+        curDate = curDate - one_day
 
 def parse_variables(cp):
     if not cp.has_section('variables'):

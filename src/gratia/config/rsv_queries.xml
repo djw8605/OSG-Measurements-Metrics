@@ -401,6 +401,7 @@ group by
             JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
             JOIN oim.resource_ext_attributes OIME on OIME.resource_id = OIMR.resource_id
             WHERE OIME.interop_monitoring = 1 and OIMRG.osg_grid_type_id=1
+            AND (OIMR.active=1 and OIMR.disable=0)
         </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -419,7 +420,7 @@ group by
             JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.resource_id
             JOIN oim.resource_resource_group OIMRRG ON OIMRRG.resource_id = OIMR.resource_id
             JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
-            WHERE OIMRG.osg_grid_type_id=1
+            WHERE OIMRG.osg_grid_type_id=1 and (OIMR.active=1 and OIMR.disable=0)
         </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -427,6 +428,115 @@ group by
           <input name="results">2</input>
         </inputs>
       </results>
+    </query>
+
+    <query name="deployment_count">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="span" kind="sql" type="int">86400</input>
+            <input name="version" kind="sql">OSG-1.0.0</input>
+        </inputs>
+        <sql>
+        SELECT 
+            time, COUNT(*) as deploy_count
+        FROM
+            (SELECT
+                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
+                ServiceUri
+            FROM MetricRecord
+            WHERE
+                DetailsData regexp :version AND
+                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                MetricName = 'org.osg.general.osg-version'
+            GROUP BY time, ServiceUri
+            ) as foo
+        GROUP BY time
+        </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+        <attribute name="title">Number of Deployed $version Sites</attribute>
+        <attribute name="column_name">Deployed Site Count</attribute>
+        <attribute name="graph_type">GratiaBar</attribute>
+    </query>
+
+    <query name="grid_deployment_count">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="span" kind="sql" type="int">86400</input>
+            <input name="version" kind="sql">OSG-1.0.0</input>
+        </inputs>
+        <sql>
+        SELECT
+            grid, time, COUNT(*) as deploy_count
+        FROM
+            (SELECT
+                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
+                ServiceUri,
+                OIMGT.short_name as grid
+            FROM MetricRecord MR
+            JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            WHERE
+                DetailsData regexp :version AND
+                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                MetricName = 'org.osg.general.osg-version'
+            GROUP BY time, ServiceUri, grid
+            ) as foo
+        GROUP BY time, grid
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+          <inputs>
+            <input name="pivots"> 0 </input>
+            <input name="grouping"> 1 </input>
+            <input name="results"> 2 </input>
+            <input name="grouping_transform">make_int</input>
+          </inputs>
+        </results>
+        <attribute name="title">RSV $version Sites by Grid</attribute>
+        <attribute name="column_name">Deployed Site Count</attribute>
+        <attribute name="pivot_name">Grid</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
+    <query name="version_deployment_count">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="span" kind="sql" type="int">86400</input>
+            <input name="version" kind="sql">^OSG-.\..\..</input>
+        </inputs>
+        <sql>
+        SELECT
+            version, time, COUNT(*) as deploy_count
+        FROM
+            (SELECT
+                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
+                ServiceUri,
+                left(DetailsData, 9) as version
+            FROM MetricRecord
+            WHERE
+                DetailsData regexp :version AND
+                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                MetricName = 'org.osg.general.osg-version'
+            GROUP BY time, ServiceUri, version
+            ) as foo
+        GROUP BY time, version
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+          <inputs>
+            <input name="pivots"> 0 </input>
+            <input name="grouping"> 1 </input>
+            <input name="results"> 2 </input>
+            <input name="grouping_transform">make_int</input>
+          </inputs>
+        </results>
+        <attribute name="title">RSV Reporting Sites by OSG Version</attribute>
+        <attribute name="column_name">Deployed Site Count</attribute>
+        <attribute name="pivot_name">Version</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
     <query name="rsv_wlcg_availability">

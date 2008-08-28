@@ -330,6 +330,20 @@ def init_data(d, serviceData, serviceNames, metricNames, starttime, endtime,
 def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
         startTime, endTime):
     for serviceName in serviceNames:
+        #if 'Maintenance' in metricNames:
+            # We must make sure that the "Maintenance" metric is set to the
+            # OK status at all times to start out with.  If Maintenance is
+            # actually done, the Maintenance metric will be degraded to
+            # MAINTENANCE status.
+        #    curDate = startTime
+        #    oneDay = datetime.timedelta(1, 0)
+        #    key = serviceName, 'Maintenance'
+        #    if key not in serviceData:
+        #        serviceData[key] = {}
+        #    vals = serviceData[key]
+        #    while curDate < endTime:
+        #        vals[curDate] = "OK"
+        #        curDate += oneDay
         for metricName in metricNames:
             key = serviceName, metricName
             if key not in serviceData:
@@ -381,9 +395,12 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
                     #if serviceName == 'UCSDT2-B':
                     #    print serviceName, starttime, endtime, 'OK', metricName
 
-                    # Expire tests after 24 hours
-                    endtime = min(endtime, starttime + datetime.timedelta(0,
-                        86400))
+                    # Expire tests after 24 hours, unless it's maintenance
+                    if metricName != 'Maintenance':
+                        endtime = min(endtime, starttime + datetime.timedelta(0,
+                            86400))
+                    else:
+                        print serviceName, starttime, endtime - starttime, 
                     max_j_endtime = endtime
 
                     # Make sure that our start and end times are within the
@@ -401,7 +418,7 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
         tmpSummary = and_summaries([i[serviceName] for i in serviceSummaries],
             startTime, endTime)
         serviceSummary[serviceName] = tmpSummary
-    print "Anding results.", t1+time.time()
+    #print "Anding results.", t1+time.time()
 
 def wlcg_availability(d, globals=globals(), **kw):
     kw['kind'] = 'pivot-group'
@@ -501,7 +518,7 @@ def sam_site_summary(d, globals=globals(), **kw):
         serviceTypeData[service] = {}
         #print service, typeMetricMap[service]
         for key, val in serviceData.items():
-            #if key[0] == 'GLOW-CMS-SE':  print "!", key
+            #if key[0] == 'Nebraska' and val == 'Maintenance':  print "!", key
             if key[1] not in typeMetricMap[service]:
                 continue
             #if key[0] == 'GLOW-CMS-SE':  print "*", val
@@ -520,14 +537,14 @@ def sam_site_summary(d, globals=globals(), **kw):
         add_last_data(globals, startTime, endTime, kw.get('facility', '.*'),
             '|'.join(typeMetricMap[service]), serviceData,
             typeServiceMap[service], typeMetricMap[service])
-        print "Added last data"
+        #print "Added last data"
         #if service == 'CE':
         #    print "AGLT2 CE Service Data.", serviceData['AGLT2', 'org.osg.general.osg-directories-CE-permissions']
  
         # Make sure all the data is present and has a start and end status
         init_service_summary(serviceSummary, serviceData,
             typeServiceMap[service], typeMetricMap[service], startTime, endTime)
-        print "Finished service summary."
+        #print "Finished service summary."
         # Calculate when the status changes occur
         #print service
         #if service == 'CE': print 'pre serviceSummary["AGLT2"]', serviceSummary['AGLT2']
@@ -544,6 +561,10 @@ def sam_site_summary(d, globals=globals(), **kw):
         if "Maintenance" in metricNames:
             filter_summaries("MAINTENANCE", typeServiceMap[service],
                 typeMetricMap[service], serviceData, serviceSummary)
+            #if service == 'CE':
+            #    print "Filtering AGLT2 summaries on MAINTENANCE."
+            #    print serviceData['AGLT2', 'Maintenance']
+            #    print display_summary(serviceSummary['AGLT2'])
         
         #for key, val in serviceData.items():
         #    if key[0].startswith('Purdue-Steele'):
@@ -580,6 +601,13 @@ def sam_site_summary(d, globals=globals(), **kw):
         finalSummary[site] = and_summaries(siteServiceSummaries, startTime,
             endTime)
     return finalSummary
+
+def display_summary(summary):
+    keys = summary.keys()
+    keys.sort()
+    for key in keys:
+        val = summary[key]
+        print key, val[0], val[1]
 
 def sam_site_availability(*args, **kw):
     kw['kind'] = 'pivot-group'
@@ -744,7 +772,7 @@ def get_vo_listing(globals):
 def gip_parser(sql_results, globals=globals(), **kw):
     gip_info, dummy = globals['GIPQueries'].site_info()
     def pivot_transform(arg, **kw):
-        return gip_info.get(arg, arg)
+        return gip_info.get(arg, arg).split('\n')[0]
     kw['pivot_transform'] = pivot_transform
     return pivot_group_parser_plus(sql_results, \
         globals=globals, **kw)
@@ -752,7 +780,7 @@ def gip_parser(sql_results, globals=globals(), **kw):
 def gip_parser_simple(sql_results, globals=globals(), **kw):
     gip_info, dummy = globals['GIPQueries'].site_info()
     def pivot_transform(arg, **kw):
-        return gip_info.get(arg, arg)
+        return gip_info.get(arg, arg).split('\n')[0]
     kw['pivot_transform'] = pivot_transform
     return simple_results_parser(sql_results, \
         globals=globals, **kw)
