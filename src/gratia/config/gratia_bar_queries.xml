@@ -113,13 +113,13 @@
       </results>
     </query>
 
-    <query name="vo_efficiency_summary" base="GratiaGenericQuery.simple_summary">
+    <query name="vo_efficiency_summary" base="GratiaGenericQuery.simple_master_summary">
       <inputs>
           <input name="vo" kind="sql">dzero</input>
       </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
+        <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>

@@ -19,13 +19,16 @@ critical_tests = {
    'org.osg.general.osg-directories-CE-permissions',],
   'SRMv2': \
   ['org.osg.srm.srmping',
-   'org.osg.srm.srmcp-readwrite',],
+   'org.osg.srm.srmcp-readwrite',
+  ],
   'SRMv1': \
   ['org.osg.srm.srmping',
-   'org.osg.srm.srmcp-readwrite',],
+   'org.osg.srm.srmcp-readwrite',
+  ],
   'BestmanXrootd': \
   ['org.osg.srm.srmping',
-   'org.osg.srm.srmcp-readwrite',],
+   'org.osg.srm.srmcp-readwrite',
+  ],
   'GridFtp': \
   ['org.osg.globus.gridftp-simple'],
 }
