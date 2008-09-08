@@ -17,7 +17,10 @@ def main():
     conn = conn_obj.get_connection()
     curs = conn.cursor()
     for vo, members in mapVos().items():
-        gratia_voname = gratia_data.vo_lookup(vo=vo)[0][0][0]
+        try:
+            gratia_voname = gratia_data.vo_lookup(vo=vo)[0][0][0]
+        except:
+            gratia_voname = 'UNKNOWN'
         print "VO: %s, Gratia VO: %s" % (vo, gratia_voname)
         curs.execute("DELETE FROM VOMembers where vo=?", (vo,))
         for member in members:
