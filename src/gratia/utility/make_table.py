@@ -77,7 +77,7 @@ class Table:
         self.types.append(mytypes)
         data = [self.formatEntry(i) for i in data]
         for i in range(len(data)):
-            if isinstance(data[0], types.TupleType):
+            if isinstance(data[i], types.TupleType):
                 mylen = len(data[i][0])
             else:
                 mylen = len(data[i])
@@ -114,7 +114,7 @@ class Table:
         header_cnt = len(self.headers)
         output = ''
         idx = 0
-        table_len = sum([i+3 for i in self.headerLengths])-2
+        table_len = sum([i+3 for i in self.headerLengths])-1
         for row in self.data:
             rowtypes = self.types[idx]
             output += '|'
@@ -154,7 +154,7 @@ class Table:
                 add_thick_border = True
                 continue
             if add_thick_border:
-                output += '\t<tr style="border-top-width: %spx"> ' % '2'
+                output += '\t<tr style="border-top-width: %spx"> ' % '3'
             else:
                 output += "\t<tr> "
             col_ctr = 0
@@ -169,8 +169,8 @@ class Table:
                 if isinstance(entry, types.TupleType):
                     entry = '<a href="%s">%s</a>' % (entry[1], entry[0])
                 output += '<td style="background-color: %s; text-align: %s;'\
-                    ' border-top-width: %spx">%s</td>' % (color, align, entry,
-                    int(add_thich_border)*2)
+                    ' border-top-width: %spx;">%s</td>' % (color, align,
+                    int(add_thick_border)*3, entry)
                 col_ctr += 1
             output += " </tr>\n"
             if add_thick_border == True:
