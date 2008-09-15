@@ -3,6 +3,7 @@
     <import module="graphtool.web.security">*</import>
 
     <import file="$HOME/dbinfo/DBSecurity.xml" />
+    <import file="$HOME/dbinfo/DBParam.xml" />
 
     <class type="Security" name="GratiaSecurity">
 
@@ -60,7 +61,7 @@
             </inputs>
             <sql>
                 SELECT
-                    vo
+                    case when vo='uscms' then 'cms' else vo end
                 FROM
                     VOMembers
                 WHERE
@@ -134,6 +135,85 @@
             <results function="role_list" />
         </query>
 
+
+    </class>
+
+    <class type="Security" name="OIMSecurity">
+
+        <attribute name="connection_manager"> RSVConnMan </attribute>
+
+        <query name="site_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> NONE </input>
+            </inputs>
+            <sql>
+                SELECT
+                    count(*)
+                FROM
+                    oim.resource OIMR
+                JOIN oim.resource_contact OIMRC on OIMRC.resource_id=OIMR.resource_id
+                JOIN oim.certificate_dn OIMCD on OIMCD.person_id=OIMRC.person_id
+                WHERE
+                    OIMCD.dn_string=:dn AND
+                    OIMR.name=:access
+            </sql>
+            <results function="security_parser" />
+        </query>
+
+        <query name="list_site_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    OIMR.name
+                FROM
+                    oim.resource OIMR
+                JOIN oim.resource_contact OIMRC on OIMRC.resource_id=OIMR.resource_id
+                JOIN oim.certificate_dn OIMCD on OIMCD.person_id=OIMRC.person_id
+                WHERE
+                    OIMCD.dn_string=:dn
+                GROUP BY OIMR.name
+            </sql>
+            <results function="role_list" />
+        </query>
+
+        <query name="list_vo_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>   
+                SELECT
+                    OIMVO.short_name
+                FROM
+                    oim.virtualorganization OIMVO
+                JOIN oim.vo_contact OIMVC on OIMVC.vo_id=OIMVO.vo_id
+                JOIN oim.certificate_dn OIMCD on OIMCD.person_id=OIMVC.person_id
+                WHERE
+                    OIMCD.dn_string=:dn
+            </sql>
+            <results function="role_list" />
+        </query>
+
+        <query name="vo_ownership">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> NONE </input>
+            </inputs>
+            <sql>   
+                SELECT
+                    count(*)
+                FROM
+                    oim.virtualorganization OIMVO
+                JOIN oim.vo_contact OIMVC on OIMVC.vo_id=OIMVO.vo_id
+                JOIN oim.certificate_dn OIMCD on OIMCD.person_id=OIMVC.person_id
+                WHERE
+                    OIMCD.dn_string=:dn AND
+                    OIMVO.short_name=:access
+            </sql>
+            <results function="security_parser" />
+        </query>
 
     </class>
 

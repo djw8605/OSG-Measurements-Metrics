@@ -39,7 +39,7 @@
                     #end if
                 #end for
                 #end if
-                #for $val in (("604800", "7 Days"), ("1209600", "14 Days"), ("2592000", "30 Days"))
+                #for $val in (("604800", "7 Days"), ("1209600", "14 Days"), ("2592000", "30 Days"), ("6048000", "10 Weeks"), ("18144000", "30 Weeks"), ("314496000", "12 Months"))
                     #if $relTime == $val[0]
                         <option value="$val[0]" selected="true">$val[1]</option>
                     #else

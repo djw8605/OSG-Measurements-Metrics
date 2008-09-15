@@ -11,11 +11,23 @@ class Authenticate(XmlConfig):
     def __init__(self, *args, **kw):
         super(Authenticate, self).__init__(*args, **kw)
 
-        security_obj_name = self.metadata.get('security', False)
-        if security_obj_name:
-            self.security_obj = self.globals[security_obj_name]
+        user_security_obj_name = self.metadata.get('user_security', False)
+        vo_security_obj_name = self.metadata.get('vo_security', False)
+        site_security_obj_name = self.metadata.get('site_security', False)
+        if user_security_obj_name:
+            self.user_security_obj = self.globals[user_security_obj_name]
         else:
-            self.security_obj = DenyAll()
+            self.user_security_obj = DenyAll()
+        if vo_security_obj_name:
+            self.vo_security_obj = self.globals[vo_security_obj_name]
+        else:
+            self.vo_security_obj = DenyAll()
+        if site_security_obj_name:
+            self.site_security_obj = self.globals[site_security_obj_name]
+        else:
+            self.site_security_obj = DenyAll()
+        print vo_security_obj_name
+
 
     def user_roles(self, data):
         """
@@ -31,11 +43,13 @@ class Authenticate(XmlConfig):
             data['auth_count'] = 0
             return
         dn = data['dn']
-        data['vo_ownership'] = self.security_obj.list_roles("vo_ownership", dn)
-        data['site_ownership'] = self.security_obj.list_roles("site_ownership", \
+        data['vo_ownership'] = self.vo_security_obj.list_roles("vo_ownership",
             dn)
-        data['user_ownership'] = self.security_obj.list_roles("users", dn)
-        data['vo_membership'] = self.security_obj.list_roles("vo_membership", dn)
+        data['site_ownership'] = self.site_security_obj.list_roles( \
+            "site_ownership", dn)
+        data['user_ownership'] = self.user_security_obj.list_roles("users", dn)
+        data['vo_membership'] = self.user_security_obj.list_roles( \
+            "vo_membership", dn)
         auth_count = 0
         if len(data['vo_ownership']) > 0:
             data['is_vo_owner'] = True

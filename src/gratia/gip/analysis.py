@@ -226,7 +226,7 @@ def create_site_dict(ce_entries, cp):
     Determine site ownership of CEs.
     """
     # Query BDII for the cluster and site entries
-    cluster_entries = read_bdii(cp, query="(objectClass=GlueCluster)")
+    cluster_entries = read_bdii(cp, query="(objectClass=GlueCluster)", multi=True)
     site_entries = read_bdii(cp, query="(objectClass=GlueSite)")
     ownership = {}
 
@@ -235,10 +235,13 @@ def create_site_dict(ce_entries, cp):
         try:
             # First, we join the CE to the cluster:
             cluster = join_FK(ce, cluster_entries, "ClusterUniqueID")
+            if ce.glue['CEHostingCluster'] == 'red.unl.edu':
+                print cluster
             # Then, join the cluster to the site:
             site = join_FK(cluster, site_entries, "SiteUniqueID")
             ownership[ce.glue["CEHostingCluster"]] = site.glue["SiteName"]
-        except:
+        except Exception, e:
+            print e
             pass
 
     return ownership

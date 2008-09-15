@@ -71,7 +71,7 @@ class WLCGReporter(Authenticate):
             **gratia_interval(year, month))[0]
         gratia_cpu_data = self.globals['GratiaPieQueries'].\
             osg_facility_cpu_hours( **gratia_interval(year, month))[0]
-        lines = resource_stream('gratia.config', 'pledges.csv').read().split('\r')
+        lines = resource_stream('gratia.config', 'pledges.csv').read().splitlines()
         pledge_info = {}
         last_day = calendar.monthrange(year, month)[1]
         # Pop off the headers

@@ -19,7 +19,9 @@
       </sets>
       <attribute name="base_url">/gratia</attribute>
       <attribute name="base_url_noauth">/gratia</attribute>
-      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="user_security">GratiaSecurity</attribute>
+      <attribute name="vo_security">OIMSecurity</attribute>
+      <attribute name="site_security">OIMSecurity</attribute>
       <attribute name="static_url">http://t2.unl.edu/store/gratia/</attribute>
       <attribute name="vos_url">http://t2.unl.edu/gratia/xml/vo_corrected_table</attribute>
       <attribute name="registered_vos_url">http://www.grid.iu.edu/osg-includes/vo_txt.php</attribute>

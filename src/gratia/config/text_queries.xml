@@ -26,7 +26,7 @@
   </class>
 
   <class type="XmlGenerator" name="site_xml">
-      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="security">OIMSecurity</attribute>
       <attribute name="authtype">site_ownership</attribute>
       <attribute name="access">facility</attribute>
       <queryobj> GratiaSiteBarQueries </queryobj>
@@ -40,7 +40,7 @@
   </class>
 
   <class type="XmlGenerator" name="vo_xml">
-      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="security">OIMSecurity</attribute>
       <attribute name="authtype">vo_ownership</attribute>
       <attribute name="access">vo</attribute>
       <queryobj> GratiaVoBarQueries </queryobj>

@@ -84,7 +84,7 @@ class Gratia(ImageMap, SubclusterReport, WLCGReporter, Navigation):
                 filter_dict['endtime'] = 'time.time()'
                 if interval < 4*86400:
                     filter_dict['span'] = 3600
-                elif interval < 30*86400: 
+                elif interval <= 30*86400: 
                     filter_dict['span'] = 86400
                 elif interval < 365*86400:
                     filter_dict['span'] = 86400*7

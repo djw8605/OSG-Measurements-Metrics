@@ -103,7 +103,7 @@ def query_bdii(cp, query="(objectClass=GlueCE)", binding="o=grid"):
         "-b %(binding)s '%(query)s'" % info)
     return fp
 
-def read_bdii(cp, query="", binding="o=grid"):
+def read_bdii(cp, query="", binding="o=grid", multi=False):
     fp = query_bdii(cp, query=query, binding=binding)
     return read_ldap(fp)
 
