@@ -75,21 +75,43 @@ class Gratia(ImageMap, SubclusterReport, WLCGReporter, Navigation):
                     filter_dict['endtime'] = endtime
             else:
                 data['relTime'] = relTime
-                interval = int(relTime)
+                try:
+                    interval = int(relTime)
+                except:
+                    raise ValueError("relTime must be an integer;" \
+                        " input was %s." % relTime)
                 filter_dict['starttime'] = 'time.time()-%i' % interval
                 filter_dict['endtime'] = 'time.time()'
                 if interval < 4*86400:
                     filter_dict['span'] = 3600
                 elif interval < 30*86400: 
                     filter_dict['span'] = 86400
-                else:
+                elif interval < 365*86400:
                     filter_dict['span'] = 86400*7
+                else:
+                    filter_dict['span'] = 86400*30
         else:
             data['relTime'] = 'absolute'
 
         self.copy_if_present(filter_dict, data, 'facility', 'vo', \
             'exclude-facility', 'exclude-vo', 'user', 'user', 'exclude-dn', \
-            'set')
+            'vo_set', 'facility_set')
+        if len(filter_dict.get('facility', '')) == 0 and 'facility_set' in \
+                filter_dict:
+            try:
+                filter_dict['facility'] = self.site_sets[\
+                    filter_dict['facility_set']]
+            except:
+                raise ValueError("Unknown facility set: %s." % \
+                    filter_dict['facility_set'])
+        if len(filter_dict.get('vo', '')) == 0 and 'vo_set' in \
+                filter_dict:
+            try:
+                filter_dict['vo'] = self.site_sets[\
+                    filter_dict['vo_set']]
+            except:
+                raise ValueError("Unknown VO set: %s." % \
+                    filter_dict['vo_set'])
         data['query_kw'] = dict(filter_dict)
         data['filter_url'] = urllib.urlencode(filter_dict)
         self.assign_blank(filter_dict, 'facility', 'vo', 'exclude-vo', \

@@ -6,7 +6,7 @@
     #end if
     <form>
         <h3> Time span </h3>
-        <p> Please specify either an absolute date or time interval </p>
+        <p> Please specify either an absolute date <b>or</b> time interval </p>
         <p> Absolute time interval (format: "YYYY-MM-DD HH:MM:SS")<br/>
             <label for="starttime">Start time:</label>
             <input type="text" name="starttime"/> <br/>
@@ -18,7 +18,8 @@
                     <option value="3600">Hour</option>
                 #end if
                 <option value="86400">Day</option>
-                <option value="604800">Week</option>
+                <option value="604800">7 Days</option>
+                <option value="2592000">30 Days</option>
             </select>
         </p>
         <p> Relative to the present <br/>

@@ -11,16 +11,19 @@ class Navigation(Authenticate, Template):
         super(Navigation, self).parse_dom()
         self.site_sets = {}
         self.vo_sets = {}
+        self.both_focus = []
         for setsDom in self.dom.getElementsByTagName("sets"):
             for setDom in setsDom.getElementsByTagName("set"):
                 name = setDom.getAttribute("name")
                 kind = setDom.getAttribute("kind")
+                focus = setDom.getAttribute("focus")
                 text = str(setDom.firstChild.data).strip()
                 info = [i.strip() for i in text.split(',')]
                 if kind == 'site':
                     self.site_sets[name] = info
                 elif kind == 'vo':
                     self.vo_sets[name] = info
+                if 
 
     def navFromRoles(self, data):
         self.user_roles(data)
@@ -55,16 +58,18 @@ class Navigation(Authenticate, Template):
         for vo, members in self.vo_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='')
-            info['%s' % vo] = 'vo?set=%s&vo=%s' % (vo, set_info)
+            info['%s by site' % vo] = 'vo?set=%s&vo=%s' % (vo, set_info)
         for site, members in self.site_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='')
-            info['%s' % site] = 'site?set=%s&facility=%s' % (site, set_info)
+            info['%s by VO' % site] = 'site?set=%s&facility=%s' % (site, set_info)
         
     def defaultData(self, data):
         x = XmlConfig()
         data['vo_list'] = [i for i in x.\
             globals['GratiaDataQueries'].vo_list()[0]]
+        data['vo_sets'] = self.vo_sets
+        data['site_sets'] = self.site_sets
         data['site_list'] = [i for i in x.\
             globals['GratiaDataQueries'].site_list()[0]]
         super(Navigation, self).defaultData(data)

@@ -150,9 +150,13 @@ function dialogInit() {
 <div class="hd">Custom Gratia Query</div>
 <div class="bd">
     <form method="GET" action="$base_url/bysite">
+        <p>Specify a site, or pick a set of sites.</p>
 	<label for="facility">Site Filter: </label><input type="textbox" name="facility" />
+        <label for="facility_set">Facility Sets:</label>
         <div class="clear"></div>
+        <p>Specify a VO, or pick a set of VOs.</p>
 	<label for="vo">VO Filter: </label><input type="textbox" name="vo" />
+        <label for="vo_set">VO Sets: </label>
         <div class="clear"></div>
 	<label for="grouping">Grouping:</label>
 	<input type="radio" name="grouping[]" value="site" checked/> By Site
