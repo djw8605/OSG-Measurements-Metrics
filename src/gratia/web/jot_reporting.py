@@ -1,10 +1,11 @@
 
+import sets
 import datetime
 import calendar
 
 from auth import Authenticate
 
-class JotReporting(Authenticate):
+class JotReporter(Authenticate):
 
     def __init__(self):
         pass
@@ -13,12 +14,13 @@ class JotReporting(Authenticate):
         data = dict(kw)
         self.user_auth(data)
         self.user_roles(data)
-        data['month'] = month
-        data['year'] = year
-        data['month_name'] = calendar.month_name[name]
         data['cmp'] = cmp
+        data['error'] = None
 
-        starttime, endtime = self.get_times(month, year)
+        starttime, endtime, month, year = self.get_times(month, year)
+        data['month'] = month
+        data['month_name'] = calendar.month_name[month]
+        data['year'] = year
         info = {\
             'starttime': starttime.strftime('%Y-%m-%d %H:%M:%S'),
             'endtime':   endtime.  strftime('%Y-%m-%d %H:%M:%S'),
@@ -70,6 +72,22 @@ class JotReporting(Authenticate):
             data['lhc_wall'].set_default(fed, 0)
             data['lhc_wall'][fed] += lhc_wall_hours.get(resource, 0)
 
+        data['cms_feds'] = []
+        data['atlas_feds'] = []
+        all_feds = sets.Set(federations.values())
+        for fed in all_feds:
+            # TODO: OIM should provide ownership info.
+            if fed.startswith('T2_'):
+                data['cms_feds'].append(fed)
+            elif fed.startswith('US-'):
+                data['atlas_feds'].append(fed)
+            data['availability'][fed] /= float(data['count'][fed])
+            data['reliability'][fed] /= float(data['count'][fed])
+
+        data['mou'] = self.pledges(month, year)
+
+        data['round'] = round
+        return data
 
     def get_times(self, month, year)
         if month == None:
@@ -88,5 +106,26 @@ class JotReporting(Authenticate):
         next_year = year + int(month == 12)
         starttime = datetime.datetime(year, month, 1, 0, 0, 0)
         endtime = datetime.datetime(next_year, next_month, 1, 0, 0, 0)
-        return starttime, endtime
+        return starttime, endtime, month, year
+
+    def pledges(self, month, year)
+        lines = resource_stream('gratia.config', 'pledges.csv').read().splitlines()
+        pledge_info = {}
+        # Pop off the headers
+        lines = lines[1:]
+        for line in lines:
+            fed, pledge07, pledge08, VOMoU, VOaddl, accounting, site \
+                = line.split('\t')[:7]
+            if accounting != '':
+                my_accounting = accounting
+            if pledge07 != '':
+                my_pledge07 = pledge07
+            if pledge08 != '':
+                my_pledge08 = pledge08
+            fed_pledge = pledge_info.setdefault(accounting, {})
+            if year >= 2008 and month >= 4:
+                pledge_info.setdefault(accounting, my_pledge08)
+            else:
+                pledge_info.setdefault(accounting, my_pledge07)
+        return pledge_info
 
