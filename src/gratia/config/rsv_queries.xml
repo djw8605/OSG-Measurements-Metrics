@@ -112,10 +112,10 @@ order by starttime asc
       <attribute name="column_units">%</attribute>
     </query>
 
-    <query name="reli_summary_daily">
+    <query name="reli_summary_monthly">
       <inputs>
-        <input name="span" kind="sql">86400</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="span" kind="sql">2592000</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="kind" kind="sql">Resource</input>
@@ -152,6 +152,46 @@ order by starttime asc
       <attribute name="column_units">%</attribute>
     </query>
 
+    <query name="reli_summary_daily">
+      <inputs> 
+        <input name="span" kind="sql">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="kind" kind="sql">Resource</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  name,
+  starttime,
+  up,   
+  1-up-maintenance-unknown
+from      
+  rsv_summary
+where     
+     DATE_ADD(starttime, INTERVAL 24+6 HOUR) &gt;= :starttime AND starttime &lt; :endtime AND
+     time_length = :span AND
+     name regexp :facility AND
+     resource_type=lower(:kind)
+order by starttime asc
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+          <input name="suppress_zeros"> False </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Daily RSV $kind Reliability</attribute>
+      <attribute name="column_names">Reliability</attribute>
+      <attribute name="column_units">%</attribute>
+    </query>
+
     <query name="avail_summary_daily">
       <inputs>
         <input name="span">86400</input>
@@ -172,6 +212,46 @@ from
 where
      DATE_ADD(starttime, INTERVAL 24+6 HOUR) &gt;= :starttime AND starttime &lt; :endtime AND
      time_length = 86400 AND
+     name regexp :facility AND
+     resource_type=lower(:kind)
+order by starttime asc
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+          <input name="suppress_zeros"> False </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">Daily RSV $kind Availability</attribute>
+      <attribute name="column_names">Availability</attribute>
+      <attribute name="column_units">%</attribute>
+    </query>
+
+    <query name="avail_summary_monthly">
+      <inputs>
+        <input name="span">2592000</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="kind" kind="sql">Resource</input>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+select
+  name,
+  DATE_ADD(starttime, INTERVAL 5 HOUR),
+  case when up &lt; unknown then up else up+unknown end,
+  case when up &lt; unknown then unknown+critical+maintenance else critical + maintenance end
+from
+  rsv_summary
+where
+     DATE_ADD(starttime, INTERVAL 24+6 HOUR) &gt;= :starttime AND starttime &lt; :endtime AND
+     time_length = 2592000 AND
      name regexp :facility AND
      resource_type=lower(:kind)
 order by starttime asc
@@ -442,6 +522,22 @@ group by
         <inputs>
           <input name="pivots">0, 1</input>
           <input name="results">2</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="resource_to_federation">
+        <!-- Build a map from (service_type, resource_name) -> parent resource -->
+        <sql>
+            SELECT OIMR.name, OIMRE.wlcg_accounting_name
+            FROM oim.resource OIMR
+            JOIN oim.resource_ext_attributes OIMRE ON OIMRE.resource_id= OIMR.resource_id
+            WHERE OIMRE.wlcg_accounting_name is not null
+        </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots">0</input>
+          <input name="results">1</input>
         </inputs>
       </results>
     </query>
