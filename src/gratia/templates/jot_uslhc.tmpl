@@ -21,23 +21,23 @@ my_data = {
   cms: [
   #if len($cms_feds) > 0
     #set keys = sorted($cms_feds)
-    #for key in $keys
-        {Federation: '$key', Reliability: $reliability[$key], Availability: $availability[$key], CPU: $cpu_hours[$key], Wall: $wall_hours[$key], LHC_CPU: $lhc_cpu_hours[$key], LHC_Wall: $lhc_wall_hours[$key], LHC_eff: $round(100*$lhc_cpu_hours[$key]/$float($lhc_wall_hours[$key])), mou: $mou[$key]},
+    #for key in $keys[:-1]
+        {Federation: '$key', Reliability: $round(100*$reliability[$key]), Availability: $round(100*$availability[$key]), CPU: $round($cpu[$key]), Wall: $round($wall[$key]), LHC_CPU: $round($lhc_cpu[$key]), LHC_Wall: $round($lhc_wall[$key]), LHC_eff: $round(100*$lhc_cpu[$key]/$float($lhc_wall[$key]+1e-6)), mou: $mou[$key]},
     #end for
         #set key=$keys[-1]
-        {Federation: '$key', Reliability: $reliability[$key], Availability: $availability[$key], CPU: $cpu_hours[$key], Wall: $wall_hours[$key], LHC_CPU: $lhc_cpu_hours[$key], LHC_Wall: $lhc_wall_hours[$key], LHC_eff: $round(100*$lhc_cpu_hours[$key]/$float($lhc_wall_hours[$key])), mou: $mou[$key]}
+        {Federation: '$key', Reliability: $round(100*$reliability[$key]), Availability: $round(100*$availability[$key]), CPU: $round($cpu[$key]), Wall: $round($wall[$key]), LHC_CPU: $round($lhc_cpu[$key]), LHC_Wall: $round($lhc_wall[$key]), LHC_eff: $round(100*$lhc_cpu[$key]/$float($lhc_wall[$key]+1e-6)), mou: $mou[$key]}
 
   #end if
-  ]
+  ],
 
   atlas: [
   #if len($atlas_feds) > 0
     #set keys = sorted($atlas_feds)
-    #for key in $keys
-        {Federation: '$key', Reliability: $reliability[$key], Availability: $availability[$key], CPU: $cpu_hours[$key], Wall: $wall_hours[$key], LHC_CPU: $lhc_cpu_hours[$key], LHC_Wall: $lhc_wall_hours[$key], LHC_eff: $round(100*$lhc_cpu_hours[$key]/$float($lhc_wall_hours[$key])), mou: $mou[$key]},
+    #for key in $keys[:-1]
+        {Federation: '$key', Reliability: $round(100*$reliability[$key]), Availability: $round(100*$availability[$key]), CPU: $round($cpu[$key]), Wall: $round($wall[$key]), LHC_CPU: $round($lhc_cpu[$key]), LHC_Wall: $round($lhc_wall[$key]), LHC_eff: $round(100*$lhc_cpu[$key]/$float($lhc_wall[$key]+1e-6)), mou: $mou[$key]},
     #end for
         #set key=$keys[-1]
-        {Federation: '$key', Reliability: $reliability[$key], Availability: $availability[$key], CPU: $cpu_hours[$key], Wall: $wall_hours[$key], LHC_CPU: $lhc_cpu_hours[$key], LHC_Wall: $lhc_wall_hours[$key], LHC_eff: $round(100*$lhc_cpu_hours[$key]/$float($lhc_wall_hours[$key])), mou: $mou[$key]}
+        {Federation: '$key', Reliability: $round(100*$reliability[$key]), Availability: $round(100*$availability[$key]), CPU: $round($cpu[$key]), Wall: $round($wall[$key]), LHC_CPU: $round($lhc_cpu[$key]), LHC_Wall: $round($lhc_wall[$key]), LHC_eff: $round(100*$lhc_cpu[$key]/$float($lhc_wall[$key]+1e-6)), mou: $mou[$key]}
 
   #end if
   ]
@@ -116,8 +116,9 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
 <h2>Overview</h2>
 <p>This report shows USLHC Tier 2 reliability and usage during $month_name $year as measured by OSG tools.</p>
-<div id="cms"></div>
 <div id="atlas"></div>
+<br/>
+<div id="cms"></div>
 <ul>
 <li>MOU Pledge is in units of "CPU Hours for the month, assuming Efficiency of 60%."</li>
 <li>Reliability/Availability cells colored to match WLCG: green indicate a score between 90% and 100%; yellow indicate a score between 60% and 90%; orange indicate a score between 30% and 60%; red indicate a score between 0% and 30%</li>

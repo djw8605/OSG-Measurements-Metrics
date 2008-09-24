@@ -3,12 +3,11 @@ import sets
 import datetime
 import calendar
 
+from pkg_resources import resource_stream
+
 from auth import Authenticate
 
-class JotReporter(Authenticate):
-
-    def __init__(self):
-        pass
+class JOTReporter(Authenticate):
 
     def uslhc_table(self, month=None, year=None, **kw):
         data = dict(kw)
@@ -21,32 +20,48 @@ class JotReporter(Authenticate):
         data['month'] = month
         data['month_name'] = calendar.month_name[month]
         data['year'] = year
+        data['title'] = 'USLHC JOT Report for %s %i' % (data['month_name'],
+            data['year'])
         info = {\
             'starttime': starttime.strftime('%Y-%m-%d %H:%M:%S'),
             'endtime':   endtime.  strftime('%Y-%m-%d %H:%M:%S'),
             'exclude-vo': 'unknown',
         }
         cpu_hours = self.globals['GratiaPieQueries'].osg_facility_cpu_hours(\
-            info)[0]
+            **info)[0]
         wall_hours = self.globals['GratiaPieQueries'].osg_facility_hours(\
-            info)[0]
+            **info)[0]
 
         info['vo'] = 'atlas|cms'
         lhc_cpu_hours = self.globals['GratiaPieQueries'].\
-            osg_facility_cpu_hours(info)[0]
+            osg_facility_cpu_hours(**info)[0]
         lhc_wall_hours = self.globals['GratiaPieQueries'].\
-            osg_facility_cpu_hours(info)[0]
+            osg_facility_hours(**info)[0]
 
         associations = self.globals['RSVQueries'].service_to_resource()[0]
         associations = associations.keys()
+        new_assoc = {}
+        for service, resource in associations:
+            new_assoc.setdefault(resource, sets.Set())
+            new_assoc[resource].add(service)
 
         federations = self.globals['RSVQueries'].resource_to_federation()[0]
+        resource_to_remove = []
+        for res in federations:
+            if 'CE' not in new_assoc.get(res, []):
+                resource_to_remove.append(res)
+        for res in resource_to_remove:
+            if res in federations:
+                del federations[res]
 
         del info['exclude-vo']
         resource_reliability = self.globals['RSVSummaryQueries'].\
-            reli_summary_monthly(info)[0]
+            reli_summary_monthly(**info)[0]
         resource_availability = self.globals['RSVSummaryQueries'].\
-            avail_summary_monthly(info)[0]
+            avail_summary_monthly(**info)[0]
+
+        print resource_availability
+        print resource_reliability
 
         data['reliability'] = {}
         data['availability'] = {}
@@ -55,22 +70,29 @@ class JotReporter(Authenticate):
         data['wall'] = {}
         data['lhc_cpu'] = {}
         data['lhc_wall'] = {}
-
+        days_in_month =  calendar.monthrange(year, month)[1]
+        data['mou'] = self.pledges(month, year)
+        for key, val in data['mou'].items():
+            data['mou'][key] = int(days_in_month*.6*24*val)
         for resource, fed in federations.items():
-            data['reliability'].set_default(fed, 0)
-            data['reliability'][fed] += reliability.get(resource, 0)
-            data['availability'].set_default(fed, 0)
-            data['availability'][fed] += availability.get(resource, 0)
-            data['cpu'].set_default(fed, 0)
+            print "Binding:", resource, "in", fed
+            data['reliability'].setdefault(fed, 0)
+            data['reliability'][fed] += resource_reliability.get(resource, {}).\
+                get(datetime.datetime(year, month, 1, 0, 0, 0), (0, ))[0]
+            data['availability'].setdefault(fed, 0)
+            data['availability'][fed] += resource_availability.get(resource,
+                {}).get(datetime.datetime(year, month, 1, 0, 0, 0), (0, ))[0]
+            data['cpu'].setdefault(fed, 0)
             data['cpu'][fed] += cpu_hours.get(resource, 0)
-            data['count'].set_default(fed, 0)
-            data['count'] += 1
-            data['wall'].set_default(fed, 0)
+            data['count'].setdefault(fed, 0)
+            data['count'][fed] += 1
+            data['wall'].setdefault(fed, 0)
             data['wall'][fed] += wall_hours.get(resource, 0)
-            data['lhc_cpu'].set_default(fed, 0)
+            data['lhc_cpu'].setdefault(fed, 0)
             data['lhc_cpu'][fed] += lhc_cpu_hours.get(resource, 0)
-            data['lhc_wall'].set_default(fed, 0)
+            data['lhc_wall'].setdefault(fed, 0)
             data['lhc_wall'][fed] += lhc_wall_hours.get(resource, 0)
+            data['mou'].setdefault(fed, 0)
 
         data['cms_feds'] = []
         data['atlas_feds'] = []
@@ -84,12 +106,11 @@ class JotReporter(Authenticate):
             data['availability'][fed] /= float(data['count'][fed])
             data['reliability'][fed] /= float(data['count'][fed])
 
-        data['mou'] = self.pledges(month, year)
 
         data['round'] = round
         return data
 
-    def get_times(self, month, year)
+    def get_times(self, month, year):
         if month == None:
             month = datetime.datetime.now().month
             if month == 1:
@@ -108,7 +129,7 @@ class JotReporter(Authenticate):
         endtime = datetime.datetime(next_year, next_month, 1, 0, 0, 0)
         return starttime, endtime, month, year
 
-    def pledges(self, month, year)
+    def pledges(self, month, year):
         lines = resource_stream('gratia.config', 'pledges.csv').read().splitlines()
         pledge_info = {}
         # Pop off the headers
@@ -122,10 +143,14 @@ class JotReporter(Authenticate):
                 my_pledge07 = pledge07
             if pledge08 != '':
                 my_pledge08 = pledge08
-            fed_pledge = pledge_info.setdefault(accounting, {})
+            fed_pledge = pledge_info.setdefault(accounting, 0)
             if year >= 2008 and month >= 4:
-                pledge_info.setdefault(accounting, my_pledge08)
+                pledge_info[accounting] = my_pledge08
             else:
-                pledge_info.setdefault(accounting, my_pledge07)
+                pledge_info[accounting] = my_pledge07
+            try:
+                pledge_info[accounting] = int(pledge_info[accounting])
+            except:
+                del pledge_info[accounting]
         return pledge_info
 
