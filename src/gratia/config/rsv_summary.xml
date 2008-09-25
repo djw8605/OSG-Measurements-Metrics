@@ -10,7 +10,7 @@
 
   <class type="SqlQueries" name="RSVSummaryQueries">
 
-    <attribute name="display_name"> RSV Graphs </attribute>
+    <attribute name="display_name"> RSV Summary </attribute>
     <attribute name="connection_manager"> RegistrationDB </attribute>
 
     <query name="all_summaries">

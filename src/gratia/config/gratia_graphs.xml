@@ -73,4 +73,9 @@
     <queryobj> RSVSummaryQueries </queryobj>
   </class>
 
+  <class type="Grapher" name="rsv_wlcg_grapher">
+    <attribute name="display_name"> RSV WLCG Graphs </attribute>
+    <queryobj> RSVWLCGQueries </queryobj>
+  </class>
+
 </graphtool-config>

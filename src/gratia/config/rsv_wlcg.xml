@@ -1,0 +1,156 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/>
+
+  <import file="$HOME/dbinfo/DBParam.xml" />
+
+  <class type="SqlQueries" name="RSVWLCGGeneric">
+
+    <attribute name="display_name"> RSV WLCG Queries </attribute>
+    <attribute name="connection_manager"> RSVConnMan </attribute>
+
+    <query name="availability">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,  CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
+        FROM MetricRecord MR
+        JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+        JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+        WHERE
+            OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
+            MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+            ServiceURI regexp :facility AND
+            MetricName regexp :metric
+        </sql>  
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">WLCG Availability</attribute>
+    </query>
+
+    <query name="reliability">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI), MR.MetricName, MR.Timestamp,null, CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
+            FROM MetricRecord MR
+            JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            WHERE
+               OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
+                MR.Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                ServiceURI regexp :facility AND
+                MetricName regexp :metric
+        UNION
+        SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
+            FROM oim.resource_downtime RD
+            JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            WHERE
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
+                ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
+                (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
+                (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
+                OIMR.fqdn regexp :facility
+        </sql>
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">WLCG Reliability</attribute>
+    </query>
+
+  </class>
+
+  <class type="SqlQueries" name="RSVWLCGQueries">
+
+    <attribute name="display_name"> WLCG Availability </attribute>
+    <attribute name="connection_manager"> RSVConnMan </attribute>
+
+    <aggregate>
+      <connection> rsv </connection>
+    </aggregate>
+
+    <query name="rsv_wlcg_availability" base="RSVWLCGGeneric.availability">
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="title">Resource WLCG Availability</attribute>
+        <sql/>
+    </query>
+
+    <query name="rsv_wlcg_reliability" base="RSVWLCGGeneric.reliability">
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="title">Resource WLCG Reliability</attribute>
+        <sql/>
+    </query>
+
+    <query name="rsv_sam_availability" base="RSVWLCGGeneric.availability">
+        <results module="gratia.database.query_handler" function="sam_site_availability"/>
+        <attribute name="title">Site WLCG Availability</attribute>
+        <sql/>
+    </query>
+        
+    <query name="rsv_sam_reliability" base="RSVWLCGGeneric.reliability">
+        <results module="gratia.database.query_handler" function="sam_site_availability"/>
+        <attribute name="title">Site WLCG Availability</attribute>
+        <sql/>
+    </query>
+
+    <query name="wlcg_site_avail" base="RSVWLCGGeneric.availability">
+        <results module="gratia.database.query_handler" function="wlcg_site_availability"/>
+        <attribute name="title">Federation Availability</attribute>
+        <sql/>
+    </query>
+
+    <query name="wlcg_site_reliability" base="RSVWLCGGeneric.reliability">
+        <results module="gratia.database.query_handler" function="wlcg_site_availability"/>
+        <attribute name="title">Federation Availability</attribute>
+        <sql/>
+    </query>
+
+    <query name="wlcg_last_status">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI) as SiteName, MR.MetricName, foo.Timestamp, MR.MetricStatus
+        FROM (SELECT ServiceURI, MetricName, max(Timestamp) AS Timestamp FROM MetricRecord
+              WHERE
+                  Timestamp &lt;= :starttime AND
+                  Timestamp &gt; DATE_SUB(:starttime, INTERVAL 1 DAY) AND
+                  ServiceURI regexp :facility AND
+                  MetricName regexp :metric
+              GROUP BY ServiceURI, MetricName) AS foo
+        JOIN MetricRecord MR ON MR.ServiceURI=foo.ServiceURI AND MR.MetricName=foo.MetricName AND MR.Timestamp=foo.Timestamp
+        JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+        JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+        JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+        WHERE OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1
+        </sql>
+        <results module="gratia.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots">0,1,2</input>
+                <input name="results">3</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">Last Test Status</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>
