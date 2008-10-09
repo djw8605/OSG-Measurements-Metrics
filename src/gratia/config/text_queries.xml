@@ -20,6 +20,7 @@
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>
+    <queryobj> GratiaTransferQueries </queryobj>
     <queryobj> GratiaCumulativeQueries </queryobj>
     <queryobj> GridScanQueries </queryobj>
     <queryobj> GIPQueries </queryobj>
@@ -53,6 +54,7 @@
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>
+    <queryobj> GratiaTransferQueries </queryobj>
     <queryobj> GratiaCumulativeQueries </queryobj>
     <queryobj> GridScanQueries </queryobj>
     <queryobj> GIPQueries </queryobj>

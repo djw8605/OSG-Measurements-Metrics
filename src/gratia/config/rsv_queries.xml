@@ -226,12 +226,31 @@ group by
     </query>
 
     <query name="resource_to_federation">
-        <!-- Build a map from (service_type, resource_name) -> parent resource -->
+        <!-- Build a map resource -> federation. -->
         <sql>
             SELECT OIMR.name, OIMRE.wlcg_accounting_name
             FROM oim.resource OIMR
             JOIN oim.resource_ext_attributes OIMRE ON OIMRE.resource_id= OIMR.resource_id
             WHERE OIMRE.wlcg_accounting_name is not null
+        </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots">0</input>
+          <input name="results">1</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="resource_group_to_federation">
+        <!-- Build a map resource -> federation. -->
+        <sql>
+            SELECT OIMRG.name, OIMRE.wlcg_accounting_name
+            FROM oim.resource OIMR
+            JOIN oim.resource_resource_group OIMRRG ON OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
+            JOIN oim.resource_ext_attributes OIMRE ON OIMRE.resource_id= OIMR.resource_id
+            WHERE OIMRE.wlcg_accounting_name is not null
+            GROUP BY OIMRG.name
         </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -369,6 +388,123 @@ group by
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
+    <query name="vdt_version_deployment_count">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="span" kind="sql" type="int">86400</input>
+            <input name="version" kind="sql">.*VDT Version</input>
+            <input name="details_len" kind="sql" type="int">9</input>
+        </inputs>
+        <sql>
+        SELECT
+            version, time, COUNT(*) as deploy_count
+        FROM
+            (SELECT
+                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
+                ServiceUri,
+                concat('VDT-',substring(DetailsData from 44 for 7)) as version
+            FROM MetricRecord
+            WHERE
+                DetailsData regexp :version AND
+                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                MetricName = 'org.osg.general.vdt-version'
+            GROUP BY time, ServiceUri, version
+            ) as foo
+        GROUP BY time, version
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+          <inputs>
+            <input name="pivots"> 0 </input>
+            <input name="grouping"> 1 </input>
+            <input name="results"> 2 </input>
+            <input name="grouping_transform">make_int</input>
+          </inputs>
+        </results>
+        <attribute name="title">RSV Reporting Sites by VDT Version</attribute>
+        <attribute name="column_name">Deployed Site Count</attribute>
+        <attribute name="pivot_name">Version</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
+    <query name="rsv_version_deployment_count">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="span" kind="sql" type="int">86400</input>
+            <input name="version" kind="sql">.*VDT Version</input>
+            <input name="details_len" kind="sql" type="int">9</input>
+        </inputs>
+        <sql>
+        SELECT
+            version, time, COUNT(*) as deploy_count
+        FROM
+            (SELECT
+                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
+                ServiceUri,
+                concat('RSV-', substring(DetailsData, locate('OSG Resource and Service Validation (RSV)', DetailsData)+42, 6)) as version
+            FROM MetricRecord
+            WHERE
+                DetailsData regexp :version AND
+                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                MetricName = 'org.osg.general.vdt-version'
+            GROUP BY time, ServiceUri, version
+            ) as foo
+        GROUP BY time, version
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+          <inputs>
+            <input name="pivots"> 0 </input>
+            <input name="grouping"> 1 </input>
+            <input name="results"> 2 </input>
+            <input name="grouping_transform">make_int</input>
+          </inputs>
+        </results>
+        <attribute name="title">RSV Reporting Sites by RSV Version</attribute>
+        <attribute name="column_name">Deployed Site Count</attribute>
+        <attribute name="pivot_name">Version</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
+    <query name="gip_version_deployment_count">
+        <inputs>
+            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="span" kind="sql" type="int">86400</input>
+            <input name="version" kind="sql">.*VDT Version</input>
+            <input name="details_len" kind="sql" type="int">9</input>
+        </inputs>
+        <sql>
+        SELECT
+            version, time, COUNT(*) as deploy_count
+        FROM
+            (SELECT
+                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
+                ServiceUri,
+                concat('GIP-', substring(DetailsData, locate('Generic Information Provider', DetailsData)+29, 7)) as version
+            FROM MetricRecord
+            WHERE
+                DetailsData regexp :version AND
+                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+                MetricName = 'org.osg.general.vdt-version'
+            GROUP BY time, ServiceUri, version
+            ) as foo
+        GROUP BY time, version
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+          <inputs>
+            <input name="pivots"> 0 </input>
+            <input name="grouping"> 1 </input>
+            <input name="results"> 2 </input>
+            <input name="grouping_transform">make_int</input>
+          </inputs>
+        </results>
+        <attribute name="title">RSV Reporting Sites by GIP Version</attribute>
+        <attribute name="column_name">Deployed Site Count</attribute>
+        <attribute name="pivot_name">Version</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
     <query name="rsv_metric_quality">
       <inputs>
         <input name="span" type="eval" kind="sql">7200</input>
@@ -376,6 +512,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
+        <input name="countunknown" type="int" kind="sql">0</input>
         <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
       </inputs>
       <sql>
@@ -383,7 +520,7 @@ select
   MetricName,
   from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
   SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN :countunknown ELSE 1 END)
 from
   MetricRecord
 where
@@ -494,6 +631,21 @@ where Timestamp &gt;=:errorstart AND Timestamp &lt; :errorstart + INTERVAL :span
         <results module="gratia.database.query_handler" function="fake_parser"/>
         <attribute name="graph_type"/>
         <attribute name="title">Failed RSV Tests</attribute>
+    </query>
+
+    <query name="critical_tests">
+        <sql>
+            SELECT
+                m.name as metric_name,
+                s.name as service_name
+            FROM oim.metric m 
+            JOIN oim.metric_service ms ON ms.metric_id=m.metric_id
+            JOIN oim.service s ON s.service_id=ms.service_id
+            WHERE ms.critical=1
+            <results module="graphtool.database.query_handler" function="complex_pivot_parser"/>
+            <attribute name="graph_type"/>
+            <attribute name="title">Critical Tests by Service Type</attribute>
+        </sql>
     </query>
 
   </class>

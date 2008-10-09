@@ -23,7 +23,7 @@ def parseOptions():
         " summarize.", dest="days", default=35)
     return parser.parse_args()
 
-def find_missing(starttime, all_summaries, interval, interval_s):
+def find_missing(starttime, all_summaries, interval, interval_s, num_prev=1):
     now = datetime.datetime.today()
     cur = starttime
     missing = []
@@ -36,7 +36,9 @@ def find_missing(starttime, all_summaries, interval, interval_s):
         cur += interval
     try:
         prev = max(missing)
-        missing.append(prev - interval)
+        for i in range(num_prev):
+            prev = prev - interval
+            missing.append(prev)
     except:
         pass
     return missing
@@ -44,7 +46,7 @@ def find_missing(starttime, all_summaries, interval, interval_s):
 def find_missing_hours(s, all_summaries):
     starttime = datetime.datetime(s.year, s.month, s.day, s.hour, 0, 0)
     interval = datetime.timedelta(0, 3600)
-    retval = find_missing(starttime, all_summaries, interval, 3600)
+    retval = find_missing(starttime, all_summaries, interval, 3600, num_prev=4)
     #print retval[:10]
     return retval
 
@@ -89,33 +91,13 @@ def find_missing_intervals(days, rsv_queries):
     missing_months = find_missing_months(starttime, all_summaries)
     return missing_hours, missing_days, missing_weeks, missing_months
 
-def getCriticalMetrics(type='CE', format='long'):
-    if type == 'CE':
-        return CECriticalTests
-    elif type == 'SE':
-        return SECriticalTests
-    else:
-        raise ValueError("Unknown type %s." % type)
-
-def query_rsv(rsv, rsv_report, startDate, endDate, type='CE'):
+def query_rsv(rsv, rsv_report, startDate, endDate):
     params = {'starttime': startDate, 'endtime': endDate}
-    params['metric'] = '|'.join(getCriticalMetrics(type=type))
     results, _ = getattr(rsv, rsv_report)(**params)
     return results
 
 def query_rsv_site(rsv, rsv_report, startDate, endDate):
-    params = {'starttime': startDate, 'endtime': endDate, 'metric': ''}
-    for type in ['CE', 'SE']:
-        prev_metrics = params['metric']
-        type_metrics = '|'.join(getCriticalMetrics( \
-            format='long',type=type)) 
-        if prev_metrics:
-            params['metric'] = '|'.join([prev_metrics, type_metrics])
-        else:
-            params['metric'] = type_metrics
-        # Pass along the critical metrics for this type
-        params['critical_%s' % type] = '|'.join(getCriticalMetrics( \
-            format='long', type=type))
+    params = {'starttime': startDate, 'endtime': endDate}
     results, _ = getattr(rsv, rsv_report)(**params)
     return results
 
@@ -127,7 +109,7 @@ def upload_data(times, rsv, conn, interval, endTimeFunc):
     curs.execute('set time_zone="+00:00"')
     for starttime in times:
         endtime = endTimeFunc(starttime)
-        resources = query_rsv(rsv, 'rsv_wlcg_reliability', starttime,
+        resources = query_rsv(rsv, 'rsv_sam_reliability', starttime,
             endtime)
         sites = query_rsv_site(rsv, 'wlcg_site_reliability', starttime,
             endtime)
@@ -167,17 +149,22 @@ def main():
     # Load up all the queries
     xml_config = XmlConfig(file=resource_filename('gratia.config',
         'rsv_queries.xml'))
+    xml_config = XmlConfig(file=resource_filename('gratia.config',
+        'rsv_wlcg.xml'))
+    xml_config = XmlConfig(file=resource_filename('gratia.config',
+        'rsv_summary.xml'))
     connman = xml_config.globals['RegistrationDB'].get_connection(None)
     conn = connman.get_connection()
-    rsv_queries = xml_config.globals['RSVSummaryQueries']
-    rsv_queries2 = xml_config.globals['RSVQueries']
+    rsv_summary = xml_config.globals['RSVSummaryQueries']
+    rsv_queries = xml_config.globals['RSVQueries']
+    rsv_wlcg = xml_config.globals['RSVWLCGQueries']
     options, args = parseOptions()
     days = int(options.days)
-    hours, days, weeks, months = find_missing_intervals(days, rsv_queries)
-    upload_hours(hours, rsv_queries2, conn)
-    upload_days(days, rsv_queries2, conn)
-    upload_weeks(weeks, rsv_queries2, conn)
-    upload_months(months, rsv_queries2, conn)
+    hours, days, weeks, months = find_missing_intervals(days, rsv_summary)
+    upload_hours(hours, rsv_wlcg, conn)
+    upload_days(days, rsv_wlcg, conn)
+    upload_weeks(weeks, rsv_wlcg, conn)
+    upload_months(months, rsv_wlcg, conn)
 
 if __name__ == '__main__':
     main()

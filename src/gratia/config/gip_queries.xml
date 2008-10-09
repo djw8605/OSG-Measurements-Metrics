@@ -106,6 +106,15 @@
       <attribute name="column_names">Free CPUs</attribute>
     </query>
 
+    <query name="gip_total_cpus_realtime" base="GipGeneric.ce_info_rt">
+      <sql>
+        <filler name="column">totalCpus</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Count of Total CPUs by Facility</attribute>
+      <attribute name="column_names">Total CPUs</attribute>
+    </query>
+
     <query name="gip_facility_pie" base="GipGeneric.host_rt">
       <sql>
         <filler name="column">runningJobs</filler>

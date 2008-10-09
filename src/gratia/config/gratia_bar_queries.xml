@@ -127,6 +127,103 @@
       <attribute name="graph_type">QualityBarGraph</attribute>
     </query>
 
+    <query name="dn_efficiency_summary" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+          <input name="vo" kind="sql">dzero</input>
+      </inputs>
+      <sql>
+        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(WallDuration) </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="title">CPU Efficiency</attribute>
+      <attribute name="graph_type">QualityBarGraph</attribute>
+    </query>
+
+    <query name="dn_wall_summary" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+          <input name="vo" kind="sql">dzero</input>
+      </inputs>
+      <sql>
+        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="title">User Wall Hours</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
+    <query name="dn_wasted_summary" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+          <input name="vo" kind="sql">dzero</input>
+      </inputs>
+      <sql>
+        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="column"> sum(CASE when ApplicationExitCode = 0 THEN WallDuration-CpuUserDuration-CpuSystemDuration ELSE WallDuration END)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="title">User Wasted Hours</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
+    <query name="dn_nonzero_exit" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+          <input name="vo" kind="sql">cms</input>
+      </inputs>
+      <sql>
+        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="column"> cast(sum(Njobs) AS UNSIGNED) </filler>
+        <filler name="where"> AND WallDuration > 0 AND ApplicationExitCode!=0 </filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="fixed-height">False</attribute>
+      <attribute name="title">User Non-zero exit code count for VO $vo</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
+    <query name="dn_zero_exit" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+          <input name="vo" kind="sql">cms</input>
+      </inputs>
+      <sql>
+        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="column"> cast(sum(Njobs) AS UNSIGNED) </filler>
+        <filler name="where"> AND WallDuration > 0 AND ApplicationExitCode=0 </filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="fixed-height">False</attribute>
+      <attribute name="title">User success count for VO $vo</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
     <query name="vo_cpu_efficiency" base="GratiaGenericQuery.jobs_summary_query">
       <inputs>
           <input name="vo" kind="sql">cms</input>
@@ -410,33 +507,16 @@
       </results>
     </query>
 
-    <query name="exitcode_bar">
-        <inputs>
-            <input name="span" kind="sql" type="int">604800</input>
-            <input name="starttime" type="datetime" kind="sql">time.time()-365*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
-            <input name="vo" kind="sql"> .* </input>
-        </inputs>
+    <query name="exitcode_bar" base="GratiaGenericQuery.master_summary">
         <sql>
-            select 
-             unix_timestamp(STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W')),
-             ExitCode,
-             sum(Njobs)
-            from VOJobStatusSummary VS
-            join VONameCorrection VC on (VS.VOcorrid = VC.corrid)
-            join VO on (VC.void = VO.void)
-            where
-             STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W') &gt; :starttime AND
-             STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W') &lt;= :endtime AND
-             VO.VOName regexp :vo
-            group by
-             STR_TO_DATE(concat(Week,' Monday'), '%%x-%%v %%W'),
-             ExitCode
+            <filler name="group"> R.ApplicationExitCode </filler>
+            <filler name="column"> sum(Njobs) </filler>
+            <!--<filler name="where"> AND WallDuration > 0 </filler>-->
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
             <inputs>
-                <input name="pivots"> 1 </input>
-                <input name="grouping"> 0 </input>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
                 <input name="results"> 2 </input>
             </inputs>
         </results>
@@ -447,156 +527,6 @@
         <attribute name="column_units">Jobs</attribute>
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
-
-    <!-- Grid-wide queries -->
-    <query name="user_transfer_volume" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> DN </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
-        </sql>
-        <results>
-            <inputs>
-                <input name="pivot_transform">displayName</input>
-            </inputs>
-        </results>
-        <attribute name="pivot_name">Facility</attribute>
-        <attribute name="title">Volume of Gigabytes Transferred By User</attribute>
-        <attribute name="column_names">Transfer Volume</attribute>
-        <attribute name="column_units">GB</attribute>
-    </query>
-
-    <query name="facility_transfer_volume" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> SiteName </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
-        </sql>
-        <attribute name="pivot_name">Facility</attribute>
-        <attribute name="title">Volume of Gigabytes Transferred By Facility</attribute>
-        <attribute name="column_names">Transfer Volume</attribute>
-        <attribute name="column_units">GB</attribute>
-    </query>
-
-    <query name="facility_transfer_rate" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> SiteName </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 2)/:span</filler>
-        </sql>
-        <attribute name="pivot_name">Facility</attribute>
-        <attribute name="title">Transfer Rate By Facility</attribute>
-        <attribute name="column_names">Transfer Rate</attribute>
-        <attribute name="column_units">MB/s</attribute>
-    </query>
-
-    <query name="vo_transfer_volume" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> VO </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
-        </sql>
-        <attribute name="pivot_name">VO</attribute>
-        <attribute name="title">Volume of Gigabytes Transferred By VO</attribute>
-        <attribute name="column_names">Transfer Volume</attribute>
-        <attribute name="column_units">GB</attribute>
-    </query>
-
-    <query name="vo_transfer_rate" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> VO </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 2)/:span</filler>
-        </sql>
-        <attribute name="pivot_name">VO</attribute>
-        <attribute name="title">Transfer Rate By VO</attribute>
-        <attribute name="column_names">Transfer Rate</attribute>
-        <attribute name="column_units">MB/s</attribute>
-    </query>
-
-    <query name="facility_quality" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> SiteName </filler>
-            <filler name="column"> 
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
-            </filler>
-        </sql>
-        <results>
-            <inputs>
-                <input name="results"> 2, 3 </input>
-            </inputs>
-        </results>
-        <attribute name="graph_type"> QualityMap </attribute>
-        <attribute name="fixed-height"> False </attribute>
-        <attribute name="title"> Transfer Quality by Facility </attribute>
-        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
-        <attribute name="column_units"> Files, Files </attribute>
-        <attribute name="pivot_name">Facility</attribute>
-    </query>
-
-    <query name="vo_quality" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> VO </filler>
-            <filler name="column">
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
-            </filler>
-        </sql>
-        <results>
-            <inputs>
-                <input name="results"> 2, 3 </input>
-            </inputs>
-        </results>
-        <attribute name="graph_type"> QualityMap </attribute>
-        <attribute name="fixed-height"> False </attribute>
-        <attribute name="title"> Transfer Quality by VO </attribute>
-        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
-        <attribute name="column_units"> Files, Files </attribute>
-    </query>
-
-    <query name="user_quality" base="GratiaStorageQuery.summary">
-        <sql>
-            <filler name="group"> DN </filler>
-            <filler name="column">
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
-            </filler>
-        </sql>
-        <results>
-            <inputs>
-                <input name="pivot_transform">displayName</input>
-                <input name="results"> 2, 3 </input>
-            </inputs>
-        </results>
-        <attribute name="graph_type"> QualityMap </attribute>
-        <attribute name="fixed-height"> False </attribute>
-        <attribute name="title"> Transfer Quality by User </attribute>
-        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
-        <attribute name="column_units"> Files, Files </attribute>
-    </query>
-
-    <!-- VO queries -->
-
-    <!-- Site queries -->
-
-    <query name="site_user_quality" base="GratiaStorageQuery.site_summary">
-        <sql>
-            <filler name="group"> DN </filler>
-            <filler name="column">
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
-            </filler>
-        </sql>  
-        <results>
-            <inputs>
-                <input name="pivot_transform">displayName</input>
-                <input name="results"> 2, 3 </input>
-            </inputs>
-        </results>
-        <attribute name="graph_type"> QualityMap </attribute>
-        <attribute name="fixed-height"> False </attribute>
-        <attribute name="title"> Site Quality by User </attribute>
-        <attribute name="column_names"> Successful Transfers, Failed Transfers </attribute>
-        <attribute name="column_units"> Files, Files </attribute>
-    </query>
-
-    <!-- User queries -->
 
   </class>
 

@@ -146,10 +146,10 @@ Canada-West Federation		300	atlas	"alice,cms,lhcb"	CA-WEST-T2	ALBERTA-LCG2	4/10/
 "USA, Caltech CMS T2"	470	1000	cms	"alice,atlas,lhcb"	T2_US_Caltech	CIT_CMS_T2	3/10/08
 "USA, Florida CMS T2"	470	1000	cms	"alice,atlas,lhcb"	T2_US_Florida	Uflorida-PG	3/10/08
 			cms	"alice,atlas,lhcb"		Uflorida-IHEPA	
-			cms	"alice,atlas,lhcb"		UFlorida-HPC 	
+			cms	"alice,atlas,lhcb"		Uflorida-HPC 	
 "USA, MIT CMS T2"	470	1000	cms	"alice,atlas,lhcb"	T2_US_MIT	MIT_CMS	3/10/08
 "USA, Nebraska CMS T2"	470	1000	cms	"alice,atlas,lhcb"	T2_US_Nebraska	Nebraska	3/10/08
-"USA, Purdue CMS T2"	470	1000	cms	"alice,atlas,lhcb"	T2_US_Purdue 	Purdue-Lear 	3/10/08
+"USA, Purdue CMS T2"	470	1000	cms	"alice,atlas,lhcb"	T2_US_Purdue	Purdue-Lear 	3/10/08
 			cms	"alice,atlas,lhcb"		Purdue-RCAC 	
 			cms	"alice,atlas,lhcb"		Purdue-Steele	
 "USA, UC San Diego CMS T2"	470	1000	cms	"alice,atlas,lhcb"	T2_US_UCSD	UCSDT2	3/10/08

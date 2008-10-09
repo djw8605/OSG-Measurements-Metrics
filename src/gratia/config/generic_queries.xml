@@ -113,6 +113,63 @@
         <attribute name="column_units" />
     </query>
 
+    <query name="master_summary">
+        <inputs>
+            <input name="span" type="int" kind="sql">86400</input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+            <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql"> .* </input>
+            <input name="probe" kind="sql"> .* </input>
+            <input name="vo" kind="sql"> .* </input>
+            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE </input>
+        </inputs>
+        <sql>
+            SELECT
+                <slot name="group"/>,
+                truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
+                <slot name="column"/>
+            FROM
+                MasterSummaryData R
+            JOIN
+                Probe P on R.ProbeName = P.probename
+            JOIN
+                Site S on S.siteid = P.siteid
+            JOIN
+                VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+            JOIN
+                VO on (VC.void = VO.void)
+            <slot name="join"/> 
+            WHERE
+                R.EndTime &gt;= :starttime AND
+                R.EndTime &lt; :endtime AND
+                S.SiteName regexp :facility AND
+                VO.VOName regexp :vo AND
+                R.ResourceType = 'Batch' AND
+                (NOT (S.SiteName regexp :exclude-facility)) AND
+                (NOT (VO.VOName regexp :exclude-vo)) AND
+                R.WallDuration &lt; 1100000000 AND
+                R.ProbeName regexp :probe
+                <slot name="where"/>
+            GROUP BY 
+                <slot name="group"/>,
+                time
+            <slot name="having"/>
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+        <attribute name="pivot_name" />
+        <attribute name="title" />
+        <attribute name="column_names" />
+        <attribute name="column_units" />
+    </query>
+
     <query name="simple_summary">
         <inputs>
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>

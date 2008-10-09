@@ -127,7 +127,7 @@
             <input name="metric" kind="sql">.*</input>
         </inputs>
         <sql>
-        SELECT COALESCE(OIMR.Name, MR.ServiceURI) as SiteName, MR.MetricName, foo.Timestamp, MR.MetricStatus
+        SELECT COALESCE(OIMR.Name, MR.ServiceURI) as SiteName, MR.MetricName, foo.Timestamp, CASE WHEN MR.MetricStatus="WARNING" THEN "OK" ELSE MR.MetricStatus END
         FROM (SELECT ServiceURI, MetricName, max(Timestamp) AS Timestamp FROM MetricRecord
               WHERE
                   Timestamp &lt;= :starttime AND
