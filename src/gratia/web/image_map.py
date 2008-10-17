@@ -126,6 +126,8 @@ class ImageMap(Template):
 
         token['condition'].acquire()
         try:
+            if 'csv' not in data:
+                data['csv'] = self.globals['query_csv'].metadata['base_url']
             maps = data.get('maps', [])
             data['maps'] = maps
         finally:

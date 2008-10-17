@@ -12,9 +12,11 @@ import cStringIO
 
 import cherrypy
 from xml.dom.minidom import parse
-from graphtool.graphs.common_graphs import QualityMap
-from graphtool.graphs.basic import BasicStackedBar 
+from graphtool.tools.common import to_timestamp
+from graphtool.graphs.common_graphs import QualityMap, BarGraph, TimeGraph
+from graphtool.graphs.basic import BasicStackedBar
 from gratia.database.query_handler import displayName
+from gratia.graphs.gratia_graphs import GratiaBar
 from image_map import ImageMap
 from auth import Authenticate
 from navigate import Navigation
@@ -747,7 +749,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         return fp.getvalue()
     cms_site_avail.exposed=True
 
-    def d0(self):
+    def d0(self, weekly=False):
         cherrypy.response.headers['Content-Type'] = 'image/png'
         url = self.metadata.get('d0_csv', 'http://physics.lunet.edu/~snow/' \
             'd0osgprod.csv')
@@ -755,12 +757,19 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         metadata = {'croptime':True, 'span':86400, 'pivot_name': 'OSG Site', \
             'grouping_name': 'Date', 'column_names': 'Merged Events', \
             'title': 'D0 OSG Production'}
+        if weekly:
+            metadata['span'] *= 7
         fp = cStringIO.StringIO()
         data = {}
         for line in url_fp.readlines():
             info = line.strip().split(',')
             grouping_name = time.strptime(info[0], '%y%m%d')
             group = datetime.datetime(*grouping_name[:6])
+            # Change the date to the first day of that week; groups things
+            # by week instead of the default by day.
+            if weekly:
+                weekday = group.isoweekday()
+                group -= datetime.timedelta(weekday, 0)
             pivot = info[1]
             results = int(info[3])
             if pivot not in data:
@@ -774,4 +783,40 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         BSB(data, fp, metadata)
         return fp.getvalue()
     d0.exposed = True
+
+    def d0_basic(self, weekly=False):
+        cherrypy.response.headers['Content-Type'] = 'image/png'
+        url = self.metadata.get('d0_csv', 'http://physics.lunet.edu/~snow/' \
+            'd0osgprod.csv')
+        url_fp = urllib2.urlopen(url)
+        metadata = {'croptime':False, 'span':86400, 'pivot_name': 'Date', \
+            'column_names': 'Merged Events', \
+            'title': 'D0 OSG Production'}
+        if weekly:
+            metadata['span'] *= 7
+        fp = cStringIO.StringIO()
+        data = {}
+        for line in url_fp.readlines():
+            info = line.strip().split(',')
+            grouping_name = time.strptime(info[0], '%y%m%d')
+            group = datetime.datetime(*grouping_name[:6])
+            # Change the date to the first day of that week; groups things
+            # by week instead of the default by day.
+            if weekly:
+                weekday = group.isoweekday()
+                group -= datetime.timedelta(weekday, 0)
+            group = to_timestamp(group)
+            results = int(info[3])
+            value = data.setdefault(group, 0)
+            data[group] = value + results
+        metadata['starttime'] = min(data.values())
+        time_max = max(data.values())
+        if weekly:
+            metadata['endtime'] = time_max + 7*86400
+        else:
+            metadata['endtime'] = time_max + 1*86400
+        GB = GratiaBar()
+        GB(data, fp, metadata)
+        return fp.getvalue()
+    d0_basic.exposed = True
 

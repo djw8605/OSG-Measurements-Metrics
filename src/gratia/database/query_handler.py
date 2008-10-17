@@ -20,6 +20,8 @@ def displayName(*args, **kw):
     dn = args[0]
     parts = dn.split('/')
     display = 'Unknown'
+    if dn.find('Generic') >= 0 and dn.find('user') >= 0:
+        return dn
     cns = []
     for part in parts:
         if len(part) == 0:

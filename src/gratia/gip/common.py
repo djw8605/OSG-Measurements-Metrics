@@ -30,10 +30,30 @@ def findCE(vo_entry, ce_entries):
     raise ValueError("Corresponding CE not found for VO entry:\n%s" % vo_entry)
 
 def join_FK(item, join_list, join_attr, join_fk_name="ForeignKey"):
-    item_fk = item.glue[join_fk_name]
-    for entry in join_list:
-        test_val = "Glue%s=%s" % (join_attr, entry.glue[join_attr])
-        if test_val == item_fk:
-            return entry
+    if item.multi:
+        item_fks = item.glue[join_fk_name]
+        for item_fk in item_fks:
+            for entry in join_list:
+                if entry.multi:
+                    for val in entry.glue[join_attr]:
+                        test_val = "Glue%s=%s" % (join_attr, val)
+                        if test_val == item_fk:
+                            return entry
+                else:
+                    test_val = "Glue%s=%s" % (join_attr, entry.glue[join_attr])
+                    if test_val == item_fk:
+                        return entry
+    else:
+        item_fk = item.glue[join_fk_name]
+        for entry in join_list:
+            if entry.multi:
+                for val in entry.glue[join_attr]:
+                    test_val = "Glue%s=%s" % (join_attr, val)
+                    if test_val == item_fk:
+                        return entry
+            else:
+                test_val = "Glue%s=%s" % (join_attr, entry.glue[join_attr])
+                if test_val == item_fk:
+                    return entry
     raise ValueError("Unable to find matching entry in list.")
 

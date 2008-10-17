@@ -52,7 +52,8 @@ class JOTReporter(Authenticate):
         new_assoc.setdefault('GLOW', ['CE'])
 
         federations = self.globals['RSVQueries'].resource_to_federation()[0]
-        federations.setdefault('GLOW', 'T2_US_Wisconsin')
+        federations.setdefault('UTA_SWT2', 'US-SWT2')
+        federations.setdefault('SWT2_CPB', 'US-SWT2')
         resource_to_remove = []
         for res in federations:
             if 'CE' not in new_assoc.get(res, []):
@@ -82,6 +83,7 @@ class JOTReporter(Authenticate):
         for key, val in data['mou'].items():
             data['mou'][key] = int(days_in_month*.6*24*val)
         for resource, fed in federations.items():
+            print "Resource %s associated with fed %s." % (resource, fed)
             #data['reliability'].setdefault(fed, 0)
             #data['reliability'][fed] +=resource_reliability.get(resource, {}).\
             #    get(datetime.datetime(year, month, 1, 0, 0, 0), (0, ))[0]

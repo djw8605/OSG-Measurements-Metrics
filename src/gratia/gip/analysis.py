@@ -95,7 +95,7 @@ def ownership_info(ce_entries, cp):
     Determine ownership of clusters from the sites's SiteSponsor attribute.
     """
     # Query BDII for the cluster and site entries
-    cluster_entries = read_bdii(cp, query="(objectClass=GlueCluster)")
+    cluster_entries = read_bdii(cp, query="(objectClass=GlueCluster)", multi=True)
     site_entries = read_bdii(cp, query="(objectClass=GlueSite)")
     ownership = {}
 
@@ -107,11 +107,13 @@ def ownership_info(ce_entries, cp):
         except:
             print "Unable to find cluster for CE; skipping\n%s" % ce
             continue
+        print cluster
         # Then, join the cluster to the site:
         try:
             site = join_FK(cluster, site_entries, "SiteUniqueID")
         except:
             continue
+        print site
         try:
             ownership[ce] = site.glue["SiteSponsor"]
             #print site.glue["SiteName"], site.glue["SiteSponsor"]

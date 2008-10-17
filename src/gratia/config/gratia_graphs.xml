@@ -11,6 +11,7 @@
   <import module="gratia.config" data_file="gridscan_queries.xml"/>
   <import module="gratia.config" data_file="gip_queries.xml"/>
   <import module="gratia.config" data_file="rsv_queries.xml"/>
+  <import module="gratia.config" data_file="rsv_summary.xml"/>
   <import module="gratia.graphs.gratia_graphs">*</import>
 
   <class type="Grapher" name="gratia_pie_grapher">
