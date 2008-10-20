@@ -30,6 +30,7 @@ WHERE
           <input name="results"> 2 </input>
         </inputs>
       </results>
+      <attribute name="title">All Summaries</attribute>
     </query>
 
     <query name="reli_summary_hourly">
@@ -147,7 +148,7 @@ order by starttime asc
       <attribute name="graph_type"> QualityMap </attribute>
       <attribute name="pivot_name">Site</attribute>
       <attribute name="grouping_name">Time</attribute>
-      <attribute name="title">Daily RSV $kind Reliability</attribute>
+      <attribute name="title">Monthly RSV $kind Reliability</attribute>
       <attribute name="column_names">Reliability</attribute>
       <attribute name="column_units">%</attribute>
     </query>
@@ -267,7 +268,7 @@ order by starttime asc
       <attribute name="graph_type"> QualityMap </attribute>
       <attribute name="pivot_name">Site</attribute>
       <attribute name="grouping_name">Time</attribute>
-      <attribute name="title">Daily RSV $kind Availability</attribute>
+      <attribute name="title">Monthly RSV $kind Availability</attribute>
       <attribute name="column_names">Availability</attribute>
       <attribute name="column_units">%</attribute>
     </query>

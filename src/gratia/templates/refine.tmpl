@@ -5,23 +5,35 @@
         <p>$refine_error</p>
     #end if
     <form>
-        <h3> Time span </h3>
+        <h2> Time span </h2>
         <p> Please specify either an absolute date <b>or</b> time interval </p>
+        <div style="border-width: thin;">
         <p> Absolute time interval (format: "YYYY-MM-DD HH:MM:SS")<br/>
-            <label for="starttime">Start time:</label>
-            <input type="text" name="starttime"/> <br/>
-            <label for="endtime">End time:</label>
-            <input type="text" name="endtime"/> <br/>
-            <label for="span"> Bar width </label>
-            <select name="span">
+        <table>
+          <tr>
+            <td><label for="starttime">Start time:</label></td>
+            <td><input type="text" name="starttime"/> <br/></td>
+          </tr>
+          <tr>
+            <td><label for="endtime">End time:</label></td>
+            <td><input type="text" name="endtime"/> <br/></td>
+          </tr>
+          <tr>
+            <td><label for="span"> Bar width </label></td>
+            <td><select name="span">
                 #if $supports_hours
                     <option value="3600">Hour</option>
                 #end if
                 <option value="86400">Day</option>
                 <option value="604800">7 Days</option>
                 <option value="2592000">30 Days</option>
-            </select>
+            </select></td>
+          </tr>
+        </table>
         </p>
+        </div>
+        <b>OR</b>
+        <div style="border-width: thin;">
         <p> Relative to the present <br/>
             <label for="relativetime">Select time interval</label> 
             <select name="relativetime">
@@ -48,36 +60,49 @@
                 #end for
             </select>
         </p>
-        <h3> Data filter </h3>
-        <p>
+        </div>
+        <h2> Data filter </h2>
+        <table>
             #if $refine_facility
-                <label for="facility">Facility: </label>
-                <input type="text" name="facility" value="$filter_dict.facility"/> <br/>
-                <label for="exclude-facility">Exclude facility: </label>
-                <input type="text" name="exclude-facility" value="$filter_dict['exclude-facility']"/> <br/>
+              <tr>
+                <td><label for="facility">Facility: </label></td>
+                <td><input type="text" name="facility" value="$filter_dict.facility"/> <br/></td>
+              </tr>
+              <tr>
+                <td><label for="exclude-facility">Exclude facility: </label></td>
+                <td><input type="text" name="exclude-facility" value="$filter_dict['exclude-facility']"/> <br/></td>
+              </tr>
             #else
                 <input type="hidden" name="facility" value="$filter_dict.facility"/>
                 <input type="hidden" name="exclude-facility" value="$filter_dict['exclude-facility']"/> <br/>
             #end if
             #if $refine_vo
-                <label for="vo">VO: </label>
-                <input type="text" name="vo" value="$filter_dict.vo"/> <br/>
-                <label for="exclude-vo">Exclude VO: </label>
-                <input type="text" name="exclude-vo" value="$filter_dict['exclude-vo']"/> <br/>
+              <tr>
+                <td><label for="vo">VO: </label>
+                <td><input type="text" name="vo" value="$filter_dict.vo"/> <br/>
+              </tr>
+              <tr>
+                <td><label for="exclude-vo">Exclude VO: </label></td>
+                <td><input type="text" name="exclude-vo" value="$filter_dict['exclude-vo']"/> <br/></td>
+              </tr>
             #else
                 <input type="hidden" name="vo" value="$filter_dict.vo"/> <br/>
                 <input type="hidden" name="exclude-vo" value="$filter_dict['exclude-vo']"/> <br/>
             #end if
             #if $refine_dn
-                <label for="user">User: </label>
-                <input type="text" name="user" value="$filter_dict.user"/> <br/>
-                <label for="exclude-dn">Exclude User: </label>
-                <input type="text" name="exclude-dn" value="$filter_dict['exclude-dn']"/> <br/>
+              <tr>
+                <td><label for="user">User: </label></td>
+                <td><input type="text" name="user" value="$filter_dict.user"/> <br/></td>
+              </tr>
+              <tr>
+                <td><label for="exclude-dn">Exclude User: </label></td>
+                <td><input type="text" name="exclude-dn" value="$filter_dict['exclude-dn']"/><br/></td>
+              </tr>
             #else
                 <input type="hidden" name="user" value="$filter_dict.user"/> <br/>
                 <input type="hidden" name="exclude-dn" value="$filter_dict['exclude-dn']"/> <br/>
             #end if
-        </p>
+        </table>
         <input type="submit" value="Refine"> <input type="reset">
     </form>
 

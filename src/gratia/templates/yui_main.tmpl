@@ -44,7 +44,9 @@
                         var pageNode = new YAHOO.widget.TextNode(pageInfo, viewNode, false);
                     #end for
                 #end for
-                var pageInfo = {label:"WLCG Reporting", href:"$base_url/wlcg_reporting"};
+                var pageInfo = {label:"WLCG Reporting (overview)", href:"$base_url/jot_reporting"};
+                var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
+                var pageInfo = {label:"WLCG Reporting (detailed)", href:"$base_url/wlcg_reporting"};
                 var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
                 var viewNode = new YAHOO.widget.HTMLNode('<div><button id="show">Custom View</button></div>',
                     tree.getRoot(), true);

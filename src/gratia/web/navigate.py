@@ -11,7 +11,7 @@ class Navigation(Authenticate, Template):
         super(Navigation, self).parse_dom()
         self.site_sets = {}
         self.vo_sets = {}
-        self.focus = {}
+        self.focus_set = {}
         for setsDom in self.dom.getElementsByTagName("sets"):
             for setDom in setsDom.getElementsByTagName("set"):
                 name = setDom.getAttribute("name")
@@ -24,9 +24,9 @@ class Navigation(Authenticate, Template):
                 elif kind == 'vo':
                     self.vo_sets[name] = info
                 if focus:
-                    self.focus[name] = focus
+                    self.focus_set[name] = focus
                 elif kind:
-                    self.focus[name] = kind
+                    self.focus_set[name] = kind
 
     def navFromRoles(self, data):
         self.user_roles(data)
@@ -61,7 +61,7 @@ class Navigation(Authenticate, Template):
         for vo, members in self.vo_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='|')
-            page = self.focus.get(vo, 'vo')
+            page = self.focus_set.get(vo, 'vo')
             if page == 'both':
                 info['%s by site' % vo] = 'vo?set=%s&vo=%s' % (vo, set_info)
                 info['%s by vo' % vo] = 'byvo?set=%s&vo=%s' % (vo, set_info)
@@ -73,7 +73,7 @@ class Navigation(Authenticate, Template):
         for site, members in self.site_sets.items():
             set_info = '|'.join(members)
             set_info = urllib.quote(set_info, safe='|')
-            page = self.focus.get(site, 'site')
+            page = self.focus_set.get(site, 'site')
             if page == 'both':
                 info['%s by site' % site] = 'bysite?set=%s&facility=%s' % (site,
                     set_info)

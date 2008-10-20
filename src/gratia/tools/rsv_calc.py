@@ -92,7 +92,7 @@ def find_missing_intervals(days, rsv_queries):
     return missing_hours, missing_days, missing_weeks, missing_months
 
 def query_rsv(rsv, rsv_report, startDate, endDate):
-    params = {'starttime': startDate, 'endtime': endDate, all: 'True'}
+    params = {'starttime': startDate, 'endtime': endDate, 'all': 'True'}
     results, _ = getattr(rsv, rsv_report)(**params)
     return results
 

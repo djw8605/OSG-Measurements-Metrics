@@ -1,6 +1,26 @@
 
 <h1>Opportunistic Usage over the last year</h1>
 
+<h3>What is Opportunistic Usage?</h3>
+<p>
+Loosely, opportunistic usage is computational hours done on hardware not owned
+by the organization using it; it is work done by the VO which would not have
+been possible without the use of the grid.
+</p>
+<p>
+While the idea sounds simple, opportunistic usage is difficult to measure 
+because of partial ownership of the site; a site's hardware might be owned by
+multiple VOs, and what usage is considered "opportunistic" varies greatly by
+local policy which is out of the grid's control
+</p>
+<p>
+For this page, we consider a VO's job "opportunistic" if it is run at a site 
+where the VO owns no resources at all; if a VO is running at a site where it
+owns any of the hardware, we call that usage "owned".  In this way, we can be
+ensured that, in a worst-case-scenario, we are under-reporting opportunistic
+usage and never over-reporting it.
+</p>
+
 #if $current_vo != None
     <p><img src="$static_url/today/${current_vo}_opp_usage.png"/></p>
     <p>The above image shows the opportunistic usage for the $current_vo.

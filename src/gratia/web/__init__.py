@@ -12,7 +12,7 @@ import cStringIO
 
 import cherrypy
 from xml.dom.minidom import parse
-from graphtool.tools.common import to_timestamp
+from graphtool.tools.common import to_timestamp, convert_to_datetime
 from graphtool.graphs.common_graphs import QualityMap, BarGraph, TimeGraph
 from graphtool.graphs.basic import BasicStackedBar
 from gratia.database.query_handler import displayName
@@ -62,7 +62,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
                 to_dict[arg] = from_dict[arg]
 
     def refine(self, data, filter_dict, facility=True, vo=True, dn=True,\
-            hours=True):
+            hours=True, default_rel_range=14*86400):
         relTime = data.get('relativetime', False)
         data['supports_hours'] = hours
         data['refine_vo'] = vo
@@ -117,6 +117,24 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
                 raise ValueError("Unknown VO set: %s." % \
                     filter_dict['vo_set'])
         data['query_kw'] = dict(filter_dict)
+
+        if 'starttime' not in filter_dict:
+            data['display_starttime'] = convert_to_datetime(time.time()-\
+                default_rel_range)
+        else:
+            data['display_starttime'] = convert_to_datetime(\
+                filter_dict['starttime'])
+        data['display_starttime'] = data['display_starttime'].strftime(\
+            '%Y-%m-%d %H:%M:%S')
+        if 'endtime' not in filter_dict:
+            data['display_endtime'] = convert_to_datetime(time.time()-\
+                default_rel_range)
+        else:
+            data['display_endtime'] = convert_to_datetime(\
+                filter_dict['endtime'])
+        data['display_endtime'] = data['display_endtime'].strftime(\
+            '%Y-%m-%d %H:%M:%S')
+
         data['filter_url'] = urllib.urlencode(filter_dict)
         self.assign_blank(filter_dict, 'facility', 'vo', 'exclude-vo', \
             'exclude-facility', 'exclude-dn', 'user')
@@ -125,6 +143,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
             data['filter_url'] = '?' + data['filter_url']
         data['refine'] = self.getTemplateFilename('refine.tmpl')
         data['refine_error'] = None
+
 
     def main(self, *args, **kw):
         data = dict(kw)
@@ -141,21 +160,24 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         # Generate image maps:
         if data['focus']['value'] == 'facility' or \
                 data['focus']['value'] == 'both':
-            self.image_map(token, data, 'GratiaBarQueries', 
-                           'facility_transfer_rate', 'main', 'facility')
-                           
-            self.image_map(token, data, 'GratiaBarQueries', 
-                           'facility_quality', 'main', 'facility')
-                           
+            #self.image_map(token, data, 'GratiaBarQueries', 
+            #               'facility_transfer_rate', 'main', 'facility')
             self.image_map(token, data, 'GratiaBarQueries',
-                           'facility_transfer_volume', 'main', 'facility')
+                'facility_hours_bar_smry', 'main', 'facility')
+            #self.image_map(token, data, 'GratiaBarQueries', 
+            #               'facility_quality', 'main', 'facility')
+                           
+            #self.image_map(token, data, 'GratiaBarQueries',
+            #               'facility_transfer_volume', 'main', 'facility')
         else:
-            self.image_map(token, data, 'GratiaBarQueries', 'vo_transfer_rate',
-                           'main', 'vo')
-            self.image_map(token, data, 'GratiaBarQueries', 'vo_quality',
-                           'main', 'vo')
-            self.image_map(token, data, 'GratiaBarQueries', 
-                           'vo_transfer_volume', 'main', 'vo')
+            self.image_map(token, data, 'GratiaBarQueries',
+                'vo_hours_bar_smry', 'main', 'vo')
+            #self.image_map(token, data, 'GratiaBarQueries', 'vo_transfer_rate',
+            #               'main', 'vo')
+            #self.image_map(token, data, 'GratiaBarQueries', 'vo_quality',
+            #               'main', 'vo')
+            #self.image_map(token, data, 'GratiaBarQueries', 
+            #               'vo_transfer_volume', 'main', 'vo')
                            
         self.finish_image_maps(token)
 
@@ -299,6 +321,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         filter_dict = {}
         data['facility'] = data.get('facility', None)
         self.focus(kw, data, 'site_owner', 'user', ['user', 'vo', 'both'])
+
+        data['title'] = 'Site owner view for %s' % data['facility']
 
         #User auth
         self.user_auth(data)
