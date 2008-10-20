@@ -571,9 +571,11 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         reg_vos = []
         for line in info.readlines():
             line = line.strip()
+            if line.startswith('#'):
+                continue
             if len(line) == 0:
                 continue
-            reg_vos.append(line.split('<')[0].lower())
+            reg_vos.append(line.split(',')[0].lower())
         retval = []
         for vo in vos:
             if vo in keep_vos or vo.lower() in reg_vos:
@@ -588,7 +590,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'http://www.grid.iu.edu/osg-includes/vo_txt.php')
+            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':
@@ -605,7 +607,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'http://www.grid.iu.edu/osg-includes/vo_txt.php')
+            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':
@@ -623,7 +625,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'http://www.grid.iu.edu/osg-includes/vo_txt.php')
+            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':
@@ -644,7 +646,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'http://www.grid.iu.edu/osg-includes/vo_txt.php')
+            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':
