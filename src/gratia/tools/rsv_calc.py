@@ -69,8 +69,9 @@ def find_missing_months(s, all_summaries):
     while cur < now:
         if (cur, i) not in all_summaries:
             missing.append(cur)
-        next_month = (cur.month+1) % 12
+        next_month = (cur.month % 12) + 1
         next_year = cur.year + int(cur.month==12)
+        print next_month, next_year
         cur = datetime.datetime(next_year, next_month, 1, 0, 0, 0)
     try:
         last_missing = max(missing)

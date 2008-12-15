@@ -20,8 +20,8 @@
     <query name="rsv_quality">
       <inputs>
         <input name="span" type="eval" kind="sql">7200</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
         <input name="fixed-height">False</input>
@@ -29,18 +29,24 @@
       </inputs>
       <sql>
 select
-  ServiceURI,
-  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
-  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  OIMR.fqdn as fqdn,
+  from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  MetricRecord
+  rsvextra.metricdata RSVM
+join
+  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+join
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+join
+  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility AND
-     MetricName regexp :metric
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp :facility AND
+     OIMM.name regexp :metric
 group by
-  ServiceURI, time
+  fqdn, time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -59,8 +65,8 @@ group by
 
     <query name="rsv_results">
       <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
         <input name="status" kind="sql">UNKNOWN|WARNING|CRITICAL</input>
@@ -68,19 +74,23 @@ group by
       </inputs>
       <sql>
 SELECT
-  ServiceURI,
-  MetricName,
-  MetricStatus,
-  Timestamp,
-  DetailsData
+  OIMR.fqdn as fqdn,
+  OIMM.name as metric_name,
+  OIMMS.metric_status_description as metric_status,
+  from_unixtime(RSVM.timestamp) as timestamp,
+  RSVMD.detail as details
 FROM
-  MetricRecord
+  rsvextra.metricdata as RSVM
+JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+JOIN rsvextra.metricdetail RSVMD on RSVM.id = RSVMD.metricdata_id
 WHERE
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility AND
-     MetricName regexp :metric AND
-     MetricStatus regexp :status
-ORDER BY Timestamp desc
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp :facility AND
+     OIMM.name regexp :metric AND
+     OIMMS.metric_status_description regexp :status
+ORDER BY RSVM.timestamp desc
 LIMIT :limit
       </sql>
       <results module="graphtool.database.query_handler" function="complex_pivot_parser">
@@ -99,8 +109,8 @@ LIMIT :limit
     <query name="rsv_reliability">
       <inputs>
         <input name="span" kind="sql" type="eval">7200</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
         <input name="fixed-height">False</input>
@@ -108,18 +118,24 @@ LIMIT :limit
       </inputs>
       <sql>
 select
-  ServiceURI,
-  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
-  sum(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
-  sum(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  OIMR.fqdn as fqdn,
+  from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  MetricRecord
+  rsvextra.metricdata RSVM
+join
+  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+join
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+join
+  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility AND
-     MetricName regexp :metric
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp :facility AND
+     OIMM.name regexp :metric
 group by
-  ServiceURI, time
+  fqdn, time
       </sql>
       <results module="gratia.database.query_handler" function="rsv_parser">
         <inputs>
@@ -139,26 +155,32 @@ group by
     <query name="rsv_reliability_daily">
       <inputs>
         <input name="span" type="eval">86400</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
         <input name="fixed-height">False</input>
       </inputs>
       <sql>
 select
-  ServiceURI,
-  from_unixtime(truncate(unix_timestamp(Timestamp)/7200, 0)*7200) as time,
-  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  OIMR.fqdn as fqdn,
+  from_unixtime(truncate(RSVM.timestamp/7200, 0)*7200) as time,
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  MetricRecord
+  rsvextra.metricdata RSVM
+join
+  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+join
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+join
+  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility AND
-     MetricName regexp :metric
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp '.*' AND
+     OIMM.name regexp '.*'
 group by
-  ServiceURI, time
+  fqdn, time
       </sql>
       <results module="gratia.database.query_handler" function="rsv_daily_parser">
         <inputs>
@@ -177,26 +199,32 @@ group by
 
     <query name="rsv_reliability_total">
       <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
         <input name="fixed-height">False</input>
       </inputs>
       <sql>
 select
-  ServiceURI,
-  from_unixtime(truncate(unix_timestamp(Timestamp)/7200, 0)*7200) as time,
-  sum(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
-  sum(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  OIMR.fqdn as fqdn,
+  from_unixtime(truncate(RSVM.timestamp/7200, 0)*7200) as time,
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  MetricRecord
+  rsvextra.metricdata RSVM
+join
+  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+join
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+join
+  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility AND
-     MetricName regexp :metric
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp '.*' AND
+     OIMM.name regexp '.*'
 group by
-  ServiceURI, time
+  fqdn, time
       </sql>
       <results module="gratia.database.query_handler" function="rsv_total_parser"/>
       <attribute name="graph_type"/>
@@ -281,28 +309,36 @@ group by
 
     <query name="deployment_count">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="starttime" type="timestamp" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="timestamp" kind="sql">time.time()</input>
             <input name="span" kind="sql" type="int">86400</input>
             <input name="version" kind="sql">OSG-1.0.0</input>
         </inputs>
         <sql>
-        SELECT 
+        SELECT
             time, COUNT(*) as deploy_count
         FROM
             (SELECT
-                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
-                ServiceUri
-            FROM MetricRecord
+                truncate( RSVM.timestamp / :span, 0 ) * :span as time,
+                OIMR.fqdn as fqdn
+            FROM rsvextra.metricdata RSVM
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
-                DetailsData regexp :version AND
-                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-                MetricName = 'org.osg.general.osg-version'
-            GROUP BY time, ServiceUri
+                RSVMD.detail regexp :version AND
+                RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+                OIMM.name = 'org.osg.general.osg-version'
+            GROUP BY time, fqdn
             ) as foo
         GROUP BY time
         </sql>
-        <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+        <results module="graphtool.database.query_handler" function="simple_results_parser">
+          <inputs>
+            <input name="pivots"> 0 </input>
+            <input name="results"> 1 </input>
+          </inputs>
+        </results>
         <attribute name="title">Number of Deployed $version Sites</attribute>
         <attribute name="column_name">Deployed Site Count</attribute>
         <attribute name="graph_type">GratiaBar</attribute>
@@ -310,8 +346,8 @@ group by
 
     <query name="grid_deployment_count">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="starttime" type="timestamp" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="timestamp" kind="sql">time.time()</input>
             <input name="span" kind="sql" type="int">86400</input>
             <input name="version" kind="sql">OSG-1.0.0</input>
         </inputs>
@@ -320,19 +356,21 @@ group by
             grid, time, COUNT(*) as deploy_count
         FROM
             (SELECT
-                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
-                ServiceUri,
+                truncate( RSVM.timestamp / :span, 0 ) * :span as time,
+                OIMR.fqdn,
                 OIMGT.short_name as grid
-            FROM MetricRecord MR
-            JOIN oim.resource OIMR on MR.ServiceURI=OIMR.fqdn
+            FROM rsvextra.metricdata RSVM
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
             JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
             JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
-                DetailsData regexp :version AND
-                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-                MetricName = 'org.osg.general.osg-version'
-            GROUP BY time, ServiceUri, grid
+                RSVMD.detail regexp :version AND
+                RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+                OIMM.name = 'org.osg.general.osg-version'
+            GROUP BY time, fqdn, grid
             ) as foo
         GROUP BY time, grid
         </sql>
@@ -352,27 +390,35 @@ group by
 
     <query name="version_deployment_count">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="starttime" type="timestamp" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="timestamp" kind="sql">time.time()</input>
             <input name="span" kind="sql" type="int">86400</input>
             <input name="version" kind="sql">^OSG-.\..\..</input>
         </inputs>
         <sql>
+
         SELECT
             version, time, COUNT(*) as deploy_count
         FROM
             (SELECT
-                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
-                ServiceUri,
-                left(DetailsData, 9) as version
-            FROM MetricRecord
+                truncate( RSVM.timestamp / :span, 0 ) * :span as time,
+                OIMR.fqdn,
+                left(RSVMD.detail, 9) as version
+            FROM rsvextra.metricdata RSVM
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
-                DetailsData regexp :version AND
-                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-                MetricName = 'org.osg.general.osg-version'
-            GROUP BY time, ServiceUri, version
+                RSVMD.detail regexp :version AND
+                RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+                OIMM.name = 'org.osg.general.osg-version'
+            GROUP BY time, fqdn, version
             ) as foo
         GROUP BY time, version
+
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
           <inputs>
@@ -390,8 +436,8 @@ group by
 
     <query name="vdt_version_deployment_count">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="starttime" type="timestamp" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="timestamp" kind="sql">time.time()</input>
             <input name="span" kind="sql" type="int">86400</input>
             <input name="version" kind="sql">.*VDT Version</input>
             <input name="details_len" kind="sql" type="int">9</input>
@@ -401,15 +447,21 @@ group by
             version, time, COUNT(*) as deploy_count
         FROM
             (SELECT
-                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
-                ServiceUri,
-                concat('VDT-',substring(DetailsData from 44 for 7)) as version
-            FROM MetricRecord
+                truncate( RSVM.timestamp / :span, 0 ) * :span as time,
+                OIMR.fqdn,
+                concat('VDT-',substring(RSVMD.detail from 44 for 7)) as version
+            FROM rsvextra.metricdata RSVM
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
-                DetailsData regexp :version AND
-                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-                MetricName = 'org.osg.general.vdt-version'
-            GROUP BY time, ServiceUri, version
+                RSVMD.detail regexp :version AND
+                RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+                OIMM.name = 'org.osg.general.vdt-version'
+            GROUP BY time, fqdn, version
             ) as foo
         GROUP BY time, version
         </sql>
@@ -429,8 +481,8 @@ group by
 
     <query name="rsv_version_deployment_count">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="starttime" type="timestamp" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="timestamp" kind="sql">time.time()</input>
             <input name="span" kind="sql" type="int">86400</input>
             <input name="version" kind="sql">.*VDT Version</input>
             <input name="details_len" kind="sql" type="int">9</input>
@@ -440,15 +492,21 @@ group by
             version, time, COUNT(*) as deploy_count
         FROM
             (SELECT
-                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
-                ServiceUri,
-                concat('RSV-', substring(DetailsData, locate('OSG Resource and Service Validation (RSV)', DetailsData)+42, 6)) as version
-            FROM MetricRecord
+                truncate( RSVM.timestamp / :span, 0 ) * :span as time,
+                OIMR.fqdn,
+                concat('RSV-', substring(RSVMD.detail, locate('OSG Resource and Service Validation (RSV)', RSVMD.detail)+42, 6)) as version
+            FROM rsvextra.metricdata RSVM
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id 
             WHERE
-                DetailsData regexp :version AND
-                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-                MetricName = 'org.osg.general.vdt-version'
-            GROUP BY time, ServiceUri, version
+                RSVMD.detail regexp :version AND
+                RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+                OIMM.name = 'org.osg.general.vdt-version'
+            GROUP BY time, fqdn, version
             ) as foo
         GROUP BY time, version
         </sql>
@@ -468,8 +526,8 @@ group by
 
     <query name="gip_version_deployment_count">
         <inputs>
-            <input name="starttime" type="datetime" kind="sql">time.time()-60*86400</input>
-            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="starttime" type="timestamp" kind="sql">time.time()-60*86400</input>
+            <input name="endtime" type="timestamp" kind="sql">time.time()</input>
             <input name="span" kind="sql" type="int">86400</input>
             <input name="version" kind="sql">.*VDT Version</input>
             <input name="details_len" kind="sql" type="int">9</input>
@@ -479,15 +537,21 @@ group by
             version, time, COUNT(*) as deploy_count
         FROM
             (SELECT
-                truncate( unix_timestamp(Timestamp) / :span, 0 ) * :span as time,
-                ServiceUri,
-                concat('GIP-', substring(DetailsData, locate('Generic Information Provider', DetailsData)+29, 7)) as version
-            FROM MetricRecord
+                truncate( RSVM.timestamp / :span, 0 ) * :span as time,
+                OIMR.fqdn,
+                concat('GIP-', substring(RSVMD.detail, locate('Generic Information Provider', RSVMD.detail)+29, 7)) as version
+            FROM rsvextra.metricdata RSVM
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
-                DetailsData regexp :version AND
-                Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-                MetricName = 'org.osg.general.vdt-version'
-            GROUP BY time, ServiceUri, version
+                RSVMD.detail regexp :version AND
+                RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+                OIMM.name = 'org.osg.general.vdt-version'
+            GROUP BY time, fqdn, version
             ) as foo
         GROUP BY time, version
         </sql>
@@ -508,27 +572,33 @@ group by
     <query name="rsv_metric_quality">
       <inputs>
         <input name="span" type="eval" kind="sql">7200</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
         <input name="countunknown" type="int" kind="sql">0</input>
         <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
       </inputs>
       <sql>
-select
-  MetricName,
-  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
-  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN :countunknown ELSE 1 END)
+SELECT
+  OIMM.name as name,
+  from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN :countunknown ELSE 1 END)
 from
-  MetricRecord
+  rsvextra.metricdata RSVM
+join
+  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+join
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+join
+  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility AND
-     MetricName regexp :metric
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp '.*' AND
+     OIMM.name regexp '.*'
 group by
-  MetricName, time
+  name, time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -548,23 +618,25 @@ group by
     <query name="rsv_count">
       <inputs>
         <input name="span" type="eval" kind="sql">7200</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
       </inputs>
       <sql>
 select
-  ServiceURI,
-  from_unixtime(truncate(unix_timestamp(Timestamp)/:span, 0)*:span) as time,
+  OIMR.fqdn as fqdn,
+  from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
   COUNT(*)
 from
-  MetricRecord
+  rsvextra.metricdata RSVM
+join
+  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
 where
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp '.*'
 group by
-  ServiceURI, time
+  fqdn, time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -583,22 +655,24 @@ group by
 
     <query name="rsv_dist">
       <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-4*86400</input>
-        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
       </inputs>
       <sql>
 select
-  MetricStatus,
+  OIMMS.metric_status_description,
   COUNT(*)
 from
-  MetricRecord
+  rsvextra.metricdata RSVM
+join oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+join oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
 where
-     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
-     ServiceURI regexp :facility
+     RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+     OIMR.fqdn regexp '.*'
 group by
-  MetricStatus
+  OIMMS.metric_status_description
       </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -616,7 +690,7 @@ group by
     <query name="failed_tests">
         <inputs>
             <input name="span" type="eval" kind="sql">7200</input>
-            <input name="errorstart" type="datetime" kind="sql">time.time()-4*86400</input>
+            <input name="errorstart" type="timestamp" kind="sql">time.time()-4*86400</input>
             <input name="facility" kind="sql">Nebraska</input>
         </inputs>
         <sql>

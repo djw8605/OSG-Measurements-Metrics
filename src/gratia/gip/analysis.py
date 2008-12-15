@@ -27,11 +27,11 @@ def correct_sc_info(cluster, cpu, sc_info, specint):
         # very small sub clusters).
         if log_cpus in [2, 4, 8] and len(sc_info[cluster]) == 1:
             sc.glue["SubClusterLogicalCPUs"] = cpu
-        # The benchmark values are hardcoded to 400.  If the hardcoded
+        # The benchmark values are hardcoded to 400 or 2000.  If the hardcoded
         # value has not been changed, then pull it from the lookup table
         # in the config file.
         if "HostBenchmarkSI00" not in sc.glue or \
-                int(sc.glue["HostBenchmarkSI00"]) == 400:
+                (int(sc.glue["HostBenchmarkSI00"]) in [400, 2000]):
             cpu_model = sc.glue["HostProcessorModel"]
             if cpu_model not in specint:
                 raise KeyError("Unknown CPU model: %s" % cpu_model)
@@ -107,13 +107,13 @@ def ownership_info(ce_entries, cp):
         except:
             print "Unable to find cluster for CE; skipping\n%s" % ce
             continue
-        print cluster
+        #print cluster
         # Then, join the cluster to the site:
         try:
             site = join_FK(cluster, site_entries, "SiteUniqueID")
         except:
             continue
-        print site
+        #print site
         try:
             ownership[ce] = site.glue["SiteSponsor"]
             #print site.glue["SiteName"], site.glue["SiteSponsor"]
@@ -127,6 +127,8 @@ def ownership_info(ce_entries, cp):
     refined_ownership = {}
     for ce, val in ownership.items():
         val = val.lower()
+        val = val.replace('"', '')
+        val = val.replace("'", '')
         refined = []
         ctr = 0
         #print val, ownership_re.findall(val)

@@ -4,6 +4,7 @@
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/reset-fonts-grids/reset-fonts-grids.css"> 
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/base/base.css"> 
         <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/treeview/assets/skins/sam/treeview.css">
+        <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.3.1/build/autocomplete/assets/skins/sam/autocomplete.css"> 
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/button/assets/skins/sam/button.css" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/container/assets/skins/sam/container.css" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/datatable/assets/skins/sam/datatable.css"> 
@@ -21,6 +22,8 @@
         <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/element/element-beta-min.js"></script> 
         <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/datasource/datasource-beta-min.js"></script> 
         <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/datatable/datatable-beta-min.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.3.1/build/animation/animation-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.3.1/build/autocomplete/autocomplete-min.js"></script>
 
         <style>
             #expandcontractdiv {border:1px dotted #dedede; background-color:#EBE4F2; margin:0 0 .5em 0; padding:0.4em;}
@@ -66,16 +69,27 @@
             ];
             // Instantiate JS Array DataSource
             voDS = new YAHOO.widget.DS_JSArray(voArray);
-            siteDS = new YAHOO.widget.DS_JSArray(siteArray);
-            oAutoComp2 = new YAHOO.widget.AutoComplete('statesinput2','statescontainer2', this.oACDS2);
+            voDS.responseSchema = {fields: ["VO"]};
+            facilityDS = new YAHOO.widget.DS_JSArray(siteArray);
+            facilityDS.responseSchema = {fields: ["Facility"]};
+            oAutoComp2 = new YAHOO.widget.AutoComplete('customVoInput','customVoDiv', voDS);
             oAutoComp2.prehighlightClassName = "yui-ac-prehighlight";
             oAutoComp2.typeAhead = true;
             oAutoComp2.useShadow = true;
             oAutoComp2.forceSelection = true;
-            oAutoComp2.formatResult = function(oResultItem, sQuery) {
+            /*oAutoComp2.formatResult = function(oResultItem, sQuery) {
             var sMarkup = oResultItem[0] + " (" + oResultItem[1] + ")";
                 return (sMarkup);
-            };
+            };*/
+            oAutoComp2 = new YAHOO.widget.AutoComplete('customFacilityInput','customFacilityDiv', facilityDS);
+            oAutoComp2.prehighlightClassName = "yui-ac-prehighlight";
+            oAutoComp2.typeAhead = true;
+            oAutoComp2.useShadow = true;
+            oAutoComp2.forceSelection = true;
+            /*oAutoComp2.formatResult = function(oResultItem, sQuery) {
+            var sMarkup = oResultItem[0];
+                return (sMarkup);
+            };*/
         }
 
 YAHOO.namespace("gratia.customize");
@@ -118,6 +132,7 @@ function dialogInit() {
         function allInit() {
             treeInit();
             dialogInit();
+            //autoCompleteInit();
         }
 
 	YAHOO.util.Event.onDOMReady(allInit);
@@ -153,12 +168,25 @@ function dialogInit() {
 <div class="bd">
     <form method="GET" action="$base_url/bysite">
         <p>Specify a site, or pick a set of sites.</p>
-	<label for="facility">Site Filter: </label><input type="textbox" name="facility" />
+	<label for="facility">Site Filter: </label><input type="textbox" name="facility" id="customFacilityInput"/><div id="customFacilityDiv" style="position: absolute;"/>
         <label for="facility_set">Facility Sets:</label>
+        <select name="facility_set">
+          <option value="">Select a pre-defined set</option>
+            #for key, val in $site_sets.items()
+              <option value="$key">$key</option>
+            #end for
+        </select>
         <div class="clear"></div>
         <p>Specify a VO, or pick a set of VOs.</p>
-	<label for="vo">VO Filter: </label><input type="textbox" name="vo" />
+        
+	<label for="vo">VO Filter: </label><input type="textbox" name="vo" id="customVoInput"/><div id="customVoDiv" style="position: absolute;"/>
         <label for="vo_set">VO Sets: </label>
+        <select name="vo_set">
+            <option value="">Select a pre-defined set</option>
+            #for key, val in $vo_sets.items()
+              <option value="$key">$key</option>
+            #end for
+        </select>
         <div class="clear"></div>
 	<label for="grouping">Grouping:</label>
 	<input type="radio" name="grouping[]" value="site" checked/> By Site

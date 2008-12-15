@@ -50,6 +50,13 @@ def displayName(*args, **kw):
         proper += parts[0].upper() + parts[1:].lower() + ' '
     return proper[:-1]
 
+def displayNameSite(*args, **kw):
+    site = args[1]
+    dn = displayName(*args, **kw)
+    if not dn:
+        return
+    return "%s @ %s" % (dn, site)
+
 model_re = re.compile("model='(.*)'")
 def model_parser(pivot, **kw):
     m = model_re.search(pivot)

@@ -62,6 +62,60 @@
         <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>
 
+    <query name="osg_avail_size" base="GratiaGenericQuery.master_summary">
+        <inputs>
+            <input name="span" type="eval" kind="sql">7*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="exclude-DN" kind="sql">Igor Sfiligoi 673872</input>
+            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID </input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
+        </sql>
+        <results module="gratia.database.metrics" function="site_size_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="title"> Facility size by week </attribute>
+        <attribute name="pivot_name"> Facility </attribute>
+        <attribute name="column_names"> Size Estimate </attribute>
+        <attribute name="column_units"> cores </attribute>
+        <attribute name="graph_type"> GratiaStackedBar </attribute>
+    </query>
+
+    <query name="osg_avail_size_summary" base="GratiaGenericQuery.master_summary">
+        <inputs>
+            <input name="span" type="eval" kind="sql">4*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="exclude-DN" kind="sql">Igor Sfiligoi 673872</input>
+            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID </input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
+        </sql>
+        <results module="gratia.database.metrics" function="site_size_parser2">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="title"> OSG Facility Proven Size </attribute>
+        <attribute name="pivot_name"> Facility </attribute>
+        <attribute name="column_names"> Size Estimate </attribute>
+        <attribute name="column_units"> cores </attribute>
+        <attribute name="graph_type"> GratiaPie </attribute>
+    </query>
+
     <query name="facility_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> S.SiteName </filler>
@@ -77,6 +131,55 @@
         </inputs>
       </results>
     </query>
+
+    <query name="monthly_facility_hours" base="GratiaGenericQuery.monthly_master_summary">
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">Monthly Wall Hours per Facility</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="monthly_vo_hours" base="GratiaGenericQuery.monthly_master_summary">
+      <sql>
+      <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">Monthly Wall Hours per VO</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="monthly_vo_cpu_hours" base="GratiaGenericQuery.monthly_master_summary">
+      <sql>
+      <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">Monthly CPU Hours per VO</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+    
 
     <query name="facility_cpu_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
@@ -524,6 +627,28 @@
         <attribute name="pivot_name">User</attribute>
         <attribute name="grouping_name">Time</attribute>
         <attribute name="title">Daily Wasted Hours By User</attribute>
+        <attribute name="column_names">Wasted Time</attribute>
+        <attribute name="column_units">Hours</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
+    <query name="failed_dn_site_hours_bar" base="GratiaGenericQuery.master_summary">
+        <sql>   
+            <filler name="group"> COALESCE(R.CommonName, VO.VOName), S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 AND R.ApplicationExitCode != 0 </filler>
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0,1 </input>
+                <input name="grouping"> 2 </input>
+                <input name="results"> 3 </input>
+                <input name="pivot_transform">displayNameSite</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">User</attribute> 
+        <attribute name="grouping_name">Time</attribute>
+        <attribute name="title">Daily Wasted Hours By User and Site</attribute>
         <attribute name="column_names">Wasted Time</attribute>
         <attribute name="column_units">Hours</attribute>
         <attribute name="graph_type">GratiaStackedBar</attribute>

@@ -22,9 +22,12 @@ from auth import Authenticate
 from navigate import Navigation
 from wlcg_reporting import WLCGReporter
 from jot_reporting import JOTReporter
+from vo_installed_capacity import VOInstalledCapacity
 from subcluster_report import SubclusterReport
+from gratia_reporting import GratiaReporter
 
-class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
+class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
+        GratiaReporter, WLCGReporter, Navigation):
 
     def __init__(self, *args, **kw):
         super(Gratia, self).__init__(*args, **kw)
@@ -41,12 +44,20 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         self.byvo = self.template('byvo.tmpl')(self.byvo)
         self.monbyvo = self.template('monbyvo.tmpl')(self.monbyvo)
         self.monbysite = self.template('monbysite.tmpl')(self.monbysite)
-        self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(self.apel_data)
+        self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(\
+            self.apel_data)
         self.jot_reporting = self.template('jot_uslhc.tmpl')(self.uslhc_table)
-        self.cpu_normalization = self.template('cpu_normalization.tmpl')(self.cpu_normalization)
-        self.email_lookup = self.template('email_lookup.tmpl')(self.email_lookup)
-        self.email_lookup_xml = self.plain_template('email_lookup_xml.tmpl', content_type='text/xml')(self.email_lookup_xml)
+        self.cpu_normalization = self.template('cpu_normalization.tmpl')(\
+            self.cpu_normalization)
+        self.email_lookup = self.template('email_lookup.tmpl')(\
+            self.email_lookup)
+        self.email_lookup_xml = self.plain_template('email_lookup_xml.tmpl',
+            content_type='text/xml')(self.email_lookup_xml)
         self.subclusters = self.template('subcluster.tmpl')(self.subclusters)
+        self.installed = self.template('installed_capacity.tmpl')\
+            (self.site_table)
+        self.site_report = self.template('gratia_site_report.tmpl')\
+            (self.site_report)
 
         self._cp_config ={}
         self.index = self.overview
@@ -103,16 +114,17 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, WLCGReporter, Navigation):
         if len(filter_dict.get('facility', '')) == 0 and 'facility_set' in \
                 filter_dict:
             try:
-                filter_dict['facility'] = self.site_sets[\
-                    filter_dict['facility_set']]
+                filter_dict['facility'] = '|'.join(self.site_sets[\
+                    filter_dict['facility_set']])
             except:
                 raise ValueError("Unknown facility set: %s." % \
                     filter_dict['facility_set'])
+        print filter_dict
         if len(filter_dict.get('vo', '')) == 0 and 'vo_set' in \
                 filter_dict:
             try:
-                filter_dict['vo'] = self.site_sets[\
-                    filter_dict['vo_set']]
+                filter_dict['vo'] = '|'.join(self.site_sets[\
+                    filter_dict['vo_set']])
             except:
                 raise ValueError("Unknown VO set: %s." % \
                     filter_dict['vo_set'])

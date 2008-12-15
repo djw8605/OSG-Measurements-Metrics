@@ -199,13 +199,15 @@ class JOTReporter(Authenticate):
             'GVVAI/js/lib/sam-demo.php')
         params = {\
             'summary_period': 'monthly',
-            'value_fields': 'availability,reliability',
+            'value_fields': 'availability,reliability,unknown',
             'start_time': '%i-%i-%iT00:00:00Z' % (year, month, 1),
             'end_time': '%i-%i-%iT00:00:01Z' % (year, month, 1),
             'VO_name[]': 'ops',
             'Region_name': 'OpenScienceGrid',
         }
-        data = urllib2.urlopen(url + '?' + urllib.urlencode(params))
+        full_url = url + '?' + urllib.urlencode(params)
+        print full_url
+        data = urllib2.urlopen(full_url)
         dom = parse(data)
         gridview_data = {}
         for site_dom in dom.getElementsByTagName('Site'):
@@ -220,6 +222,13 @@ class JOTReporter(Authenticate):
                     continue
             if val != None:
                 gridview_data[name][1] = val
+            for value_dom in site_dom.getElementsByTagName('unknown'):
+                try: 
+                    val = float(str(value_dom.firstChild.data))
+                except:
+                    continue
+            if val != None and val < gridview_data[name][1]:
+                gridview_data[name][1] += val
             for value_dom in site_dom.getElementsByTagName('reliability'):
                 try:
                     val = float(str(value_dom.firstChild.data))

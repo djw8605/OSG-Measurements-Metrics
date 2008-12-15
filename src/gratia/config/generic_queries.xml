@@ -170,6 +170,63 @@
         <attribute name="column_units" />
     </query>
 
+    <query name="monthly_master_summary">
+        <inputs>
+            <input name="span" type="int" kind="sql">2592000</input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-12*31*86400</input>
+            <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql"> .* </input>
+            <input name="probe" kind="sql"> .* </input>
+            <input name="vo" kind="sql"> .* </input>
+            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE </input>
+        </inputs>
+        <sql>
+            SELECT
+                <slot name="group"/>,
+                unix_timestamp(date_format(EndTime, "%%Y-%%m-01 00:00:00")) as time,
+                <slot name="column"/>
+            FROM
+                MasterSummaryData R
+            JOIN
+                Probe P on R.ProbeName = P.probename
+            JOIN
+                Site S on S.siteid = P.siteid
+            JOIN
+                VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+            JOIN
+                VO on (VC.void = VO.void)
+            <slot name="join"/> 
+            WHERE
+                R.EndTime &gt;= :starttime AND
+                R.EndTime &lt; :endtime AND
+                S.SiteName regexp :facility AND
+                VO.VOName regexp :vo AND
+                R.ResourceType = 'Batch' AND
+                (NOT (S.SiteName regexp :exclude-facility)) AND
+                (NOT (VO.VOName regexp :exclude-vo)) AND
+                R.WallDuration &lt; 1100000000 AND
+                R.ProbeName regexp :probe
+                <slot name="where"/>
+            GROUP BY 
+                <slot name="group"/>,
+                time
+            <slot name="having"/>
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+        <attribute name="pivot_name" />
+        <attribute name="title" />
+        <attribute name="column_names" />
+        <attribute name="column_units" />
+    </query>
+
     <query name="simple_summary">
         <inputs>
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
@@ -404,6 +461,7 @@
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
         <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
       </inputs>
       <sql>
 select
@@ -428,6 +486,7 @@ join site_info s on foo.hostName=s.cename
 where 
   s.sitename regexp :facility AND
   NOT (s.sitename regexp :excludefacility)
+  AND NOT (s.cename regexp :excludehost)
 group by myGroup, time) as foo2
 group by
   myGroup
@@ -445,6 +504,7 @@ group by
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
         <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
       </inputs>
       <sql>
 select
@@ -467,6 +527,7 @@ join site_info s on foo.hostName=s.cename
 where
   s.sitename regexp :facility AND
   NOT (s.sitename regexp :excludefacility)
+  AND NOT (s.cename regexp :excludehost)
 group by
   hostName
       </sql>
@@ -482,6 +543,7 @@ group by
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
       </inputs>
       <sql>
 select
@@ -502,7 +564,8 @@ from
 join site_info s on foo.hostName=s.cename
 where
   s.sitename regexp :facility AND
-  NOT (s.sitename regexp :excludefacility)
+  NOT (s.sitename regexp :excludefacility) AND
+  NOT (s.cename regexp :excludehost)
 group by
   hostName
       </sql>
@@ -520,6 +583,7 @@ group by
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
         <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
       </inputs>
       <sql>
 select
@@ -545,6 +609,7 @@ join site_info s on foo.hostName=s.cename
 where
   s.sitename regexp :facility AND
   NOT (s.sitename regexp :excludefacility)
+  AND NOT (s.cename regexp :excludehost)
 group by time, myGroup
 ) as foo2
 group by
@@ -573,6 +638,7 @@ group by
         <input name="vo" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
         <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
       </inputs>
       <sql>
 select
@@ -596,6 +662,7 @@ join site_info s on foo.hostName=s.cename
 where
   s.sitename regexp :facility AND
   NOT (s.sitename regexp :excludefacility)
+  AND NOT (s.cename regexp :excludehost)
 group by
   time,
   hostName
@@ -621,6 +688,7 @@ group by
               <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
       </inputs>
       <sql>
 select
@@ -644,6 +712,7 @@ join site_info s on foo.hostName=s.cename
 where 
   s.sitename regexp :facility AND
   NOT (s.sitename regexp :excludefacility)
+  AND NOT (s.cename regexp :excludehost)
 group by
   time,
   hostName
@@ -710,6 +779,32 @@ group by
       <attribute name="column_names" />
       <attribute name="column_units" />
     </query>
+
+<!--
+    <query name="transfer_summary">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+        SELECT
+          <slot name="group"/>
+          truncate(unix_timestamp(EndTime) / :span, 0 ) * :span as time,
+          <slot name="column"/>
+        FROM
+          MasterTransferSummary
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime%&lt; :endtime
+      </sql>
+    </query>
+-->
 
     <query name="summary">
       <inputs>

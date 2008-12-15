@@ -94,6 +94,30 @@
         <attribute name="column_units"> k Hours </attribute>
     </query>
 
+    <query name="site_report" base="GratiaGenericQuery.simple_master_summary">
+        <sql>
+            <filler name="group">S.SiteName</filler>
+            <filler name="column">
+              sum(CASE when ApplicationExitCode=0 THEN WallDuration ELSE 0 END)/sum(WallDuration)*100,
+              sum(CASE when ApplicationExitCode=0 THEN WallDuration ELSE 0 END)/3600,
+              sum(CASE when ApplicationExitCode!=0 THEN WallDuration ELSE 0 END)/3600,
+              sum(CASE when ApplicationExitCode=0 THEN Njobs ELSE 0 END)/sum(Njobs)*100,
+              sum(CASE when ApplicationExitCode=0 THEN Njobs ELSE 0 END),
+              sum(CASE when ApplicationExitCode!=0 THEN Njobs ELSE 0 END)
+            </filler>
+        </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots">0 </input>
+                <input name="results">1,2,3,4,5,6</input>
+            </inputs>
+        </results>
+        <attribute name="graph_type"/>
+        <attribute name="title">Site Wall Clock Report</attribute>
+        <attribute name="column_names"> Wall Success Rate, Wall Success, Wall Failed, Success Rate, Success, Failed</attribute>
+        <attribute name="column_units">%, Hours, Hours, %, Jobs, Jobs</attribute>
+    </query>
+
   </class>
 
 </graphtool-config>
