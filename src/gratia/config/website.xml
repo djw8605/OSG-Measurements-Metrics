@@ -6,6 +6,7 @@
   <import module="gratia.web">Gratia</import>
   <import module="gratia.config" data_file="gratia_graphs.xml" />
   <import module="gratia.config" data_file="text_queries.xml" />
+  <import module="gratia.config" data_file="vo_ownership_queries.xml"/>
 
   <class name="LogLoader" type="GraphToolLogging">
     <log module="gratia.config">logging.conf</log>

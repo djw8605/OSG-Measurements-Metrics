@@ -2,8 +2,8 @@
 
     <import module="graphtool.web.security">*</import>
 
-    <import file="$HOME/dbinfo/DBSecurity.xml" />
-    <import file="$HOME/dbinfo/DBParam.xml" />
+    <import file="$DBSECURITY_LOCATION" />
+    <import file="$DBPARAM_LOCATION" />
 
     <class type="Security" name="GratiaSecurity">
 

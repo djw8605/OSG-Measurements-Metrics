@@ -11,11 +11,17 @@ export LANG=C
 export ARGS=''
 export USER='daemon'
 export HOME=/tmp
+export DBPARAM_LOCATION=/etc/DBParam.xml
 
-export CMD="make_daemon_grata --user=$USER --cmdName=GratiaBasicWeb --cmd=/usr/bin/gratia_basic_web --args=$ARGS"
+export CMD="make_daemon_gratia --user=$USER --cmdName=GratiaBasicWeb --cmd=/usr/bin/gratia_basic_web --args=$ARGS --redirect=/var/log/GratiaWeb.log"
 
 case "$1" in
   start)
+        if [ ! -e /var/log/GratiaWeb.log ]; then
+            touch /var/log/GratiaWeb.log
+        fi
+        chown $USER /var/log/GratiaWeb.log
+
         if [ ! -e /var/log/GratiaWeb-access.log ]; then
             touch /var/log/GratiaWeb-access.log
         fi

@@ -1,12 +1,14 @@
 <graphtool-config>
 
+  <import module="gratia.config" data_file="generic_gip_queries.xml" />
+  
   <import module="gratia.database.query_handler">*</import>
 
   <import module="graphtool.database.queries">SqlQueries</import>
   <import module="graphtool.database.query_handler">*</import>
   <import module="time"/>
 
-  <import file="$HOME/dbinfo/DBParam.xml" />
+  <import file="$DBPARAM_LOCATION" />
 
   <class type="SqlQueries" name="GIPQueries">
 

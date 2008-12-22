@@ -1,7 +1,6 @@
 <graphtool-config>
 
   <import module="gratia.config" data_file="generic_queries.xml" />
-  <import module="gratia.config" data_file="vo_ownership_queries.xml"/>
 
   <class type="SqlQueries" name="GratiaBarQueries">
 

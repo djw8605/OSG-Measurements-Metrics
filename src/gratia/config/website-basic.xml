@@ -21,7 +21,7 @@
     <mount location="/gratia/xml" content="text/xml"> <instance name="query_xml" /> </mount>
     <mount location="/gratia/csv" content="text/plain"> <instance name="query_csv" /> </mount>
     <instance name="static" location="/gratia/static" />
-    <config module="gratia.config">prod.conf</config>
+    <config module="gratia.config">prod-basic.conf</config>
   </class>
 
 </graphtool-config>

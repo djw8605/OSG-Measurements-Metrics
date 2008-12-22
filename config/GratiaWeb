@@ -11,8 +11,10 @@ export LANG=C
 export ARGS=''
 export USER='daemon'
 export HOME=/tmp
+export DBPARAM_LOCATION=/etc/DBParam.xml
+export DBSECURITY_LOCATION=/etc/DBParam.xml
 
-export CMD="make_daemon_grata --user=$USER --cmdName=GratiaWeb --cmd=/usr/bin/gratia_web --args=$ARGS"
+export CMD="make_daemon_gratia --user=$USER --cmdName=GratiaWeb --cmd=/usr/bin/gratia_web --args=$ARGS"
 
 case "$1" in
   start)

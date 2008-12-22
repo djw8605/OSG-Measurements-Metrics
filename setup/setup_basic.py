@@ -1,11 +1,8 @@
 
-import ez_setup
-ez_setup.use_setuptools()
-
 from setuptools import setup, find_packages
 
 setup(name="AccountingView",
-      version="0.1",
+      version="0.1.1",
       author="Brian Bockelman",
       author_email="bbockelm@math.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
@@ -37,7 +34,7 @@ setup(name="AccountingView",
 
       data_files=[
           ('/etc/init.d', ['config/GratiaBasicWeb']),
-          ('/etc/', ['config/DBParam.xml.rpmnew']),
+          ('/etc/', ['config/DBParam_basic.xml.rpmnew']),
       ],
 
       namespace_packages = ['gratia']

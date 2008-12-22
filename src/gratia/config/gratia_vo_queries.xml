@@ -1,6 +1,6 @@
 <graphtool-config>
     
-  <import module="gratia.config" data_file="generic_queries.xml" />
+  <import module="gratia.config" data_file="generic_secure_queries.xml" />
         
   <class type="SqlQueries" name="GratiaVoBarQueries">
         
@@ -8,7 +8,7 @@
       
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
-    <query name="vo_user_quality" base="GratiaStorageQuery.vo_summary">
+    <query name="vo_user_quality" base="GratiaSecureStorageQuery.vo_summary">
         <sql>
             <filler name="group"> DN </filler>
             <filler name="column">

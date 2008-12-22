@@ -1,0 +1,125 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/> 
+  <import file="$DBPARAM_LOCATION" />
+ 
+  <import module="gratia.config" data_file="security.xml" />
+  <import module="gratia.config" data_file="vo_ownership_queries.xml"/>
+
+  <class type="SqlQueries" name="GratiaSecureStorageQuery">
+
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <aggregate>
+      <connection> gratia-itb </connection>
+    </aggregate>
+
+    <query name="user_summary">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+        <input name="dn" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
+          SiteName regexp :facility AND
+          VO regexp :vo AND
+          DN=:dn AND
+          (NOT (VO regexp :exclude-vo)) AND
+          (NOT (SiteName regexp :exclude-facility)) AND
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+    </query>
+
+    <query name="vo_summary">
+      <inputs>
+        <input name="span" type="int" kind="sql">3600</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> Unknown </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+       SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
+          <slot name="column"/>
+        FROM
+          DataTransferRecord
+        <slot name="JOIN"/>
+        WHERE
+          EndTime &gt;= :starttime AND
+          EndTime &lt; :endtime AND
+          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
+          SiteName regexp :facility AND
+          VO=:vo AND
+          (NOT (VO regexp :exclude-facility))
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>
+
+
