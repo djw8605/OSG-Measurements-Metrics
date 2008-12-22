@@ -47,6 +47,7 @@
     <mount location="/gratia_dev/rsv_wlcg_graphs" content="image/png"> <instance name="rsv_wlcg_grapher" /> </mount>
     <mount location="/gratia_dev/xml" content="text/xml"> <instance name="query_xml" /> </mount>
     <mount location="/gratia_dev/csv" content="text/plain"> <instance name="query_csv" /> </mount>
+    <mount location="/gratia_dev/csv2" content="text/plain"> <instance name="query_csv_secure"/></mount>
     <mount location="/gratia_dev/site_xml" content="text/xml"> <instance name="site_xml"/> </mount>
     <mount location="/gratia_dev/vo_xml" content="text/xml"> <instance name="vo_xml"/> </mount>
     <mount location="/gratia_dev/user_xml" content="text/xml"> <instance name="user_xml"/> </mount>

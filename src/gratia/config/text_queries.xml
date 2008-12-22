@@ -63,4 +63,11 @@
     <queryobj> RSVSummaryQueries </queryobj>
   </class>
 
+  <class type="CsvGenerator" name="query_csv_secure">
+      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="authtype">site_ownership</attribute>
+      <attribute name="access">facility</attribute>
+      <queryobj> RSVSecureQueries </queryobj>
+  </class>
+
 </graphtool-config>

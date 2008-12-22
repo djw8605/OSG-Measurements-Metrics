@@ -1,0 +1,29 @@
+
+<graphtool-config>
+
+  <import module="graphtool.base.logger">GraphToolLogging</import>
+  <import module="graphtool.web"> WebHost, StaticContent </import>
+  <import module="gratia.web">Gratia</import>
+  <import module="gratia.config" data_file="gratia_graphs_basic.xml" />
+  <import module="gratia.config" data_file="text_queries_basic.xml" />
+
+  <class name="LogLoader" type="GraphToolLogging">
+    <log module="gratia.config">logging.conf</log>
+  </class>
+
+  <class name="static" type="StaticContent">
+    <module name="content"> graphtool.static_content </module>
+  </class>
+
+  <class name="web" type="WebHost">
+    <mount location="/gratia_dev/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
+    <mount location="/gratia_dev/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
+    <mount location="/gratia_dev/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
+    <mount location="/gratia_dev/xml" content="text/xml"> <instance name="query_xml" /> </mount>
+    <mount location="/gratia_dev/csv" content="text/plain"> <instance name="query_csv" /> </mount>
+    <instance name="static" location="/gratia_dev/static" />
+    <config module="gratia.config">development.conf</config>
+  </class>
+
+</graphtool-config>
+

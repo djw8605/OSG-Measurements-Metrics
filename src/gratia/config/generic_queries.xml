@@ -67,7 +67,7 @@
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
-            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
         </inputs>
         <sql>
@@ -121,7 +121,7 @@
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
-            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
         </inputs>
         <sql>
@@ -178,7 +178,7 @@
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
-            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
         </inputs>
         <sql>
@@ -234,7 +234,7 @@
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
-            <input name="exclude-vo" kind="sql"> NONE </input>
+            <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
         </inputs>
         <sql>
@@ -283,7 +283,7 @@
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input> 
         <input name="user" kind="sql"> .* </input> 
       </inputs>
@@ -340,7 +340,7 @@
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input>
         <input name="probe" kind="sql"> .* </input>
       </inputs>
@@ -398,7 +398,7 @@
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input>
         <input name="probe" kind="sql"> .* </input>
       </inputs>
@@ -813,7 +813,7 @@ group by
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input>
       </inputs>
       <sql>
@@ -859,7 +859,7 @@ group by
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> Unknown </input>
         <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="user" kind="sql"> .* </input>
         <input name="exclude-dn" kind="sql"> NONE </input>
         <input name="limit" type="int" kind="sql"> 20 </input>
@@ -896,7 +896,7 @@ group by
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> Unknown </input>
         <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="user" kind="sql"> .* </input>
       </inputs>
       <sql>
@@ -943,7 +943,7 @@ group by
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input>
         <input name="dn" kind="sql"> NONE </input>
       </inputs>

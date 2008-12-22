@@ -8,6 +8,36 @@
 
   <import file="$HOME/dbinfo/DBParam.xml" />
 
+  <class type="SqlQueries" name="RSVSecureQueries">
+
+    <attribute name="display_name"> RSV Graphs </attribute>
+    <attribute name="connection_manager"> RSVConnMan </attribute>
+
+    <query name="admins">
+        <sql>
+select OIMR.name, OIMP.first_name + " " + OIMP.last_name as name, OIMP.primary_email
+FROM oim.resource OIMR
+JOIN oim.resource_contact OIMRC on OIMRC.resource_id = OIMR.resource_id
+JOIN oim.person OIMP on OIMP.person_id = OIMRC.person_id
+GROUP BY OIMR.name, name
+</sql>
+            <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+            <input name="grouping_transform">make_string</input>
+          <input name="results"> 2 </input>
+        </inputs>
+</results>
+<attribute name="pivot_name">Resource</attribute>
+<attribute name="grouping_name">Person</attribute>
+<attribute name="column_names">Email</attribute>
+            <attribute name="graph_type"/>
+            <attribute name="title">OIM Site Admin Contacts</attribute>
+    </query>
+
+  </class>
+
   <class type="SqlQueries" name="RSVQueries">
 
     <attribute name="display_name"> RSV Graphs </attribute>
@@ -177,8 +207,8 @@ join
   oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
-     OIMR.fqdn regexp '.*' AND
-     OIMM.name regexp '.*'
+     OIMR.fqdn regexp :facility AND
+     OIMM.name regexp :metric
 group by
   fqdn, time
       </sql>
@@ -221,8 +251,8 @@ join
   oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
-     OIMR.fqdn regexp '.*' AND
-     OIMM.name regexp '.*'
+     OIMR.fqdn regexp :facility AND
+     OIMM.name regexp :metric
 group by
   fqdn, time
       </sql>
@@ -595,8 +625,8 @@ join
   oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
-     OIMR.fqdn regexp '.*' AND
-     OIMM.name regexp '.*'
+     OIMR.fqdn regexp :facility AND
+     OIMM.name regexp :metric
 group by
   name, time
       </sql>
@@ -634,7 +664,7 @@ join
   oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
-     OIMR.fqdn regexp '.*'
+     OIMR.fqdn regexp :facility
 group by
   fqdn, time
       </sql>
@@ -670,7 +700,7 @@ join oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
 join oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
-     OIMR.fqdn regexp '.*'
+     OIMR.fqdn regexp :facility
 group by
   OIMMS.metric_status_description
       </sql>

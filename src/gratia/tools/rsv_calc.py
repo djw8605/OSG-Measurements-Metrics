@@ -3,6 +3,7 @@ import optparse
 import datetime
 
 from graphtool.base.xml_config import XmlConfig
+from graphtool.tools.common import convert_to_datetime
 
 from pkg_resources import resource_filename
 
@@ -110,18 +111,21 @@ def upload_data(times, rsv, conn, interval, endTimeFunc):
     curs.execute('set time_zone="+00:00"')
     for starttime in times:
         endtime = endTimeFunc(starttime)
-        resources = query_rsv(rsv, 'rsv_sam_reliability', starttime,
-            endtime)
+        resources = query_rsv(rsv, 'rsv_sam_reliability',
+            convert_to_datetime(starttime),
+            convert_to_datetime(endtime))
+        print "query sites"
         sites = query_rsv_site(rsv, 'wlcg_site_reliability', starttime,
             endtime)
+        print "insert data"
         for site in sites:
             insert_data(curs, name=site, resource_type='site',
-                time_length=interval, starttime=starttime, endtime=endtime,
-                **sites[site])
+                time_length=interval, starttime=convert_to_datetime(starttime),
+                endtime=convert_to_datetime(endtime), **sites[site])
         for resource in resources:
             insert_data(curs, name=resource, resource_type='resource',
-                time_length=interval, starttime=starttime, endtime=endtime,
-                **resources[resource])
+                time_length=interval, starttime=convert_to_datetime(starttime),
+                endtime=convert_to_datetime(endtime), **resources[resource])
     conn.commit()
 
 def upload_hours(times, rsv, conn):

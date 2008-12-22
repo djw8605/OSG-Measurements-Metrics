@@ -1,0 +1,26 @@
+<graphtool-config>
+
+  <import module="gratia.config" data_file="gratia_pie_queries.xml" />
+  <import module="gratia.config" data_file="gratia_bar_queries.xml" />
+  <import module="gratia.config" data_file="gratia_cumulative_queries.xml" />
+
+  <import module="graphtool.tools.query_output">XmlGenerator</import>
+  <import module="graphtool.tools.csv_output">CsvGenerator</import>
+
+  <class type="XmlGenerator" name="query_xml">
+    <queryobj> GratiaDataQueries </queryobj>
+    <queryobj> GratiaPieQueries </queryobj>
+    <queryobj> GratiaBarQueries </queryobj>
+    <queryobj> GratiaTransferQueries </queryobj>
+    <queryobj> GratiaCumulativeQueries </queryobj>
+  </class>
+
+  <class type="CsvGenerator" name="query_csv">
+    <queryobj> GratiaDataQueries </queryobj>
+    <queryobj> GratiaPieQueries </queryobj>
+    <queryobj> GratiaBarQueries </queryobj>
+    <queryobj> GratiaTransferQueries </queryobj>
+    <queryobj> GratiaCumulativeQueries </queryobj>
+  </class>
+
+</graphtool-config>

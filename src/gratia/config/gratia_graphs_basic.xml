@@ -1,0 +1,31 @@
+<graphtool-config>
+
+  <import module="graphtool.graphs.graph"> Grapher </import>
+  <import module="gratia.config" data_file="gratia_pie_queries.xml" />
+  <import module="gratia.config" data_file="gratia_bar_queries.xml" />
+  <import module="gratia.config" data_file="gratia_transfer_queries.xml" />
+  <import module="gratia.config" data_file="gratia_site_queries.xml"/>
+  <import module="gratia.config" data_file="gratia_cumulative_queries.xml" />
+  <import module="gratia.graphs.gratia_graphs">*</import>
+
+  <class type="Grapher" name="gratia_pie_grapher">
+    <attribute name="display_name"> Pie Graphs </attribute>
+    <queryobj> GratiaPieQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_bar_grapher">
+    <attribute name="display_name"> Bar Graphs </attribute>
+    <queryobj> GratiaBarQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_transfer_grapher">
+    <attribute name="display_name"> Transfer Bar Graphs </attribute>
+    <queryobj> GratiaTransferQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_cumulative_grapher">
+    <attribute name="display_name"> Cumulative Graphs </attribute>
+    <queryobj> GratiaCumulativeQueries </queryobj>
+  </class>
+
+</graphtool-config>
