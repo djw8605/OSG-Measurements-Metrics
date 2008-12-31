@@ -61,6 +61,52 @@
         <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>
 
+    <query name="osg_weekly_cpus" base="GratiaGenericQuery.jobs_summary_query">
+        <inputs>
+            <input name="span" type="eval" kind="sql">7*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>           
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/:span </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+        <attribute name="title"> Average Facility CPUs per Week </attribute>
+        <attribute name="pivot_name"> Facility </attribute>
+        <attribute name="column_names"> Average CPUs Occupied </attribute>
+        <attribute name="column_units"/>
+        <attribute name="graph_type"> GratiaStackedBar </attribute>
+    </query>    
+
+    <query name="osg_size" base="GratiaGenericQuery.jobs_summary_query">
+        <inputs>
+            <input name="span" type="eval" kind="sql">7*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input> 
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="normalize">True</input>
+            <input name="croptime">True</input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/:span </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+      <results module="gratia.database.metrics" function="osg_size">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaSize </attribute>
+      <attribute name="title"> Measure of OSG Size </attribute>
+      <attribute name="pivot_name"> Facility </attribute>
+      <attribute name="column_names"> Average CPUs Occupied </attribute>
+      <attribute name="column_units"/>
+    </query>
+
     <query name="osg_avail_size" base="GratiaGenericQuery.master_summary">
         <inputs>
             <input name="span" type="eval" kind="sql">7*86400</input>

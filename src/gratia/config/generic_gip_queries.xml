@@ -259,14 +259,14 @@ from
   (select
      time,
      hostName,
-     sum(<slot name="column"/>) as myStat
+     sum(<slot name="column"/>) as myStat,
+     lrmsType, lrmsVersion
    from
      ce_info
-   join site_info s on ce_info.hostName=s.cename
    where
      time &gt;= :starttime AND time &lt; :endtime
    group by
-     time, hostName
+     time, hostName, lrmsType, lrmsVersion
   ) as foo 
 join site_info s on foo.hostName=s.cename
 where 

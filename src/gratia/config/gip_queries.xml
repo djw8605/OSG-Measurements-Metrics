@@ -3,6 +3,7 @@
   <import module="gratia.config" data_file="generic_gip_queries.xml" />
   
   <import module="gratia.database.query_handler">*</import>
+  <import module="gratia.database.metrics">*</import>
 
   <import module="graphtool.database.queries">SqlQueries</import>
   <import module="graphtool.database.query_handler">*</import>
@@ -224,6 +225,47 @@
       <attribute name="column_names">Total CPUs</attribute>
     </query>
 
+    <query name="gip_site_size" base="GipGeneric.ce_info_ts">
+      <inputs>
+        <input name="span" type="eval" kind="sql">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-365*86400</input>
+      </inputs>
+      <sql>
+        <filler name="column">totalCpus</filler>
+      </sql>
+      <attribute name="title">Size of Facility Over Time</attribute>
+      <attribute name="column_names">Total CPUs</attribute>
+      <results module="gratia.database.metrics" function="gip_size_parser">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="gip_site_size_rt" base="GipGeneric.ce_info_ts">
+      <inputs>
+        <input name="span" type="eval" kind="sql">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-365*86400</input>
+      </inputs>
+      <sql>
+        <filler name="column">totalCpus</filler>
+      </sql>
+      <attribute name="title">Current Size of Facility</attribute>
+      <attribute name="column_names">Total CPUs</attribute>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <results module="gratia.database.metrics" function="gip_size_parser2">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="se_space_free">
       <inputs>
           <input name="span" kind="sql">86400</input>
@@ -378,6 +420,87 @@
       <attribute name="column_units">GB</attribute>
     </query>
 
+    <query name="subcluster_score_ts">
+      <inputs>
+        <input name="span" type="eval" kind="sql">7*86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52 </input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(timestamp)/:span, 0)*:span as time,
+  cluster,
+  sum(ncores * si2k_score)/sum(CASE WHEN ncores=0 THEN 1 ELSE ncores END)/1000
+from
+  subcluster_score ss
+join site_info s on ss.cluster=s.cename
+where
+  timestamp &gt;= :starttime AND timestamp &lt; :endtime AND
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+  AND NOT (s.cename regexp :excludehost)
+group by
+     time, cluster
+      </sql>
+      <results module="gratia.database.metrics" function="gip_subcluster_score">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="title"> Average Facility kSI2K Score Over Time </attribute>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
+      <attribute name="croptime">True</attribute>
+    </query>
+
+    <query name="subcluster_score_ts2">
+      <inputs>
+        <input name="span" type="eval" kind="sql">7*86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52 </input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
+        <input name="excludehost" kind="sql">gpn-husker.unl.edu</input>
+      </inputs>
+      <sql>
+select
+  truncate(unix_timestamp(timestamp)/:span, 0)*:span as time,
+  "red.unl.edu",
+  sum(ncores * si2k_score)/sum(CASE WHEN ncores=0 THEN 1 ELSE ncores END)/1000
+from
+  subcluster_score ss
+join site_info s on ss.cluster=s.cename
+where
+  timestamp &gt;= :starttime AND timestamp &lt; :endtime AND
+  s.sitename regexp :facility AND
+  NOT (s.sitename regexp :excludefacility)
+  AND NOT (s.cename regexp :excludehost)
+group by
+     time
+      </sql>
+      <results module="gratia.database.metrics" function="gip_subcluster_score">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="title"> Average Facility kSI2K Score Over Time </attribute>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
+      <attribute name="croptime">True</attribute>
+    </query>
 
   </class>
 

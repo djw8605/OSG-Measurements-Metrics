@@ -53,3 +53,11 @@ class GratiaOpp(GratiaStackedBar):
         sorted_keys.sort()
         return sorted_keys
 
+class GratiaSize(GratiaStackedLine):
+
+    def sort_keys(self, results):
+        return ['In OSG, but not Accessible', 'Accessible, but not Used',
+            'Used']
+
+
+

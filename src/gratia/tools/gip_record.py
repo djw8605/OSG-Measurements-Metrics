@@ -50,6 +50,19 @@ insert into vo_info values
 )
 """
 
+insert_ce2 = """
+insert into ce_info values
+( %s,
+  %s,
+  %s,
+  %s,
+  %s,
+  %s,
+  %s,
+  %s
+)
+"""
+
 insert_ce_info = """
 insert into ce_info values (
   %(time)s,
@@ -88,8 +101,29 @@ group by
     lrmsVersion, vo, hostName, queue
 """
 
+compact_ce = """
+select
+    from_unixtime(truncate(unix_timestamp(time)/%(span)s, 0)*%(span)s) as unixtimestamp,
+    avg(runningJobs), avg(totalCpus), lrmsType, lrmsVersion, avg(freeCpus),
+    hostName, avg(waitingJobs)
+from
+    ce_info
+where
+    time >= %(starttime)s AND
+    time < %(endtime)s
+group by
+    unixtimestamp, lrmsType, lrmsVersion, hostName
+"""
+
 drop_compact = """
 delete from vo_info
+where
+    time > %(starttime)s AND
+    time <= %(endtime)s
+"""
+
+drop_compact_ce = """
+delete from ce_info
 where
     time > %(starttime)s AND
     time <= %(endtime)s
@@ -113,6 +147,9 @@ def compactor(conn, cp):
     l_hourly = 0
     l_daily = 0
     l_30m = 0
+    l_ce_hourly = 0
+    l_ce_daily = 0
+    l_ce_30m = 0
     for row in last_compactor:
         if row[0] == 'hourly':
             l_hourly = row[1]
@@ -120,6 +157,12 @@ def compactor(conn, cp):
             l_daily = row[1]
         elif row[0] == '30m':
             l_30m = row[1]
+        elif row[0] == 'ce_hourly':
+            l_ce_hourly = row[1]
+        elif row[0] == 'ce_daily':
+            l_ce_daily = row[1]
+        elif row[0] == 'ce_30m':
+            l_ce_30m = row[1]
     now = datetime.datetime.now()
     n_hourly = datetime.datetime(now.year, now.month, now.day, now.hour)
     n_hourly -= c_hourly*datetime.timedelta(0, 3600)
@@ -144,6 +187,16 @@ def compactor(conn, cp):
     conn.commit()
     #return
 
+    info['starttime'] = l_ce_30m
+    #info['endtime'] = datetime.datetime(2008, 3, 14)
+    curs.execute(compact_ce, info)
+    rows = curs.fetchall()
+    curs.execute(drop_compact_ce, info)
+    for row in rows:
+        curs.execute(insert_ce2, row)
+    curs.execute(update_compactor_info, (n_30m, 'ce_30m'))
+    conn.commit()
+
     info = {'span': 3600,
             'endtime': n_hourly,
             'starttime': l_hourly
@@ -154,6 +207,15 @@ def compactor(conn, cp):
     for row in rows:
         curs.execute(insert_vo2, row)
     curs.execute(update_compactor_info, (n_hourly, 'hourly'))
+    conn.commit()
+
+    info['starttime'] = l_ce_hourly
+    curs.execute(compact_ce, info)
+    rows = curs.fetchall()
+    curs.execute(drop_compact_ce, info)
+    for row in rows:
+        curs.execute(insert_ce2, row)
+    curs.execute(update_compactor_info, (n_hourly, 'ce_hourly'))
     conn.commit()
 
     curs = conn.cursor()
@@ -167,6 +229,16 @@ def compactor(conn, cp):
     for row in rows:
         curs.execute(insert_vo2, row)
     curs.execute(update_compactor_info, (n_daily, 'daily'))
+
+    info['starttime'] = l_ce_daily
+    curs.execute(compact_ce, info)
+    rows = curs.fetchall()
+    curs.execute(drop_compact_ce, info)
+    for row in rows:
+        curs.execute(insert_ce2, row)
+    curs.execute(update_compactor_info, (n_daily, 'ce_daily'))
+    conn.commit()
+    return
 
 def do_site_info(cp):
     ce_entries = read_bdii(cp, "(objectClass=GlueCE)")
