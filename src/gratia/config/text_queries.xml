@@ -17,6 +17,7 @@
   <import module="graphtool.tools.csv_output">CsvGenerator</import>
 
   <class type="XmlGenerator" name="query_xml">
+    <attribute name="timeout">600</attribute>
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>

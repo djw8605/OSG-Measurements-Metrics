@@ -938,3 +938,31 @@ def opp_usage_simple_perc(sql_results, globals=globals(), **kw):
     make_perc_simple(results[0])
     return results
 
+def special_resource_group_parser1(sql_results, globals=globals(), **kw):
+    """
+    For the OIM queries which return the format:
+        (service_type, resource_name) -> parent resource
+    replace the parent resource_name for the FNAL entries.
+    """
+    results, md = simple_results_parser(sql_results, globals=globals, **kw)
+    new_results = {}
+    for key, val in results.items():
+        if val.find("USCMS-FNAL-WC1") >= 0:
+            val = 'USCMS-FNAL-WC1'
+        new_results[key] = val
+    return new_results, md
+
+def special_resource_group_parser2(sql_results, globals=globals(), **kw):
+    """
+    For the OIM queries which return the format:
+        resource_group -> federation
+    replace the resource_group for the FNAL CE entries
+    """
+    results, md = simple_results_parser(sql_results, globals=globals, **kw)
+    new_results = {}
+    for key, val in results.items():
+        if key.find("USCMS-FNAL-WC1") >= 0:
+            key = 'USCMS-FNAL-WC1'
+        new_results[key] = val
+    return new_results, md
+

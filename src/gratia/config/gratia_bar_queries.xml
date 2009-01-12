@@ -161,6 +161,61 @@
         <attribute name="graph_type"> GratiaPie </attribute>
     </query>
 
+    <query name="size_by_classification" base="GratiaGenericQuery.master_summary">
+        <inputs>
+            <input name="span" type="eval" kind="sql">4*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="exclude-DN" kind="sql">Igor Sfiligoi 673872</input>
+            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID </input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
+        </sql>
+        <results module="gratia.database.metrics" function="size_classifier">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="title"> OSG Size By Classification </attribute>
+        <attribute name="pivot_name"> Classification </attribute>
+        <attribute name="column_names"> Size Estimate </attribute>
+        <attribute name="column_units"> cores </attribute>
+        <attribute name="graph_type"> GratiaPie </attribute>
+    </query>
+
+    <query name="size_by_resource_classification" base="GratiaGenericQuery.master_summary">
+        <inputs>
+            <input name="span" type="eval" kind="sql">4*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="exclude-DN" kind="sql">Igor Sfiligoi 673872</input>
+            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID </input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
+        </sql>
+        <results module="gratia.database.metrics" function="site_resource_classifier">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="title"> Size by Resource and Classification </attribute>
+        <attribute name="pivot_name"> Classification </attribute>
+        <attribute name="grouping_name"> Facility </attribute>
+        <attribute name="column_names"> Size Estimate </attribute>
+        <attribute name="column_units"> cores </attribute>
+        <attribute name="graph_type"> GratiaHorizontalBar </attribute>
+    </query>
+
     <query name="facility_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> S.SiteName </filler>
@@ -277,12 +332,14 @@
 
     <query name="dn_efficiency_summary" base="GratiaGenericQuery.simple_master_summary">
       <inputs>
-          <input name="vo" kind="sql">dzero</input>
+          <input name="vo" kind="sql">cms</input>
+          <input name="fixed-height">False</input>
+          <input name="min_hours" kind="sql" type="eval">0</input>
       </inputs>
       <sql>
         <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
         <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(WallDuration) </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
+        <filler name="where"> AND WallDuration > 0 AND WallDuration > 3600*:min_hours </filler>
       </sql>
         <results>
             <inputs>
@@ -332,6 +389,51 @@
       <attribute name="graph_type">GratiaHorizontalBar</attribute>
     </query>
 
+    <query name="vo_wall_success_rate" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+        <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(CASE when ApplicationExitCode = 0 THEN WallDuration ELSE 0 END)/sum(WallDuration) </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <results/>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">VO Wall Success Rate</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
+    <query name="vo_cpu_hours" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+        <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(CpuUserDuration+CpuSystemDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <results/>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">VO Wall Success Rate</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
+    <query name="vo_wall_hours" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+        <input name="fixed-height">False</input>
+      </inputs>
+      <sql>
+        <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <results/>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="title">VO Wall Success Rate</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
     <query name="dn_nonzero_exit" base="GratiaGenericQuery.simple_master_summary">
       <inputs>
           <input name="vo" kind="sql">cms</input>
@@ -375,11 +477,12 @@
     <query name="vo_cpu_efficiency" base="GratiaGenericQuery.jobs_summary_query">
       <inputs>
           <input name="vo" kind="sql">cms</input>
+          <input name="min_hours" type="eval" kind="sql">0</input>
       </inputs>
       <sql>
         <filler name="group"> R.VOName </filler>
         <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
+        <filler name="where"> AND WallDuration > 0 AND WallDuration/Njobs > 3600*:min_hours </filler>
       </sql>
       <attribute name="pivot_name">VO</attribute>
       <attribute name="title">CPU Efficiency for $vo</attribute>

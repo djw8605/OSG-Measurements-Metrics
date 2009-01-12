@@ -17,7 +17,6 @@ class GratiaReporter(Authenticate):
 
         starttime, endtime, day, month, year = self._gratia_get_times(oday,
             omonth, oyear)
-        print day, oday
         data['day'] = day
         data['month'] = month
         data['month_name'] = calendar.month_name[month]
@@ -65,7 +64,6 @@ class GratiaReporter(Authenticate):
         all_resources.update(site_report_daily.keys())
         all_resources.update(site_report_weekly.keys())
         default = (0., 0., 0., 0., 0., 0.)
-        print site_report_weekly['Nebraska']
         for resource in all_resources:
             site_report_daily.setdefault(resource, default)
             site_report_weekly.setdefault(resource, default)
@@ -74,7 +72,6 @@ class GratiaReporter(Authenticate):
             site_report_weekly[resource][2] /= 7.
             site_report_weekly[resource][4] /= 7.
             site_report_weekly[resource][5] /= 7.
-        print site_report_weekly['Nebraska']
 
         data['site_daily'] = site_report_daily
         data['site_weekly'] = site_report_weekly

@@ -1,4 +1,5 @@
 
+import math
 import sets
 import urllib
 import urllib2
@@ -7,6 +8,7 @@ import calendar
 
 from xml.dom.minidom import parse
 
+import cherrypy
 from pkg_resources import resource_stream
 
 from auth import Authenticate
@@ -111,7 +113,7 @@ class JOTReporter(Authenticate):
             # TODO: OIM should provide ownership info.
             if fed.startswith('T2_'):
                 data['cms_feds'].append(fed)
-            elif fed.startswith('US-'):
+            elif fed.startswith('US-') and fed.find('BNL') < 0:
                 data['atlas_feds'].append(fed)
             data['availability'][fed] = gv_data.get(fed, [0, 0])[1]
             data['reliability'][fed] = gv_data.get(fed, [0, 0])[0]
@@ -241,13 +243,19 @@ class JOTReporter(Authenticate):
         for resource, fed in federations.items():
             for gv_resource, data in gridview_data.items():
                 if gv_resource == resource.upper():
-                    val = fed_data.setdefault(fed, [0., 0., 0.])
+                    val = fed_data.setdefault(fed, [0., 0., 0., 0.])
                     val[2] += 1
                     val[1] += data[1]
-                    val[0] += data[0]
+                    if data[0] >= 0:
+                        val[0] += data[0]
+                        val[3] += 1
         results = {}
         for fed, data in fed_data.items():
-            results[fed] = data[0]/data[2], data[1]/data[2]
+            if data[3] == 0:
+                data[3] = 1
+            if data[2] == 0:
+                data[2] = 1
+            results[fed] = data[0]/data[3], data[1]/data[2]
         return results
 
     def site_normalization_jot(self, month, year, sites=None):
@@ -271,4 +279,53 @@ class JOTReporter(Authenticate):
                 site_normalization.setdefault(site, norm_avg)
         return site_normalization
 
+    def vo_data_2008(self, vos=''):
+        specific_vos = sets.Set(["usatlas",  "cms", "cdf",  "dzero", "ligo",
+            "engage", "osg"])
+        specific_vos.update([i.strip() for i in vos.split(',') if i.strip()])
+        starttime = datetime.datetime(2008, 01, 01)
+        endtime = datetime.datetime(2009, 01, 01)
+        user_counts, _ = self.globals['GratiaPieQueries'].osg_user_count(\
+            starttime=starttime, endtime=endtime)
+        wall_success, _= self.globals['GratiaBarQueries'].vo_wall_success_rate(\
+            starttime=starttime, endtime=endtime)
+        wall, _ = self.globals['GratiaBarQueries'].vo_wall_hours(\
+            starttime=starttime, endtime=endtime)
+        cpu, _ = self.globals['GratiaBarQueries'].vo_cpu_hours(\
+            starttime=starttime, endtime=endtime)
+        results = 'VO,User Count,Wall Hours,CPU Hours,Wall Success Rate\n'
+        all_vos = sets.Set(user_counts.keys())
+        all_vos.update(wall_success.keys())
+        all_vos.update(wall.keys())
+        all_vos.update(cpu.keys())
+        other_user_count, total_user_count = 0, 0
+        other_wall_success, total_wall_success = 0, 0
+        other_wall, total_wall = 0, 0
+        other_cpu, total_cpu = 0, 0
+        for vo in all_vos:
+            total_user_count += user_counts.get(vo, 0)
+            total_wall_success += wall_success.get(vo, 0)*wall.get(vo, 0)
+            total_wall += wall.get(vo, 0)
+            total_cpu += cpu.get(vo, 0)
+            if vo in specific_vos:
+                wall_success_perc = int(round(wall_success.get(vo, 0)*100))
+                results += "%s,%i,%i,%i,%i\n" % (vo, int(user_counts.get(vo,
+                0)), int(wall.get(vo, 0)), int(cpu.get(vo, 0)),
+                wall_success_perc)
+            else:
+                other_user_count += user_counts.get(vo, 0)
+                other_wall_success += wall_success.get(vo, 0)*wall.get(vo, 0)
+                other_wall += wall.get(vo, 0)
+                other_cpu += cpu.get(vo, 0)
+        other_wall_success /= float(other_wall)
+        total_wall_success /= float(total_wall)
+        other_wall_success = int(round(other_wall_success*100))
+        total_wall_success = int(round(total_wall_success*100))
+        results += "Other,%i,%i,%i,%i\n" % (int(other_user_count),
+            int(other_wall), int(other_cpu), int(other_wall_success))
+        results += "Total,%i,%i,%i,%i\n" % (int(total_user_count),
+            int(total_wall), int(total_cpu), int(total_wall_success))
+        cherrypy.response.headers['Content-Type'] = "text/plain"
+        return results
+    vo_data_2008.exposed = True
 

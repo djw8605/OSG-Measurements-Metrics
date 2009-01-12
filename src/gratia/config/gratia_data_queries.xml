@@ -97,7 +97,7 @@
         <sql>
             <filler name="group">S.SiteName</filler>
             <filler name="column">
-              sum(CASE when ApplicationExitCode=0 THEN WallDuration ELSE 0 END)/sum(WallDuration)*100,
+              CASE when WallDuration>0 THEN sum(CASE when ApplicationExitCode=0 THEN WallDuration ELSE 0 END)/sum(WallDuration)*100 ELSE 0 END,
               sum(CASE when ApplicationExitCode=0 THEN WallDuration ELSE 0 END)/3600,
               sum(CASE when ApplicationExitCode!=0 THEN WallDuration ELSE 0 END)/3600,
               sum(CASE when ApplicationExitCode=0 THEN Njobs ELSE 0 END)/sum(Njobs)*100,

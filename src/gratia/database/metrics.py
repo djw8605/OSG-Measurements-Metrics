@@ -5,7 +5,7 @@ import datetime
 
 import numpy
 
-from graphtool.database.query_handler import results_parser
+from graphtool.database.query_handler import results_parser, complex_pivot_parser
 from query_handler import gip_parser
 
 class NMax(object):
@@ -70,6 +70,73 @@ def site_size_parser2(sql_results, globals=globals(), **kw):
     for site, values in data.items():
         new_data[site] = max(values.values())
     return new_data, md
+
+LHC_SC = 'LHC S&C'
+LHC_REL = 'LHC Related'
+OTHER = 'Other Grid'
+LHC_VOS = ['ATLAS', 'CMS']
+
+def resource_classifier(globals=globals(), **kw):
+    perc, md = globals['RSVQueries'].ownership()
+    feds, _ = globals['RSVQueries'].resource_to_federation()
+    wlcg_resources = feds.keys()
+    resources, _ = globals['RSVQueries'].resources()
+    resources = resources.keys()
+
+    results = {}
+    for resource in resources:
+        for pivot, info in perc:
+            vo, percent = info
+            if pivot != resource:
+                continue
+            if vo in LHC_VOS and resource in wlcg_resources:
+                classification = LHC_SC
+            elif vo in LHC_VOS:
+                classification = LHC_REL
+            else:
+                classification = OTHER
+            resource_set = results.setdefault(resource, sets.Set())
+            resource_set.add((vo, percent, classification))
+    #for resource, set in results.items():
+    #    print resource, set
+    return results, md
+
+def size_classifier(sql_results, globals=globals(), **kw):
+    """
+    Taking the outputs of the site_size_parser2, return information about the
+    site classification (LHC S&C, LHC related, or other) and their sizes
+    """
+    data, md = site_size_parser2(sql_results, globals=globals, **kw)
+    resource_info, _ = resource_classifier(globals=globals, **kw)
+    results = {LHC_SC: 0, LHC_REL: 0, OTHER: 0}
+    for resource, size in data.items():
+        if resource not in resource_info:
+            results[OTHER] += size
+            continue
+        for vo, percent, classification in resource_info[resource]:
+            results[classification] += int(percent)/100.0*size
+    return results, md
+
+def site_resource_classifier(sql_results, globals=globals(), **kw):
+    """
+    Similar to site_resource_classifier: from the input data, return the
+    size grouped by classification and site name.
+    """
+    data, md = site_size_parser2(sql_results, globals=globals, **kw)
+    md['kind'] = 'pivot-group'
+    resource_info, _ = resource_classifier(globals=globals, **kw)
+    results = {LHC_SC: {}, LHC_REL: {}, OTHER: {}}
+    for resource, size in data.items():
+        if resource not in resource_info:
+            current = results[OTHER].get(resource, 0)
+            results[OTHER][resource] = size + current
+            continue
+        for vo, percent, classification in resource_info[resource]:
+            current = results[classification].get(resource, 0)
+            results[classification][resource] = int(percent)/100.0*size + \
+                current
+    return results, md
+
 
 def gip_size_parser(sql_results, globals=globals(), **kw):
     """
