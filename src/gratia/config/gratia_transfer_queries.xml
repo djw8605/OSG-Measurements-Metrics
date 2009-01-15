@@ -10,8 +10,8 @@
     <!-- Grid-wide queries -->
     <query name="user_transfer_volume" base="GratiaStorageQuery.summary">
         <sql>
-            <filler name="group"> DN </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
+            <filler name="group"> CommonName </filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 3)</filler>
         </sql>
         <results>
             <inputs>
@@ -27,7 +27,7 @@
     <query name="facility_transfer_volume" base="GratiaStorageQuery.summary">
         <sql>
             <filler name="group"> SiteName </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 3)</filler>
         </sql>
         <attribute name="pivot_name">Facility</attribute>
         <attribute name="title">Volume of Gigabytes Transferred By Facility</attribute>
@@ -38,7 +38,7 @@
     <query name="facility_transfer_rate" base="GratiaStorageQuery.summary">
         <sql>
             <filler name="group"> SiteName </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 2)/:span</filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 2)/:span</filler>
         </sql>
         <attribute name="pivot_name">Facility</attribute>
         <attribute name="title">Transfer Rate By Facility</attribute>
@@ -48,8 +48,8 @@
 
     <query name="vo_transfer_volume" base="GratiaStorageQuery.summary">
         <sql>
-            <filler name="group"> VO </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 3)</filler>
+            <filler name="group"> VO.VOName </filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 3)</filler>
         </sql>
         <attribute name="pivot_name">VO</attribute>
         <attribute name="title">Volume of Gigabytes Transferred By VO</attribute>
@@ -59,8 +59,8 @@
 
     <query name="vo_transfer_rate" base="GratiaStorageQuery.summary">
         <sql>
-            <filler name="group"> VO </filler>
-            <filler name="column"> sum(BytesTransferred)/pow(1024, 2)/:span</filler>
+            <filler name="group"> VO.VOName </filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 2)/:span</filler>
         </sql>
         <attribute name="pivot_name">VO</attribute>
         <attribute name="title">Transfer Rate By VO</attribute>
@@ -72,8 +72,8 @@
         <sql>
             <filler name="group"> SiteName </filler>
             <filler name="column"> 
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+                sum(CASE R.Status WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE R.Status WHEN 0 THEN 0 ELSE 1 END) as Failures
             </filler>
         </sql>
         <results>
@@ -91,10 +91,10 @@
 
     <query name="vo_quality" base="GratiaStorageQuery.summary">
         <sql>
-            <filler name="group"> VO </filler>
+            <filler name="group"> VO.VOName </filler>
             <filler name="column">
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+                sum(CASE R.Status WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE R.Status WHEN 0 THEN 0 ELSE 1 END) as Failures
             </filler>
         </sql>
         <results>
@@ -111,10 +111,10 @@
 
     <query name="user_quality" base="GratiaStorageQuery.summary">
         <sql>
-            <filler name="group"> DN </filler>
+            <filler name="group"> CommonName </filler>
             <filler name="column">
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+                sum(CASE R.Status WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE R.Status WHEN 0 THEN 0 ELSE 1 END) as Failures
             </filler>
         </sql>
         <results>
@@ -136,10 +136,10 @@
 
     <query name="site_user_quality" base="GratiaStorageQuery.site_summary">
         <sql>
-            <filler name="group"> DN </filler>
+            <filler name="group"> CommonName </filler>
             <filler name="column">
-                sum(CASE StatusCode WHEN 0 THEN 1 ELSE 0 END) as Successes,
-                sum(CASE StatusCode WHEN 0 THEN 0 ELSE 1 END) as Failures
+                sum(CASE R.Status WHEN 0 THEN 1 ELSE 0 END) as Successes,
+                sum(CASE R.Status WHEN 0 THEN 0 ELSE 1 END) as Failures
             </filler>
         </sql>  
         <results>

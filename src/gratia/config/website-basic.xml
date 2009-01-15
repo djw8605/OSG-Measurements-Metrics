@@ -18,6 +18,7 @@
     <mount location="/gratia/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
     <mount location="/gratia/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
     <mount location="/gratia/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
+    <mount location="/gratia/transfer_graphs" content="image/png"> <instance name="gratia_transfer_grapher" /> </mount>
     <mount location="/gratia/xml" content="text/xml"> <instance name="query_xml" /> </mount>
     <mount location="/gratia/csv" content="text/plain"> <instance name="query_csv" /> </mount>
     <instance name="static" location="/gratia/static" />

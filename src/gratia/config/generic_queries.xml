@@ -455,30 +455,41 @@
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
     <aggregate>
-      <connection> gratia-itb </connection>
+      <connection> gratia </connection>
     </aggregate>
 
     <query name="simple_query">
       <inputs>
-        <input name="span" type="int" kind="sql">3600</input>
+        <input name="span" type="int" kind="sql">86400</input>
         <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
       </inputs>
       <sql>
         SELECT
           <slot name="group"/>,
           <slot name="column"/>
         FROM
-          DataTransferRecord
+          MasterTransferSummary R
+        JOIN
+          Probe P on R.ProbeName = P.probename
+        JOIN
+          Site S on S.siteid = P.siteid
+        JOIN
+          VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+        JOIN
+          VO on (VC.void = VO.void)
         <slot name="JOIN"/>
         WHERE
-          EndTime &gt;= :starttime AND
-          EndTime &lt; :endtime AND
-          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
-          VO regexp :vo AND
-          SiteName regexp :facility
+          StartTime &gt;= :starttime AND
+          StartTime &lt; :endtime AND
+          VO.VOName regexp :vo AND
+          S.SiteName regexp :facility
+          (NOT (S.SiteName regexp :exclude-facility)) AND
+          (NOT (VO.VOName regexp :exclude-vo))
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>
@@ -497,36 +508,10 @@
       <attribute name="column_units" />
     </query>
 
-<!--
-    <query name="transfer_summary">
-      <inputs>
-        <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
-        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
-        <input name="facility" kind="sql"> .* </input>
-        <input name="vo" kind="sql"> .* </input>
-        <input name="exclude-vo" kind="sql"> NONE </input>
-        <input name="exclude-facility" kind="sql"> NONE </input>
-      </inputs>
-      <sql>
-        SELECT
-          <slot name="group"/>
-          truncate(unix_timestamp(EndTime) / :span, 0 ) * :span as time,
-          <slot name="column"/>
-        FROM
-          MasterTransferSummary
-        <slot name="JOIN"/>
-        WHERE
-          EndTime &gt;= :starttime AND
-          EndTime%&lt; :endtime
-      </sql>
-    </query>
--->
-
     <query name="summary">
       <inputs>
-        <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="span" type="int" kind="sql">86400</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
@@ -536,23 +521,30 @@
       <sql>
        SELECT
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span,
+          truncate( unix_timestamp(StartTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
-          DataTransferRecord
+          MasterTransferSummary R
+        JOIN
+          Probe P on R.ProbeName = P.probename
+        JOIN
+          Site S on S.siteid = P.siteid
+        JOIN
+          VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+        JOIN
+          VO on (VC.void = VO.void)
         <slot name="JOIN"/>
         WHERE
-          EndTime &gt;= :starttime AND
-          EndTime &lt; :endtime AND
-          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
+          StartTime &gt;= :starttime AND
+          StartTime &lt; :endtime AND
           SiteName regexp :facility AND
-          VO regexp :vo AND
-          (NOT (SiteName regexp :exclude-facility)) AND
-          (NOT (VO regexp :exclude-vo))
+          VO.VOName regexp :vo AND
+          (NOT (S.SiteName regexp :exclude-facility)) AND
+          (NOT (VO.VOName regexp :exclude-vo))
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 )
+          time
       </sql>
       <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -572,7 +564,7 @@
 
     <query name="site_simple">
       <inputs>
-        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> Unknown </input>
         <input name="vo" kind="sql"> .* </input>
@@ -586,17 +578,24 @@
        SELECT
           <slot name="column"/>
         FROM
-          DataTransferRecord
+          MasterTransferSummary R
+        JOIN
+          Probe P on R.ProbeName = P.probename
+        JOIN
+          Site S on S.siteid = P.siteid
+        JOIN
+          VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+        JOIN
+          VO on (VC.void = VO.void)
         <slot name="JOIN"/>
         WHERE
-          EndTime &gt;= :starttime AND
-          EndTime &lt; :endtime AND
-          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
-          SiteName=:facility AND
-          VO regexp :vo AND
-          (NOT (VO regexp :exclude-vo)) AND
-          DN regexp :user AND
-          (NOT (DN regexp :exclude-dn))
+          StartTime &gt;= :starttime AND
+          StartTime &lt; :endtime AND
+          S.SiteName=:facility AND
+          VO.VOName regexp :vo AND
+          (NOT (VO.VOName regexp :exclude-vo)) AND
+          CommonName regexp :user AND
+          (NOT (CommonName regexp :exclude-dn))
           <slot name="where"/>
         LIMIT :limit OFFSET :offset
       </sql>
@@ -609,7 +608,7 @@
     <query name="site_summary">
       <inputs>
         <input name="span" type="int" kind="sql">3600</input>
-        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-86400</input>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> Unknown </input>
         <input name="vo" kind="sql"> .* </input>
@@ -619,19 +618,26 @@
       <sql>
        SELECT
           <slot name="group"/>,
-          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
+          truncate( unix_timestamp(StartTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
-          DataTransferRecord
+          MasterTransferSummary R
+        JOIN
+          Probe P on R.ProbeName = P.probename
+        JOIN
+          Site S on S.siteid = P.siteid
+        JOIN
+          VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+        JOIN
+          VO on (VC.void = VO.void)
         <slot name="JOIN"/>
         WHERE
-          EndTime &gt;= :starttime AND
-          EndTime &lt; :endtime AND 
-          EndTime &gt;= curdate() - INTERVAL 5 DAY AND
-          SiteName=:facility AND
-          VO regexp :vo AND
-          (NOT (VO regexp :exclude-vo)) AND
-          DN regexp :user
+          StartTime &gt;= :starttime AND
+          StartTime &lt; :endtime AND 
+          S.SiteName=:facility AND
+          VO.VOName regexp :vo AND
+          (NOT (VO.VOName regexp :exclude-vo)) AND
+          CommonName regexp :user
           <slot name="where"/>
         GROUP BY
           <slot name="group"/>,

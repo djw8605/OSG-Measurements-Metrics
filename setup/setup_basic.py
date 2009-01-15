@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(name="AccountingView",
-      version="0.1.1",
+      version="0.1.2",
       author="Brian Bockelman",
       author_email="bbockelm@math.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
