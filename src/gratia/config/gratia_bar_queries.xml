@@ -802,6 +802,50 @@
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
+    <query name="dn_site_hours_bar" base="GratiaGenericQuery.master_summary">
+        <sql>
+            <filler name="group"> COALESCE(R.CommonName, VO.VOName), S.SiteName </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0,1 </input>
+                <input name="grouping"> 2 </input>
+                <input name="results"> 3 </input>
+                <input name="pivot_transform">displayNameSite</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">User</attribute> 
+        <attribute name="grouping_name">Time</attribute>
+        <attribute name="title">Daily Hours By User and Site</attribute>
+        <attribute name="column_names">Wall Time</attribute>
+        <attribute name="column_units">Hours</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
+    <query name="dn_hours_bar" base="GratiaGenericQuery.master_summary">
+        <sql>
+            <filler name="group"> COALESCE(R.CommonName, VO.VOName) </filler>
+            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">User</attribute>
+        <attribute name="grouping_name">Time</attribute>
+        <attribute name="title">Daily Hours By User </attribute>
+        <attribute name="column_names">Wall Time</attribute>
+        <attribute name="column_units">Hours</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
     <query name="exitcode_bar" base="GratiaGenericQuery.master_summary">
         <sql>
             <filler name="group"> R.ApplicationExitCode </filler>
