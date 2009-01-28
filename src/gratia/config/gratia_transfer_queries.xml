@@ -7,6 +7,10 @@
     <attribute name="display_name"> Transfer Bar Graphs </attribute>
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
+    <aggregate>
+        <connection>gratia-transfer</connection>
+    </aggregate>
+
     <!-- Grid-wide queries -->
     <query name="user_transfer_volume" base="GratiaStorageQuery.summary">
         <sql>

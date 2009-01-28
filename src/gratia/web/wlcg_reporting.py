@@ -354,8 +354,9 @@ class WLCGReporter(Authenticate):
         daterange = gratia_interval(year, month)
         cur = daterange['starttime']
         end = min(daterange['endtime'], datetime.datetime.today())
-        data, _ = self.globals['RSVQueries'].rsv_reliability_daily( \
-            starttime=cur, endtime=end)
+        #data, _ = self.globals['RSVQueries'].rsv_reliability_daily( \
+        #    starttime=cur, endtime=end)
+        data = {}
         site_map, _ = self.globals['GIPQueries'].site_info()
         new_data = {}
         try:

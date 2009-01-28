@@ -121,7 +121,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
 <p>Select a different month's data:</p>
 <p><label for="year">Year:</label>
 <select name="year">
-    #for i in range(2007, $year+1)
+    #for i in range(2007, $year+1+int($month==12))
         #if $i == $year
             <option selected value="$i">$i</option>
         #else
