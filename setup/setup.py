@@ -4,12 +4,12 @@ ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages
 
-setup(name="OSG-Gratia-Viewer",
-      version="0.1",
+setup(name="OSG-Measurements-Metrics",
+      version="0.2",
       author="Brian Bockelman",
       author_email="bbockelm@math.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
-      description="Python-based Gratia Viewer.",
+      description="OSG Measurements and Metrics webpages.",
 
       package_dir={"": "src"},
       packages=find_packages("src"),
@@ -23,11 +23,6 @@ setup(name="OSG-Gratia-Viewer",
           'Operating System :: POSIX'
       ],
      
-      #setup_requires=["MySQL-python>1.2.0"],
-      dependency_links = ['http://effbot.org/downloads/Imaging-1.1.6.tar.gz'
-                          '#egg=PIL-1.1.6'],
-      #install_requires=["PIL", "setuptools"],
-
       entry_points={
           'console_scripts': [
               'gip_count = gratia.tools.gip_count:main',
