@@ -38,7 +38,7 @@
   </class>
 
   <class type="XmlGenerator" name="user_xml">
-      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="security">OIMSecurity</attribute>
       <attribute name="authtype">users</attribute>
       <attribute name="access">dn</attribute>
       <queryobj> GratiaUserBarQueries </queryobj>
@@ -65,7 +65,7 @@
   </class>
 
   <class type="CsvGenerator" name="query_csv_secure">
-      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="security">OIMSecurity</attribute>
       <attribute name="authtype">site_ownership</attribute>
       <attribute name="access">facility</attribute>
       <queryobj> RSVSecureQueries </queryobj>

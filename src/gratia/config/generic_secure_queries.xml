@@ -65,7 +65,7 @@
       <attribute name="title" />
       <attribute name="column_names" />
       <attribute name="column_units" />
-      <attribute name="security">GratiaSecurity</attribute>
+      <attribute name="security">OIMSecurity</attribute>
       <attribute name="authtype">site_ownership</attribute>
       <attribute name="access">facility</attribute>
     </query>

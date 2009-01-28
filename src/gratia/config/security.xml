@@ -142,6 +142,33 @@
 
         <attribute name="connection_manager"> RSVConnMan </attribute>
 
+        <query name="users">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    IF(:access=:dn, 1, 0)
+            </sql>
+            <results function="security_parser" />
+        </query>
+
+        <query name="list_users">
+            <inputs>
+                <input name="dn" kind="sql"> Unknown </input>
+                <input name="access" kind="sql"> Unknown </input>
+            </inputs>
+            <sql>
+                SELECT
+                    dn
+                FROM (SELECT :dn as "dn") as foo
+                WHERE 
+                    dn=:access
+            </sql>
+            <results function="role_list" />
+        </query>
+
         <query name="site_ownership">
             <inputs>
                 <input name="dn" kind="sql"> Unknown </input>
