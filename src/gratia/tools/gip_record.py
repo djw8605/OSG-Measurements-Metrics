@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import datetime
 
@@ -337,7 +338,16 @@ def do_ce_info(cp, ce_entries):
     conn.commit()
 
 def main():
-    cp = config_file("$HOME/dbinfo/gip_password.conf")
+    cp = None
+    for filename in ["$HOME/dbinfo/gip_password.conf",
+            "/etc/gip_password.conf"]:
+        filename = os.path.expandvars(filename)
+        if os.path.exists(filename):
+            cp = config_file(filename)
+            break
+    if cp == None:
+        print "Could not find gip_password.conf in /etc!"
+        sys.exit(1)
     fp = query_bdii(cp, "(objectClass=GlueVOView)")
     vo_entries = read_ldap(fp)
     fp = query_bdii(cp, "(objectClass=GlueCE)")

@@ -1,6 +1,7 @@
 
 import os
 import sys
+import urllib2
 import traceback
 from sets import Set
 from httplib import HTTPSConnection
@@ -8,6 +9,8 @@ from xml.dom.minidom import parse
 
 from ZSI.client import Binding
 from ZSI import TC
+
+gums_template_url = "http://software.grid.iu.edu/pacman/tarballs/vo-version/gums.template"
 
 class HTTPSConnection2(HTTPSConnection):
 
@@ -64,7 +67,11 @@ def listMembers(url):
    
 def gumsConfigUrls():
     filename = os.path.expandvars("$VDT_LOCATION/vdt-app-data/gums/gums.config")
-    dom = parse(open(filename, 'r'))
+    if os.path.exists(filename):
+        fp = open(filename, 'r')
+    else:
+        fp = urllib2.urlopen(gums_template_url)
+    dom = parse(fp)
     urls = {}
     for groupDom in dom.getElementsByTagName('groupMapping'):
         vo = groupDom.getAttribute('accountingVo')

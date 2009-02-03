@@ -8,6 +8,12 @@ from gratia.voms import mapVos
 
 def main():
     db_sec = os.path.expandvars("$HOME/dbinfo/DBSecurity.xml")
+    if not os.path.exists(db_sec):
+        db_sec = os.path.expandvars("$DBSECURITY_LOCATION")
+    if not os.path.exists(db_sec):
+        db_sec = os.path.expandvars("/etc/DBSecurity.xml")
+    if not os.path.exists(db_sec):
+        db_sec = os.path.expandvars("/etc/DBParam.xml")
     x = XmlConfig(file=db_sec)
     filename = resource_filename("gratia.config", "gratia_data_queries.xml")
     x = XmlConfig(file=filename)
@@ -22,9 +28,15 @@ def main():
         except:
             gratia_voname = 'UNKNOWN'
         print "VO: %s, Gratia VO: %s" % (vo, gratia_voname)
-        curs.execute("DELETE FROM VOMembers where vo=?", (vo,))
+        try:
+            curs.execute("DELETE FROM VOMembers where vo=?", (vo,))
+        except TypeError:
+            curs.execute("DELETE FROM VOMembers where vo=%s", (vo,))
         for member in members:
-            curs.execute("INSERT INTO VOMembers VALUES (?, ?, ?)", (vo, member[0], member[1]))
+            try:
+                curs.execute("INSERT INTO VOMembers VALUES (?, ?, ?)", (vo, member[0], member[1]))
+            except TypeError:
+                curs.execute("INSERT INTO VOMembers VALUES (%s, %s, %s)", (vo, member[0], member[1]))
     conn.commit()
 
 if __name__ == '__main__':

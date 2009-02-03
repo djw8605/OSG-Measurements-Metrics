@@ -66,4 +66,26 @@
 
   </class>
 
+  <class name="GratiaSecurityDB" type="ConnectionManager">
+
+    <attribute name="default"> accessdb </attribute>
+
+    <connection name="accessdb">
+      <attribute name="Interface"> sqlite </attribute>
+      <attribute name="DatabaseFile"> /etc/access.db </attribute>
+    </connection>
+
+  </class>
+
+  <class name="GridScanDB" type="ConnectionManager">
+
+    <attribute name="default"> gridscandb </attribute>
+
+    <connection name="gridscandb">
+      <attribute name="Interface"> sqlite </attribute>
+      <attribute name="DatabaseFile"> /var/db/gridscan.db </attribute>
+    </connection>
+
+  </class>
+
 </graphtool-config>

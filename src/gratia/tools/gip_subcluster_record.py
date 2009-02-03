@@ -15,7 +15,12 @@ def main():
     cp = config_file()
 
     # Load the DB
-    x = XmlConfig(file=os.path.expandvars("$HOME/dbinfo/DBParam.xml"))
+    filename = os.path.expandvars("$HOME/dbinfo/DBParam.xml")
+    if not os.path.exists(filename):
+        filename = os.path.expandvars("$DBPARAM_LOCATION")
+        if not os.path.exists(filename):
+            filename = '/etc/DBParam.xml'
+    x = XmlConfig(file=filename)
     conn = x.globals['GIPConnMan'].get_connection(None).get_connection()
     curs = conn.cursor()
 
