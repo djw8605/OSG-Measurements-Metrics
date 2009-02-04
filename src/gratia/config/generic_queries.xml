@@ -61,11 +61,14 @@
         <inputs>
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="includeFailed" kind="sql"> true </input>
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
+            <input name="user" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
+            <input name="exclude-user" kind="sql"> NONE </input>
         </inputs>
         <sql>
             SELECT
@@ -88,10 +91,13 @@
                 S.SiteName regexp :facility AND
                 VO.VOName regexp :vo AND
                 R.ResourceType = 'Batch' AND
+                (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
                 R.WallDuration &lt; 1100000000 AND
-                R.ProbeName regexp :probe
+                R.ProbeName regexp :probe AND
+                (NOT (R.CommonName regexp :exclude-user)) AND
+                R.CommonName regexp :user
                 <slot name="where"/>
             GROUP BY 
                 <slot name="group"/>
@@ -115,8 +121,10 @@
             <input name="span" type="int" kind="sql">86400</input>
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="includeFailed" kind="sql"> true </input>
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
+            <input name="user" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-user" kind="sql"> NONE </input>
@@ -144,6 +152,8 @@
                 S.SiteName regexp :facility AND
                 VO.VOName regexp :vo AND
                 R.ResourceType = 'Batch' AND
+                R.CommonName regexp :user AND
+                (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (R.CommonName regexp :exclude-user)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
@@ -174,6 +184,7 @@
             <input name="span" type="int" kind="sql">2592000</input>
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-12*31*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="includeFailed" kind="sql"> true </input>
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
@@ -202,6 +213,7 @@
                 S.SiteName regexp :facility AND
                 VO.VOName regexp :vo AND
                 R.ResourceType = 'Batch' AND
+                (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
                 R.WallDuration &lt; 1100000000 AND
@@ -337,6 +349,7 @@
         <input name="span" type="int" kind="sql">86400</input>
         <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+        <input name="includeFailed" kind="sql"> true </input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
@@ -365,6 +378,7 @@
           EndTime &lt; :endtime AND
           S.SiteName regexp :facility AND
           VO.VOName regexp :vo AND
+          (:includeFailed='true' OR ApplicationExitCode=0) AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
           (NOT (VO.VOName regexp :exclude-vo)) AND
           R.ProbeName regexp :probe AND

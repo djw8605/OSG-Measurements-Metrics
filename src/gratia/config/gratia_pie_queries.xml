@@ -40,12 +40,12 @@
     </query>
 -->
 
-    <query name="osg_vo_hours" base="GratiaGenericQuery.simple_summary">
+    <query name="osg_vo_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
         </inputs>
       <sql>
-        <filler name="group"> R.VOName </filler>
+        <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
         <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
@@ -134,7 +134,7 @@
       <attribute name="column_units"/>
     </query>
 
-    <query name="osg_facility_hours" base="GratiaGenericQuery.simple_summary">
+    <query name="osg_facility_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
         </inputs>
@@ -149,7 +149,7 @@
       <attribute name="title"> Wall Hours by Facility </attribute>
     </query>
 
-    <query name="osg_facility_cpu_hours" base="GratiaGenericQuery.simple_summary">
+    <query name="osg_facility_cpu_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
         </inputs>
@@ -164,7 +164,7 @@
       <attribute name="title"> CPU Hours by Facility </attribute>
     </query>
 
-    <query name="osg_probe_hours" base="GratiaGenericQuery.simple_summary">
+    <query name="osg_probe_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
         </inputs>
@@ -179,9 +179,9 @@
       <attribute name="title"> Computational Hours by Probe </attribute>
     </query>
 
-    <query name="osg_vo_count" base="GratiaGenericQuery.simple_summary">
+    <query name="osg_vo_count" base="GratiaGenericQuery.simple_master_summary">
       <sql>
-        <filler name="group"> R.VOName </filler>
+        <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(R.Njobs) </filler>
       </sql>
       <attribute name="pivot_name"> VO </attribute>
@@ -190,7 +190,7 @@
       <attribute name="title"> Job Count by VO </attribute>
     </query>
 
-    <query name="osg_facility_count" base="GratiaGenericQuery.simple_summary">
+    <query name="osg_facility_count" base="GratiaGenericQuery.simple_master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(R.Njobs) </filler>
@@ -201,9 +201,9 @@
       <attribute name="title"> Job Count by Facility </attribute>
     </query>
 
-    <query name="osg_sharing_sites_pie_perc" base="GratiaGenericQuery.simple_summary">
+    <query name="osg_sharing_sites_pie_perc" base="GratiaGenericQuery.simple_master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>

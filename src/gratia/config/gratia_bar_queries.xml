@@ -7,9 +7,9 @@
     <attribute name="display_name"> Bar Graphs </attribute>
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
-    <query name="vo_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="vo_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName </filler>
+        <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -25,9 +25,9 @@
       <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>
 
-    <query name="vo_job_cnt" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="vo_job_cnt" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName </filler>
+        <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(Njobs) </filler>
         <filler name="where"> </filler>
       </sql>
@@ -43,14 +43,14 @@
       <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>
 
-    <query name="osg_wall_hours" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_wall_hours" base="GratiaGenericQuery.master_summary">
         <inputs>
             <input name="span" type="eval" kind="sql">7*86400</input>
             <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
             <input name="endtime" type="datetime" kind="sql">time.time()</input>
         </inputs>
         <sql>
-            <filler name="group"> R.VOName </filler>
+            <filler name="group"> VO.VOName </filler>
             <filler name="column"> sum(WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
@@ -61,7 +61,7 @@
         <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>
 
-    <query name="osg_weekly_cpus" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_weekly_cpus" base="GratiaGenericQuery.master_summary">
         <inputs>
             <input name="span" type="eval" kind="sql">7*86400</input>
             <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>           
@@ -79,7 +79,7 @@
         <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>    
 
-    <query name="osg_size" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_size" base="GratiaGenericQuery.master_summary">
         <inputs>
             <input name="span" type="eval" kind="sql">7*86400</input>
             <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input> 
@@ -216,7 +216,7 @@
         <attribute name="graph_type"> GratiaHorizontalBar </attribute>
     </query>
 
-    <query name="facility_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="facility_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
@@ -281,7 +281,7 @@
     </query>
     
 
-    <query name="facility_cpu_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="facility_cpu_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/3600 </filler>
@@ -297,7 +297,7 @@
       </results>
     </query>
 
-    <query name="facility_cpu_efficiency" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="facility_cpu_efficiency" base="GratiaGenericQuery.master_summary">
       <inputs>
           <input name="facility" kind="sql">Nebraska</input>
       </inputs>
@@ -474,13 +474,13 @@
       <attribute name="graph_type">GratiaHorizontalBar</attribute>
     </query>
 
-    <query name="vo_cpu_efficiency" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="vo_cpu_efficiency" base="GratiaGenericQuery.master_summary">
       <inputs>
           <input name="vo" kind="sql">cms</input>
           <input name="min_hours" type="eval" kind="sql">0</input>
       </inputs>
       <sql>
-        <filler name="group"> R.VOName </filler>
+        <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 AND WallDuration/Njobs > 3600*:min_hours </filler>
       </sql>
@@ -494,7 +494,7 @@
       </results>
     </query>
 
-    <query name="probe_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="probe_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> R.ProbeName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
@@ -510,7 +510,7 @@
       </results>
     </query>
 
-    <query name="vo_facility_hours_bar_smry" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="vo_facility_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
@@ -526,7 +526,7 @@
       </results>
     </query>
 
-    <query name="vo_opp_hours_bar" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="vo_opp_hours_bar" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
@@ -566,7 +566,7 @@
     </query>
 -->
 
-    <query name="vo_opp_hours_bar2" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="vo_opp_hours_bar2" base="GratiaGenericQuery.master_summary">
       <sql> 
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
@@ -582,9 +582,9 @@
       </results>
     </query>
        
-    <query name="facility_opp_bar" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="facility_opp_bar" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -601,12 +601,12 @@
       </results>
     </query>
 
-    <query name="osg_sharing_opp" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_opp" base="GratiaGenericQuery.master_summary">
       <inputs>
           <input name="exclude-facility" kind="sql">None</input>
       </inputs>
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -623,9 +623,9 @@
       </results>
     </query>
 
-    <query name="osg_sharing_vos" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_vos" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -642,9 +642,9 @@
       </results>
     </query>
 
-    <query name="osg_sharing_sites" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_sites" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -661,9 +661,9 @@
       </results>
     </query>
 
-    <query name="osg_sharing_vos_perc" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_vos_perc" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -680,9 +680,9 @@
       </results>
     </query>
 
-    <query name="osg_sharing_sites_perc" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_sites_perc" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -699,9 +699,9 @@
       </results>
     </query>
 
-    <query name="osg_sharing_perc" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_perc" base="GratiaGenericQuery.master_summary">
       <sql> 
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -718,9 +718,9 @@
       </results>
     </query>
 
-    <query name="osg_sharing_perc_vos" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_perc_vos" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -738,9 +738,9 @@
       </results>
     </query>
 
-    <query name="osg_sharing_perc_sites" base="GratiaGenericQuery.jobs_summary_query">
+    <query name="osg_sharing_perc_sites" base="GratiaGenericQuery.master_summary">
       <sql>
-        <filler name="group"> R.VOName, S.SiteName </filler>
+        <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
