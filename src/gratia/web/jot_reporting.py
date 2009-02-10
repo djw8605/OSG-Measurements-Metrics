@@ -166,7 +166,7 @@ class JOTReporter(Authenticate):
         return pledge_info
 
     def get_apel_data_jot(self, month, year):
-        apel_url = self.metadata.get('apel_url', 'http://gratia09.fnal.gov:8880/gratia-data/interfaces/apel-lcg/%i-%02i.OSG_DATA.xml'\
+        apel_url = self.metadata.get('apel_url', 'http://gr8x0.fnal.gov:8880/gratia-data/interfaces/apel-lcg/%i-%02i.OSG_DATA.xml'\
             % (year, month))
         xmldoc = urllib2.urlopen(apel_url)
         dom = parse(xmldoc)

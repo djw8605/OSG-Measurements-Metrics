@@ -169,7 +169,7 @@ class WLCGReporter(Authenticate):
     def get_apel_data(self, year=datetime.datetime.now().year, month=datetime.datetime.now().month):
         year = int(year)
         month = int(month)
-        apel_url = self.metadata.get('apel_url', 'http://gratia09.fnal.gov:8880/gratia-data/interfaces/apel-lcg/%i-%02i.OSG_DATA.xml'\
+        apel_url = self.metadata.get('apel_url', 'http://gr8x0.fnal.gov:8880/gratia-data/interfaces/apel-lcg/%i-%02i.OSG_DATA.xml'\
             % (year, month))
         xmldoc = urllib2.urlopen(apel_url)
         dom = parse(xmldoc)
