@@ -92,7 +92,7 @@ class WLCGReporter(Authenticate):
             vo_info[my_accounting] = site_info
             site_info['pledge07'] = my_pledge07
             site_info['pledge08'] = my_pledge08
-            if year >= 2008 and month >= 4:
+            if (year >= 2008 and month >= 4) or year > 2008:
                 site_info['pledge'] = my_pledge08
             else:
                 site_info['pledge'] = my_pledge07

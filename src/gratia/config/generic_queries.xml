@@ -478,6 +478,7 @@
         <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
+        <input name="protocol" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input>
@@ -501,7 +502,8 @@
           StartTime &gt;= :starttime AND
           StartTime &lt; :endtime AND
           VO.VOName regexp :vo AND
-          S.SiteName regexp :facility
+          S.SiteName regexp :facility AND
+          R.Protocol regexp :protocol AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
           (NOT (VO.VOName regexp :exclude-vo))
           <slot name="where"/>
@@ -528,6 +530,7 @@
         <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql"> .* </input>
+        <input name="protocol" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input>
@@ -552,6 +555,7 @@
           StartTime &gt;= :starttime AND
           StartTime &lt; :endtime AND
           SiteName regexp :facility AND
+          R.Protocol regexp :protocol AND
           VO.VOName regexp :vo AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
           (NOT (VO.VOName regexp :exclude-vo))

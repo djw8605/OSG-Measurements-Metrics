@@ -155,7 +155,7 @@ class JOTReporter(Authenticate):
             if pledge08 != '':
                 my_pledge08 = pledge08
             fed_pledge = pledge_info.setdefault(accounting, 0)
-            if year >= 2008 and month >= 4:
+            if (year == 2008 and month >= 4) or year > 2008:
                 pledge_info[accounting] = my_pledge08
             else:
                 pledge_info[accounting] = my_pledge07

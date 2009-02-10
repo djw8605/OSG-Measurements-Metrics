@@ -114,7 +114,7 @@ FROM
 JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
 JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
 JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
-JOIN rsvextra.metricdetail RSVMD on RSVM.id = RSVMD.metricdata_id
+JOIN rsvextra.metricdetail RSVMD on RSVM.id = RSVMD.id
 WHERE
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
@@ -353,7 +353,7 @@ group by
                 OIMR.fqdn as fqdn
             FROM rsvextra.metricdata RSVM
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
-            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -394,7 +394,7 @@ group by
             JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
             JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
-            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -439,7 +439,7 @@ group by
             JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
             JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
-            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -485,7 +485,7 @@ group by
             JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
             JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
-            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -530,7 +530,7 @@ group by
             JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
             JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
-            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id 
             WHERE
                 RSVMD.detail regexp :version AND
@@ -575,7 +575,7 @@ group by
             JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
             JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
-            JOIN rsvextra.metricdetail RSVMD on RSVMD.metricdata_id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND

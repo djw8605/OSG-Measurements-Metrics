@@ -67,9 +67,9 @@
             JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
             WHERE
                 OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
-                ((RD.end_time &gt;= :starttime AND RD.end_time &lt; :endtime) OR
-                (RD.start_time &gt;= :starttime AND RD.start_time &lt; :endtime) OR
-                (RD.start_time &lt;= :starttime AND RD.end_time &gt;= :endtime)) AND
+                ((RD.end_time &gt;= from_unixtime(:starttime) AND RD.end_time &lt; from_unixtime(:endtime)) OR
+                (RD.start_time &gt;= from_unixtime(:starttime) AND RD.start_time &lt; from_unixtime(:endtime)) OR
+                (RD.start_time &lt;= from_unixtime(:starttime) AND RD.end_time &gt;= from_unixtime(:endtime))) AND
                 OIMR.fqdn regexp :facility
         </sql>
         <results module="gratia.database.query_handler" function="wlcg_availability"/>

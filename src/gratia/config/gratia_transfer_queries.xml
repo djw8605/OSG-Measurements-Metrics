@@ -72,6 +72,28 @@
         <attribute name="column_units">MB/s</attribute>
     </query>
 
+    <query name="protocol_transfer_volume" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> R.Protocol </filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 3)</filler>
+        </sql>
+        <attribute name="pivot_name">Protocol</attribute>
+        <attribute name="title">Volume of Gigabytes Transferred By Protocol</attribute>
+        <attribute name="column_names">Transfer Volume</attribute>
+        <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="protocol_transfer_rate" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> R.Protocol </filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 2)/:span</filler>
+        </sql>
+        <attribute name="pivot_name">Protocol</attribute>
+        <attribute name="title">Transfer Rate By Protocol</attribute>
+        <attribute name="column_names">Transfer Rate</attribute>
+        <attribute name="column_units">MB/s</attribute>
+    </query>
+
     <query name="facility_quality" base="GratiaStorageQuery.summary">
         <sql>
             <filler name="group"> SiteName </filler>

@@ -9,7 +9,7 @@ from xml.dom.minidom import parse
 
 dashboard_defaults = {'timeRange': 'individual'}
 service_url = 'http://dashb-cms-sam.cern.ch/dashboard/request.py/' \
-    'historicalserviceavailability'
+    'historicalserviceavailability.png'
 
 def download_data(site, service, start, end):
     params = dict(dashboard_defaults)
@@ -21,6 +21,7 @@ def download_data(site, service, start, end):
     req = urllib2.Request(service_url + '?' + params, \
         headers={"Accept": "text/xml"})
     fp = urllib2.urlopen(req)
+    #print service_url + '?' + params
     dom = parse(fp)
     data_dom = dom.getElementsByTagName("data")[0]
     data = {}
