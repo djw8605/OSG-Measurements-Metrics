@@ -9,6 +9,7 @@ import types
 import calendar
 import datetime
 import cStringIO
+import time
 
 import cherrypy
 from xml.dom.minidom import parse
@@ -82,14 +83,26 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         if relTime:
             if relTime == 'absolute':
                 data['relTime'] = 'absolute'
-                starttime = data.get('starttime', None)
-                if starttime != None and starttime.strip() != '':
-                    filter_dict['starttime'] = starttime
-                endtime = data.get('endtime', None)
-                if endtime != None and endtime.strip() != '':
-                    filter_dict['endtime'] = endtime
-            else:
-                data['relTime'] = relTime
+		starttime = data.get('starttime', None)
+                filter_dict['starttime'] = starttime
+		while True: 
+		 	try:
+				valid = time.strptime(starttime,'%Y-%m-%d %H:%M:%S')
+				break
+			except ValueError: 
+				relTime = 1209600
+				break
+		endtime = data.get('endtime', None)
+		filter_dict['endtime'] = endtime
+		while True: 
+			try: 
+                		valid2 = time.strptime(endtime,'%Y-%m-%d %H:%M:%S')
+				break
+			except ValueError: 
+				relTime = 1209600
+				break
+            if relTime != 'absolute':
+		data['relTime'] = relTime
                 try:
                     interval = int(relTime)
                 except:
