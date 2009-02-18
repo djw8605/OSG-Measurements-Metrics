@@ -372,10 +372,11 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
     #print "Anding results.", t1+time.time()
 
 def wlcg_availability(d, globals=globals(), **kw):
+    print "Starting WLCG avail summary."
     kw['kind'] = 'pivot-group'
     startTime = convert_to_datetime(kw['starttime'])
     endTime = convert_to_datetime(kw['endtime'])
-    metricNames = sets.Set()
+    metricNames = sets.Set(["Maintenance"]) # Always apply maintenance! -BB, 2009-02-18
     serviceNames = sets.Set()
     serviceData = {}
     # Add all the metric names:
@@ -412,6 +413,7 @@ def wlcg_availability(d, globals=globals(), **kw):
         serviceSummary)
     #print serviceSummary["Purdue-Steele"]
     if "Maintenance" in metricNames:
+        print "Filter maintenance times."
         filter_summaries("MAINTENANCE", serviceNames, metricNames, serviceData,
             serviceSummary)
     return build_availability(serviceSummary), kw

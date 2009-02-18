@@ -13,6 +13,7 @@
     <attribute name="display_name"> RSV WLCG Queries </attribute>
     <attribute name="connection_manager"> RSVConnMan </attribute>
 
+<!--
     <query name="availability">
         <inputs>
             <input name="starttime" type="timestamp" kind="sql">time.time()-86400</input>
@@ -33,11 +34,24 @@
             RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
             OIMR.fqdn regexp :facility AND
             OIMM.name regexp :metric
+        UNION
+        SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
+            FROM oim.resource_downtime RD
+            JOIN oim.resource OIMR on OIMR.resource_id = RD.resource_id 
+            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
+            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
+            WHERE
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
+                ((RD.end_time &gt;= from_unixtime(:starttime) AND RD.end_time &lt; from_unixtime(:endtime)) OR
+                (RD.start_time &gt;= from_unixtime(:starttime) AND RD.start_time &lt; from_unixtime(:endtime)) OR
+                (RD.start_time &lt;= from_unixtime(:starttime) AND RD.end_time &gt;= from_unixtime(:endtime))) AND
+                OIMR.fqdn regexp :facility
         </sql>  
         <results module="gratia.database.query_handler" function="wlcg_availability"/>
         <attribute name="pivot_name">Site</attribute>
         <attribute name="title">WLCG Availability</attribute>
     </query>
+-->
 
     <query name="reliability">
         <inputs>
@@ -88,7 +102,7 @@
       <connection> rsv </connection>
     </aggregate>
 
-    <query name="rsv_wlcg_availability" base="RSVWLCGGeneric.availability">
+    <query name="rsv_wlcg_availability" base="RSVWLCGGeneric.reliability">
         <results module="gratia.database.query_handler" function="wlcg_availability"/>
         <attribute name="title">Resource WLCG Availability</attribute>
         <sql/>
@@ -100,7 +114,7 @@
         <sql/>
     </query>
 
-    <query name="rsv_sam_availability" base="RSVWLCGGeneric.availability">
+    <query name="rsv_sam_availability" base="RSVWLCGGeneric.reliability">
         <results module="gratia.database.query_handler" function="sam_site_availability"/>
         <attribute name="title">Site WLCG Availability</attribute>
         <sql/>
@@ -112,7 +126,7 @@
         <sql/>
     </query>
 
-    <query name="wlcg_site_avail" base="RSVWLCGGeneric.availability">
+    <query name="wlcg_site_avail" base="RSVWLCGGeneric.reliability">
         <results module="gratia.database.query_handler" function="wlcg_site_availability"/>
         <attribute name="title">Federation Availability</attribute>
         <sql/>
