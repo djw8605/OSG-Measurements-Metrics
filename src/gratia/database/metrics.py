@@ -196,6 +196,36 @@ def gip_subcluster_score(sql_results, globals=globals(), **kw):
             new_results[site][start] = mymax.get_max()
     return new_results, md
 
+
+class NormalizationConstants:
+
+    def __init__(self, gip_queries, starttime=None, endtime=None, span=None):
+        kw = {}
+        if starttime:
+            kw['starttime'] = starttime
+        if endtime:
+            kw['endtime'] = endtime
+        if span:
+            kw['span'] = span
+        self.ksi2k, _ = gip_queries.subcluster_score_ts(**kw)
+        ksi2k_avg, _ = gip_queries.subcluster_score_ts2(**kw)
+        self.ksi2k_avg = ksi2k_avg['Nebraska']
+ 
+    def __getitem__(self, site):
+        if site in self.ksi2k and len(self.ksi2k[site]) > 0:
+            return sum(self.ksi2k[site].values())/len(self.ksi2k[site])
+        else:
+            return sum(self.ksi2k_avg.values())/len(self.ksi2k_avg)
+
+    def getNorm(self, time, site):
+        if site in self.ksi2k and time in self.ksi2k[site]:
+            return self.ksi2k[site][time]
+        elif time in self.ksi2k_avg:
+            return self.ksi2k_avg[time]
+        else:
+            return self[site]
+            
+
 def osg_size(sql_results, globals=globals(), **kw):
     """
     Calculate the OSG's size in terms of utilized CPUs, accessible CPUs, and

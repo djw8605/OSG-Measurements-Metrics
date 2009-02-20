@@ -13,6 +13,8 @@ from pkg_resources import resource_stream
 
 from auth import Authenticate
 
+from gratia.database.metrics import NormalizationConstants
+
 class JOTReporter(Authenticate):
 
     def uslhc_table(self, month=None, year=None, **kw):
@@ -329,3 +331,51 @@ class JOTReporter(Authenticate):
         return results
     vo_data_2008.exposed = True
 
+    def normalized_vo_hours(self, starttime, endtime, vo_list, span):
+        vos = '|'.join(vo_list)
+        normalization = NormalizationConstants(self.globals['GIPQueries'],
+            starttime=starttime, endtime=endtime, span=span)
+        hours, _ = self.globals['GratiaBarQueries'].vo_site_wall_hours( \
+            starttime=starttime, endtime=endtime, span=span, vos=vos)
+        results = {}
+        for vo in vo_list:
+            results[vo] = 0
+            for key, groups in hours.items():
+                site, voTmp = key
+                if vo != voTmp:
+                    continue
+                for time, val in groups.items():
+                    norm = normalization.getNorm(site, val)
+                    results[vo] += norm * val
+        hours_per_year = float(365*24)
+        for key, val in results.items(): # Return values in CPU-years.
+            results[key] = val/hours_per_year
+        return results
+
+    def _hep_reporting(self, year=None, month=None, vos=None, span=86400):
+        starttime, endtime, month, year = self.get_times(month, year)
+        if vos:
+            vos = '|'.join(vos.split(','))
+        else:
+            vos = ['cdf', 'dzero', 'cdms', 'minos', 'minerva', 'miniboone',
+                'des', 'auger', 'accelerator', 'ktev', 'mipp', 'nova', 'theory',
+                'fermilab', 'cms', 'usatlas', 'sdss']
+            vos = '|'.join(vos)
+        vo_list = vos.split('|')
+        results1 = self.normalized_vo_hours(starttime, endtime, vo_list, span)
+        starttime = endtime - datetime.timedelta(365,0)
+        results2 = self.normalized_vo_hours(starttime, endtime, vo_list, span)
+        return results1, results2
+
+    def hep_reporting_csv(self, year=None, month=None, vos=None):
+        info1, info2 = self._hep_reporting(year, month, vos)
+        results = 'Normalized Wall Years from last month:\n'
+        for vo, hrs in info1.items():
+            results += '%s,%.3f\n' % (vo, hrs)
+        results += '\nNormalized Wall Years from last year:\n'
+        for vo, hrs in info2.items():
+            results += '%s,%.3f\n' % (vo, hrs)
+        cherrypy.response.headers['Content-Type'] = "text/plain"
+        return results
+    hep_reporting_csv.exposed = True
+ 
