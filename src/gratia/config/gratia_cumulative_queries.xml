@@ -63,7 +63,28 @@
       <attribute name="column_units"> Hours </attribute>
       <attribute name="graph_type"> GratiaCumulative </attribute>
     </query>
-
+<!--
+    <query name="osg_cumulative_rates" base="GratiaGenericQuery.jobs_summary_query">
+      <inputs>
+          <input name="doubling_interval" type="eval">8*30*86400</input>
+      </inputs>
+      <sql>
+        <filler name="group"> "OSG" </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <results module="gratia.database.query_handler" function="cumulative_rate_estimator">
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name"> OSG </attribute>
+      <attribute name="title"> Amount of Growth </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="graph_type"> GratiaCumulative </attribute>
+    </query>
+-->
     <query name="facility_success_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> S.SiteName </filler>

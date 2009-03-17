@@ -146,6 +146,8 @@ def upload_weeks(times, rsv, conn):
 def upload_months(times, rsv, conn):
     def endTimeFunc(starttime):
         next_month = (starttime.month + 1) % 12
+        if next_month == 0:
+            next_month = 12
         next_year  = starttime.year + int(starttime.month == 12)
         return datetime.datetime(next_year, next_month, 1, 0, 0, 0)
     upload_data(times, rsv, conn, 30*86400, endTimeFunc)

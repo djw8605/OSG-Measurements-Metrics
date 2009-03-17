@@ -968,3 +968,8 @@ def special_resource_group_parser2(sql_results, globals=globals(), **kw):
         new_results[key] = val
     return new_results, md
 
+def cumulative_rate_estimator(sql_results, globals=globals(), **kw):
+    """
+    Estimate the number of times the size has increased for a fixed time period
+    """
+
