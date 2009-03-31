@@ -63,6 +63,7 @@
             <input name="exclude-vo" kind="sql"> NONE </input>
             <input name="user" kind="sql"> .* </input>
             <input name="exclude-user" kind="sql"> NONE </input>
+            <input name="facility" kind="sql"> .* </input>
       </inputs>
       <sql>
         SELECT VOName, count(*) FROM (
@@ -71,11 +72,16 @@
             CASE WHEN left(CommonName,4)='/CN=' THEN substring(CommonName,5) ELSE CommonName END as USER
           FROM MasterSummaryData MSD
           JOIN
+            Probe P on MSD.ProbeName = P.probename
+          JOIN
+            Site S on S.siteid = P.siteid
+          JOIN
             VONameCorrection VC ON (VC.corrid=MSD.VOcorrid)
           JOIN
             VO on (VC.void = VO.void)
           WHERE EndTime >= :starttime AND
           EndTime &lt; :endtime AND
+          S.SiteName regexp :facility AND
           CommonName regexp :user AND
           not (CommonName regexp :exclude-user)
           GROUP BY VO.VOName, user
@@ -129,7 +135,7 @@
       </results>
       <attribute name="graph_type"/>
       <attribute name="pivot_name">VO</attribute>
-      <attribute name="title">User count per VO</attribute>
+      <attribute name="title">VO-User Table</attribute>
       <attribute name="column_names">User Count</attribute>
       <attribute name="column_units"/>
     </query>

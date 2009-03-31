@@ -67,6 +67,7 @@
             <input name="user" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="role" kind="sql"> .* </input>
+            <input name="exclude-role" kind="sql"> NONE </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
             <input name="exclude-user" kind="sql"> NONE </input>
@@ -92,6 +93,7 @@
                 S.SiteName regexp :facility AND
                 VO.VOName regexp :vo AND
                 VC.VOName regexp :role AND
+                (NOT (VC.VOName regexp :exclude-role)) AND
                 R.ResourceType = 'Batch' AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
@@ -129,6 +131,7 @@
             <input name="user" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="role" kind="sql"> .* </input>
+            <input name="exclude-role" kind="sql"> NONE </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-user" kind="sql"> NONE </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
@@ -155,6 +158,7 @@
                 S.SiteName regexp :facility AND
                 VO.VOName regexp :vo AND
                 VC.VOName regexp :role AND
+                (NOT (VC.VOName regexp :exclude-role)) AND
                 R.ResourceType = 'Batch' AND
                 R.CommonName regexp :user AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
@@ -193,6 +197,7 @@
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="role" kind="sql"> .* </input>
+            <input name="exclude-role" kind="sql"> NONE </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
         </inputs>
@@ -218,6 +223,7 @@
                 S.SiteName regexp :facility AND
                 VO.VOName regexp :vo AND
                 VC.VOName regexp :role AND
+                (NOT (VC.VOName regexp :exclude-role)) AND
                 R.ResourceType = 'Batch' AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
@@ -359,6 +365,7 @@
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="role" kind="sql"> .* </input>
+         <input name="exclude-role" kind="sql"> NONE </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE </input>
         <input name="probe" kind="sql"> .* </input>
@@ -386,6 +393,7 @@
           S.SiteName regexp :facility AND
           VO.VOName regexp :vo AND
           VC.VOName regexp :role AND
+          (NOT (VC.VOName regexp :exclude-role)) AND
           (:includeFailed='true' OR ApplicationExitCode=0) AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
           (NOT (VO.VOName regexp :exclude-vo)) AND

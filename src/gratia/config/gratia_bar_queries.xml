@@ -888,6 +888,34 @@
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
+    <query name="job_avg" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+          <input name="min_jobs" kind="sql"> 0 </input>
+          <input name="max_avg" kind="sql"> 10000 </input>
+<!--
+          <input name="min_eff" kind="sql"> 0 </input>
+          <input name="max_eff" kind="sql"> 100 </input>
+-->
+          <input name="fixed-height">False</input>
+        </inputs> 
+        <sql>
+            <filler name="group"> COALESCE(R.CommonName, VO.VOName) </filler>
+            <filler name="column"> sum(WallDuration)/sum(Njobs)/60 </filler>
+            <!--<filler name="where"> AND 100*(CpuUserDuration + CpuSystemDuration)/(WallDuration) &lt;= :max_eff </filler>-->
+            <filler name="having"> HAVING sum(Njobs) > :min_jobs and sum(WallDuration)/sum(Njobs)/60 &lt; :max_avg </filler>
+        </sql>
+        <attribute name="pivot_name">User Name</attribute>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+        <attribute name="title">Average Job Runtimes</attribute>
+        <attribute name="column_names">Avg Runtime</attribute>
+        <attribute name="column_units">Mins</attribute>
+        <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
   </class>
 
 </graphtool-config>
