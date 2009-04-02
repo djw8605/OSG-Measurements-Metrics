@@ -229,9 +229,11 @@
       <inputs>
         <input name="span" type="eval" kind="sql">86400</input>
         <input name="starttime" type="datetime" kind="sql">time.time()-365*86400</input>
+        <input name="max_size" type="eval" kind="sql">20000</input>
       </inputs>
       <sql>
         <filler name="column">totalCpus</filler>
+        <filler name="where"> AND myStat &lt; :max_size </filler>
       </sql>
       <attribute name="title">Size of Facility Over Time</attribute>
       <attribute name="column_names">Total CPUs</attribute>
@@ -326,6 +328,36 @@
       <attribute name="title">OSG Total Space By Facility</attribute>
       <attribute name="column_names">Total Space</attribute>
       <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="se_size">
+      <inputs>
+          <input name="span" kind="sql" type="eval">30*86400</input>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-365*86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="sekind" kind="sql">srm</input>
+      </inputs>
+      <sql>
+        SELECT site, DATE_SUB(date, INTERVAL 5 HOUR), CASE WHEN total > 3000000 THEN total/1073741824 ELSE total END
+        FROM se_info
+        WHERE
+          date &gt;= :starttime AND date &lt; :endtime AND
+          site regexp :facility AND
+          ((:sekind='srm' AND se not like '%%disk') OR (se regexp :sekind))
+      </sql>
+      <attribute name="title">Size of Storage Over Time</attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_names">Total Size</attribute>
+      <attribute name="column_units">GB</attribute>
+      <results module="gratia.database.metrics" function="gip_size_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
     </query>
 
     <query name="se_info">

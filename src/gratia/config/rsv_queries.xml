@@ -783,6 +783,28 @@ where Timestamp &gt;=:errorstart AND Timestamp &lt; :errorstart + INTERVAL :span
       <attribute name="title">Resource Name to FQDN</attribute>
     </query>
 
+    <query name="field_of_science">
+      <sql>
+        SELECT
+          v.short_name,
+          s.name
+        FROM oim.vo_field_of_science fos
+        JOIN oim.virtualorganization v on v.vo_id = fos.vo_id
+        JOIN oim.field_of_science s on s.id = fos.science_id
+      </sql>
+      <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name">VO Name</attribute>
+      <attribute name="column_names">Field of Science</attribute>
+      <attribute name="column_units"></attribute>
+      <attribute name="graph_type"/>
+      <attribute name="title">VO Field of Science</attribute>
+    </query>
+
   </class>
 
 </graphtool-config>

@@ -259,7 +259,7 @@ from
   (select
      time,
      hostName,
-     sum(<slot name="column"/>) as myStat,
+     avg(<slot name="column"/>) as myStat,
      lrmsType, lrmsVersion
    from
      ce_info
@@ -273,6 +273,7 @@ where
   s.sitename regexp :facility AND
   NOT (s.sitename regexp :excludefacility)
   AND NOT (s.cename regexp :excludehost)
+  <slot name="where"/>
 group by
   time,
   hostName

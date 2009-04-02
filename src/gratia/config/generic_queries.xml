@@ -189,7 +189,7 @@
 
     <query name="monthly_master_summary">
         <inputs>
-            <input name="span" type="int" kind="sql">2592000</input>
+            <input name="span" type="eval" kind="sql">28*86400</input>
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-12*31*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
             <input name="includeFailed" kind="sql"> true </input>
@@ -200,6 +200,7 @@
             <input name="exclude-role" kind="sql"> NONE </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE </input>
+            <input name="exclude-user" kind="sql"> NONE </input>
         </inputs>
         <sql>
             SELECT
@@ -227,6 +228,7 @@
                 R.ResourceType = 'Batch' AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
+                (NOT (R.CommonName regexp :exclude-user)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
                 R.WallDuration &lt; 1100000000 AND
                 R.ProbeName regexp :probe
@@ -245,6 +247,7 @@
         </results>
         <attribute name="graph_type">GratiaStackedBar</attribute>
         <attribute name="pivot_name" />
+        <attribute name="grouping_name">Time</attribute>
         <attribute name="title" />
         <attribute name="column_names" />
         <attribute name="column_units" />

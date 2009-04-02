@@ -5,7 +5,8 @@ import datetime
 
 import numpy
 
-from graphtool.database.query_handler import results_parser, complex_pivot_parser
+from graphtool.database.query_handler import results_parser, \
+    complex_pivot_parser
 from query_handler import gip_parser
 
 class NMax(object):
@@ -31,6 +32,105 @@ class NMinMax(object):
 
     def get_max(self):
         return min(self.data)
+
+def OIM_to_gratia_mapper(oim_vos, gratia_vos):
+    """
+    Maps the OIM VO names to Gratia VO Names
+    Returns a map of oim to gratia and a map of gratia to oim.
+    """
+    oim_to_gratia = {}
+    gratia_to_oim = {}
+    print oim_vos
+    print gratia_vos
+    for oim_vo in oim_vos:
+        oim_lower = oim_vo.lower()
+        for gratia_vo in gratia_vos:
+            gratia_lower = gratia_vo.lower()
+            if gratia_lower.find(oim_lower) >= 0 or \
+                    oim_lower.find(gratia_lower) >= 0:
+                oim_to_gratia[oim_vo] = gratia_vo
+                gratia_to_oim[gratia_vo] = oim_vo
+
+    #for key, val in oim_to_gratia.items():
+    #    print key, val
+    return oim_to_gratia, gratia_to_oim
+
+def HEP_classifier(vos, globals=globals()):
+    """
+    Returns all the VOs that are HEP VOs.
+    """
+    fields_of_science, _ = globals['RSVQueries'].field_of_science()
+    oim_vos = [i[0] for i in fields_of_science]
+    oim_to_gratia, gratia_to_oim = OIM_to_gratia_mapper(oim_vos, vos)
+    hep_vos = []
+    for vo in vos:
+        is_hep = False
+        oim_vo = gratia_to_oim.get(vo, None)
+        for ov, science in fields_of_science:
+             if ov == oim_vo and science == 'HEP':
+                 hep_vos.append(vo)
+    return hep_vos
+
+def non_HEP_filter(sql_results, globals=globals(), **kw):
+    """
+    Removes results for HEP VOs.
+    """
+    results, md = results_parser(sql_results, globals=globals, **kw)
+    hep_vos = HEP_classifier(results.keys(), globals=globals)
+    print "HEP VOs"
+    print "\n".join(hep_vos)
+    filtered_results = {}
+    for pivot, group in results.items():
+        if pivot not in hep_vos:
+            filtered_results[pivot] = group
+    return filtered_results, md
+
+precedence = {\
+  'USLHC': 0,
+  'HEP': 1,
+  'Physics': 2,
+  'Community Grid': 3,
+  'Other': 4,
+}
+def science_classifier(sql_results, globals=globals(), default="Other", **kw):
+    """
+    Take in some VO-based metric and convert it to a field of science-based
+    metric.  Uses the fact that the field of science is recorded by OIM.
+    """
+    results, md = results_parser(sql_results, globals=globals, **kw)
+    fields_of_science, _ = globals['RSVQueries'].field_of_science()
+    gratia_vos = results.keys()
+    #print fields_of_science
+    oim_vos = [i[0] for i in fields_of_science]
+    oim_to_gratia, gratia_to_oim = OIM_to_gratia_mapper(oim_vos, gratia_vos)
+    vo_to_science = {}
+    for oim_vo, science_field in fields_of_science:
+        current_science = vo_to_science.get(oim_vo, '')
+        precedence_cur = precedence.get(current_science, 99)
+        precedence_new = precedence.get(science_field)
+        #print oim_vo, science_field, precedence_new, current_science, precedence_cur
+        if precedence_new < precedence_cur:
+            vo_to_science[oim_vo] = science_field
+    #print "Gratia VO to Science"
+    #for vo, science in vo_to_science.items():
+    #    print vo, science
+    filtered_results = {}
+    for pivot, groups in results.items():
+        if pivot in gratia_to_oim and gratia_to_oim[pivot] in vo_to_science:
+            new_pivot = vo_to_science[gratia_to_oim[pivot]]
+        else:
+            #print "Unclassified VO:", pivot
+            new_pivot = default
+        if new_pivot not in filtered_results:
+            filtered_results[new_pivot] = groups
+        else:
+            for group, val in groups.items():
+                cur = filtered_results[new_pivot].get(group, 0)
+                filtered_results[new_pivot][group] = cur + val
+    if 'Physics' in filtered_results:
+        filtered_results['non-HEP Physics'] = filtered_results['Physics']
+        del filtered_results['Physics']
+    return filtered_results, md
 
 def site_size_parser(sql_results, globals=globals(), **kw):
     """
@@ -239,7 +339,7 @@ def osg_size(sql_results, globals=globals(), **kw):
     accessible_results, _ = globals['GratiaBarQueries'].osg_avail_size(span=7*86400,
         starttime=time.time()-7*86400*52)
     total_results, _ = globals['GIPQueries'].gip_site_size(span=7*86400,
-        starttime=time.time()-7*86400*52)
+        starttime=time.time()-7*86400*52, max_size=20000)
     ksi2k_results, _ = globals['GIPQueries'].subcluster_score_ts()
     ksi2k_results2, _ = globals['GIPQueries'].subcluster_score_ts2()
     ksi2k_results2 = ksi2k_results2['Nebraska']
