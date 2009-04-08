@@ -35,6 +35,7 @@ class JOTReporter(Authenticate):
             'starttime': starttime.strftime('%Y-%m-%d %H:%M:%S'),
             'endtime':   endtime.  strftime('%Y-%m-%d %H:%M:%S'),
             'exclude-vo': 'unknown',
+            'exclude-user': 'Sfiligoi',
         }
         cpu_hours = self.globals['GratiaPieQueries'].osg_facility_cpu_hours(\
             **info)[0]
