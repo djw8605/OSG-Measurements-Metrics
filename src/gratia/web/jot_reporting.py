@@ -1,6 +1,7 @@
 
 import math
 import sets
+import time
 import urllib
 import urllib2
 import datetime
@@ -143,30 +144,73 @@ class JOTReporter(Authenticate):
         endtime = datetime.datetime(next_year, next_month, 1, 0, 0, 0)
         return starttime, endtime, month, year
 
+#    def pledges(self, month, year):
+#        lines = resource_stream('gratia.config', 'pledges.csv').read().splitlines()
+#        pledge_info = {}
+#        # Pop off the headers
+#        lines = lines[1:]
+#        for line in lines:
+#            fed, pledge07, pledge08, VOMoU, VOaddl, accounting, site \
+#                = line.split('\t')[:7]
+#            if accounting != '':
+#                my_accounting = accounting
+#            if pledge07 != '':
+#                my_pledge07 = pledge07
+#            if pledge08 != '':
+#                my_pledge08 = pledge08
+#            fed_pledge = pledge_info.setdefault(accounting, 0)
+#            if (year == 2008 and month >= 4) or year > 2008:
+#                pledge_info[accounting] = my_pledge08
+#            else:
+#                pledge_info[accounting] = my_pledge07
+#            try:
+#                pledge_info[accounting] = int(pledge_info[accounting])
+#            except:
+#                del pledge_info[accounting]
+#        return pledge_info
+
+    # New pledge parsing mechanism - take it from WLCG web pages
+    def parse_json(self, input):
+        return eval(input, {'null': None}, {})
+
     def pledges(self, month, year):
-        lines = resource_stream('gratia.config', 'pledges.csv').read().splitlines()
-        pledge_info = {}
-        # Pop off the headers
-        lines = lines[1:]
-        for line in lines:
-            fed, pledge07, pledge08, VOMoU, VOaddl, accounting, site \
-                = line.split('\t')[:7]
-            if accounting != '':
-                my_accounting = accounting
-            if pledge07 != '':
-                my_pledge07 = pledge07
-            if pledge08 != '':
-                my_pledge08 = pledge08
-            fed_pledge = pledge_info.setdefault(accounting, 0)
-            if (year == 2008 and month >= 4) or year > 2008:
-                pledge_info[accounting] = my_pledge08
-            else:
-                pledge_info[accounting] = my_pledge07
+        url = self.metadata.get('pledge_url', 'http://gridops.cern.ch/mou/accounting/json')
+        fp = urllib2.urlopen(url)
+        data = self.parse_json(fp.read())
+        site_pledge = {}
+        current_datetime = datetime.datetime(year, month, 1, 0, 0, 0)
+        for account_info in data:
+            site_names = [i['name'] for i in account_info['sites']]
+            accounting_name = account_info['accounting_name']
+            commitments = [i['vo'] for i in account_info['vo'] if i['commitment'] \
+                == 'MoU']
+            tier = account_info['tier']
+            max_endtime = datetime.datetime(1970, 1, 1)
+            max_pledge = None
+            my_pledge = None
+            for pledge in account_info['pledges']:
+                if pledge['units'] != 'kSI2K':
+                    continue
+                starttime = datetime.datetime(*time.strptime(pledge['start'], \
+                    "%Y-%m-%d")[:6])
+                endtime = datetime.datetime(*time.strptime(pledge['end'], \
+                    "%Y-%m-%d")[:6])
+                if endtime > max_endtime:
+                    max_endtime = endtime
+                    max_pledge = pledge
+                if starttime <= current_datetime and endtime >= current_datetime:
+                    my_pledge = pledge
+                    break
+            if my_pledge == None:
+                my_pledge = max_pledge
+            if my_pledge == None:
+                continue
             try:
-                pledge_info[accounting] = int(pledge_info[accounting])
+                site_pledge[accounting_name] = int(my_pledge['amount'])
             except:
-                del pledge_info[accounting]
-        return pledge_info
+                continue
+
+        return site_pledge
 
     def get_apel_data_jot(self, month, year):
         apel_url = self.metadata.get('apel_url', 'http://gr8x0.fnal.gov:8880/gratia-data/interfaces/apel-lcg/%i-%02i.OSG_DATA.xml'\
