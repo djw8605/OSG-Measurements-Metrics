@@ -1,4 +1,5 @@
 
+import re
 import sys
 import time
 import urllib
@@ -8,16 +9,24 @@ import datetime
 from xml.dom.minidom import parse
 
 dashboard_url = 'http://dashb-atlas-data.cern.ch/dashboard/request.py/site'
-dashboard_t0_url = 'http://dashb-atlas-data-tier0.cern.ch/dashboard/request.py'\
-    '/site'
+#dashboard_t0_url ='http://dashb-atlas-data-tier0.cern.ch/dashboard/request.py'\
+#    '/site'
+dashboard_t0_url = dashboard_url
 
-def parse_and_print(url):
+def parse_and_print(url, to='.*'):
+    to = re.compile(to)
     req = urllib2.Request(url, headers={"Accept": "text/xml"})
     dom = parse(urllib2.urlopen(req))
     total = 0
     clouds_dom = dom.getElementsByTagName('clouds')[0]
     for item_dom in clouds_dom.getElementsByTagName('item'):
         if item_dom not in clouds_dom.childNodes:
+            continue
+        try:
+            src = item_dom.getElementsByTagName('src_site')[0]
+            if not to.search(str(src.firstChild.data)):
+                continue
+        except:
             continue
         for entry in item_dom.getElementsByTagName('total_bytes_xs'):
             if entry not in item_dom.childNodes:
@@ -34,11 +43,13 @@ def dostats(now):
     #    end.strftime('%Y-%m-%d'))
     now = now.strftime('%Y-%m-%d %H:%M')
     end = end.strftime('%Y-%m-%d %H:%M')
-    info = {'name': 'BNL', 'fromDate': now, 'toDate': end}
+    info = {'name': 'CERN', 'fromDate': now, 'toDate': end}
     info = urllib.urlencode(info)
     url = dashboard_t0_url + '?' + info
-    amt1 = parse_and_print(url)
+    amt1 = parse_and_print(url, to='BNL')
     print "\tT0 to BNL: %i GB" % amt1
+    info = {'name': 'BNL', 'fromDate': now, 'toDate': end}
+    info = urllib.urlencode(info)
     url = dashboard_url + '?' + info
     amt2 = parse_and_print(url)
     print "\tBNL to/from USATLAS T2s: %i GB" % amt2
