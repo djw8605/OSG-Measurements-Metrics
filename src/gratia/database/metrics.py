@@ -7,7 +7,7 @@ import numpy
 
 from graphtool.database.query_handler import results_parser, \
     complex_pivot_parser
-from query_handler import gip_parser
+from query_handler import gip_parser, OIM_to_gratia_mapper
 
 class NMax(object):
 
@@ -33,33 +33,15 @@ class NMinMax(object):
     def get_max(self):
         return min(self.data)
 
-def OIM_to_gratia_mapper(oim_vos, gratia_vos):
-    """
-    Maps the OIM VO names to Gratia VO Names
-    Returns a map of oim to gratia and a map of gratia to oim.
-    """
-    oim_to_gratia = {}
-    gratia_to_oim = {}
-    print oim_vos
-    print gratia_vos
-    for oim_vo in oim_vos:
-        oim_lower = oim_vo.lower()
-        for gratia_vo in gratia_vos:
-            gratia_lower = gratia_vo.lower()
-            if gratia_lower.find(oim_lower) >= 0 or \
-                    oim_lower.find(gratia_lower) >= 0:
-                oim_to_gratia[oim_vo] = gratia_vo
-                gratia_to_oim[gratia_vo] = oim_vo
-
-    #for key, val in oim_to_gratia.items():
-    #    print key, val
-    return oim_to_gratia, gratia_to_oim
-
+addl_fields_of_science = [('lhcb', 'HEP'), ('lhcb', 'Physics'),
+    ('FermilabHypercp', 'HEP'), ('FermilabHypercp', 'Physics'),
+    ('geant4', 'HEP'), ('geant4', 'Physics'),]
 def HEP_classifier(vos, globals=globals()):
     """
     Returns all the VOs that are HEP VOs.
     """
     fields_of_science, _ = globals['RSVQueries'].field_of_science()
+    fields_of_science += addl_fields_of_science
     oim_vos = [i[0] for i in fields_of_science]
     oim_to_gratia, gratia_to_oim = OIM_to_gratia_mapper(oim_vos, vos)
     hep_vos = []
@@ -77,8 +59,8 @@ def non_HEP_filter(sql_results, globals=globals(), **kw):
     """
     results, md = results_parser(sql_results, globals=globals, **kw)
     hep_vos = HEP_classifier(results.keys(), globals=globals)
-    print "HEP VOs"
-    print "\n".join(hep_vos)
+    #print "HEP VOs"
+    #print "\n".join(hep_vos)
     filtered_results = {}
     for pivot, group in results.items():
         if pivot not in hep_vos:
@@ -99,6 +81,7 @@ def science_classifier(sql_results, globals=globals(), default="Other", **kw):
     """
     results, md = results_parser(sql_results, globals=globals, **kw)
     fields_of_science, _ = globals['RSVQueries'].field_of_science()
+    fields_of_science += addl_fields_of_science
     gratia_vos = results.keys()
     #print fields_of_science
     oim_vos = [i[0] for i in fields_of_science]
@@ -200,6 +183,41 @@ def resource_classifier(globals=globals(), **kw):
     #for resource, set in results.items():
     #    print resource, set
     return results, md
+
+def cms_filter(sql_results, globals=globals(), **kw):
+    """
+    Filter all the pivots on CMS sites, and mark their proper tier.
+    """
+    perc, md = globals['RSVQueries'].ownership()
+    feds, _ = globals['RSVQueries'].resource_to_federation()
+    wlcg_resources = feds.keys()
+    resources, _ = globals['RSVQueries'].resources()
+    resources = resources.keys()
+
+    def cms_pivot_filter(pivot, **kw):
+        owned_resource = False
+        for resource, info in perc:
+            if pivot != resource:
+                continue
+            vo, _ = info
+            if vo == 'CMS':
+                owned_resource = True
+                break
+        if pivot not in feds and not owned_resource:
+            return None
+        elif pivot not in feds:
+            return pivot + ' (T3)'
+        print pivot, feds[pivot]
+        if feds[pivot].startswith('T1'):
+            return pivot + " (T1)"
+        if feds[pivot].startswith('T2'):
+            return pivot + " (T2)"
+        if owned_resource:
+            return pivot + ' (T3)'
+        return None
+
+    kw['pivot_transform'] = cms_pivot_filter
+    return gip_size_parser2(sql_results, globals=globals, **kw) 
 
 def size_classifier(sql_results, globals=globals(), **kw):
     """

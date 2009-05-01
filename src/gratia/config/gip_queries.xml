@@ -247,6 +247,27 @@
       </results>
     </query>
 
+    <query name="cms_site_size_rt" base="GipGeneric.ce_info_ts">
+      <inputs>
+        <input name="span" type="eval" kind="sql">86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-365*86400</input>
+      </inputs>
+      <sql>
+        <filler name="column">totalCpus</filler>
+      </sql>
+      <attribute name="title">Current Size of CMS Facility</attribute>
+      <attribute name="column_names">Total CPUs</attribute>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <results module="gratia.database.metrics" function="cms_filter">
+        <inputs>
+          <input name="pivots"> 1 </input>
+          <input name="grouping"> 0 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="gip_site_size_rt" base="GipGeneric.ce_info_ts">
       <inputs>
         <input name="span" type="eval" kind="sql">86400</input>

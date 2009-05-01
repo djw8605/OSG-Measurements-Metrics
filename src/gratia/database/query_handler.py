@@ -639,8 +639,14 @@ def get_vo_listing(globals):
 
 def gip_parser(sql_results, globals=globals(), **kw):
     gip_info, dummy = globals['GIPQueries'].site_info()
-    def pivot_transform(arg, **kw):
-        return gip_info.get(arg, arg).split('\n')[0]
+    prev_pivot_transform = kw.get('pivot_transform', None)
+    if prev_pivot_transform:
+        def pivot_transform(arg, **kw):
+            retval = gip_info.get(arg, arg).split('\n')[0]
+            return prev_pivot_transform(retval, **kw)
+    else:
+        def pivot_transform(arg, **kw):
+            return gip_info.get(arg, arg).split('\n')[0]
     kw['pivot_transform'] = pivot_transform
     return pivot_group_parser_plus(sql_results, \
         globals=globals, **kw)
@@ -652,6 +658,103 @@ def gip_parser_simple(sql_results, globals=globals(), **kw):
     kw['pivot_transform'] = pivot_transform
     return simple_results_parser(sql_results, \
         globals=globals, **kw)
+
+def OIM_to_gratia_mapper(oim_vos, gratia_vos):
+    """
+    Maps the OIM VO names to Gratia VO Names
+    Returns a map of oim to gratia and a map of gratia to oim.
+    """
+    oim_to_gratia = {}
+    gratia_to_oim = {}
+    #print oim_vos
+    #print gratia_vos
+    for oim_vo in oim_vos:
+        oim_lower = oim_vo.lower()
+        for gratia_vo in gratia_vos:
+            gratia_lower = gratia_vo.lower()
+            if gratia_lower.find(oim_lower) >= 0 or \
+                    oim_lower.find(gratia_lower) >= 0:
+                oim_to_gratia[oim_vo] = gratia_vo
+                gratia_to_oim[gratia_vo] = oim_vo
+
+    #for key, val in oim_to_gratia.items():
+    #    print key, val
+    if oim_to_gratia.get('OSG', None) == 'osgedu':
+        oim_to_gratia['OSG'] = 'osg'
+        gratia_to_oim['osg'] = 'OSG'
+    #print oim_to_gratia
+    #print gratia_to_oim
+    return oim_to_gratia, gratia_to_oim
+
+bad_vos = ['singlyMappedOSG']
+def get_gratia_ownership(globals):
+    old_vo_listing, dummy = globals['RSVQueries'].simple_ownership()
+    gratia_vos, _ = globals['GratiaDataQueries'].vo_list()
+    gratia_vos = [vo for vo in gratia_vos.keys() if vo not in bad_vos]
+    oim_vos = [i[1] for i in old_vo_listing]
+    oim_to_gratia, gratia_to_oim = OIM_to_gratia_mapper(oim_vos, gratia_vos)
+    filtered = []
+    for resource, vo in old_vo_listing:
+        gratia_vo = oim_to_gratia.get(vo, None)
+        if not gratia_vo:
+            raise Exception("Unknown VO, %s, owns resource %s, but not in " \
+                "gratia." % (vo, resource))
+        filtered.append((resource, gratia_vo))
+    filtered.append(('FNAL_FERMIGRID', 'minos'))
+    filtered.append(('FNAL_FERMIGRID', 'miniboone'))
+    filtered.append(('FNAL_FERMIGRID', 'patriot'))
+    filtered.append(('FNAL_FERMIGRID', 'sdss'))
+    filtered.append(('FNAL_FERMIGRID', 'auger'))
+    filtered.append(('FNAL_FERMIGRID', 'dzero'))
+    filtered.append(('FNAL_FERMIGRID', 'ilc'))
+    filtered.append(('FNAL_FERMIGRID', 'cdf'))
+    filtered.append(('FNAL_FERMIGRID', 'des'))
+    filtered.append(('FNAL_GPFARM', 'minos'))
+    filtered.append(('FNAL_GPFARM', 'fermilab'))
+    filtered.append(('FNAL_GPFARM', 'hypercp'))
+    filtered.append(('FNAL_GPFARM', 'ilc'))
+    filtered.append(('FNAL_GPFARM', 'accelerator'))
+    filtered.append(('FNAL_GPFARM', 'mipp'))
+    filtered.append(('FNAL_GPFARM', 'ktev'))
+    filtered.append(('FNAL_GPFARM', 'dzero'))
+    filtered.append(('FNAL_GPFARM', 'des'))
+    filtered.append(('FNAL_GPFARM', 'sdss'))
+    filtered.append(('FNAL_GPFARM', 'cdms'))
+    filtered.append(('FNAL_GPFARM', 'miniboone'))
+    filtered.append(('FNAL_GPGRID_3', 'minos'))
+    filtered.append(('FNAL_GPGRID_3', 'cdf'))
+    filtered.append(('FNAL_GPGRID_3', 'dzero'))
+    filtered.append(('FNAL_GPGRID_3', 'theory'))
+    filtered.append(('FNAL_GPGRID_3', 'patriot'))
+    filtered.append(('FNAL_GPGRID_3', 'ilc'))
+    filtered.append(('FNAL_GPGRID_2', 'minos'))
+    filtered.append(('FNAL_GPGRID_2', 'patriot'))
+    filtered.append(('FNAL_GPGRID_2', 'hypercp'))
+    filtered.append(('FNAL_GPGRID_2', 'cdf'))
+    filtered.append(('FNAL_GPGRID_2', 'dzero'))
+    filtered.append(('FNAL_GPGRID_2', 'ilc'))
+    filtered.append(('FNAL_GPGRID_2', 'patriot'))
+    filtered.append(('FNAL_GPGRID_2', 'theory'))
+    filtered.append(('FNAL_GPGRID_2', 'miniboone'))
+    filtered.append(('FNAL_GPGRID_2', 'accelerator'))
+    filtered.append(('FNAL_GPGRID_1', 'accelerator'))
+    filtered.append(('FNAL_GPGRID_1', 'mipp'))
+    filtered.append(('FNAL_GPGRID_1', 'patriot'))
+    filtered.append(('FNAL_GPGRID_1', 'cdms'))
+    filtered.append(('FNAL_GPGRID_1', 'sdss'))
+    filtered.append(('FNAL_GPGRID_1', 'cdf'))
+    filtered.append(('FNAL_GPGRID_1', 'miniboone'))
+    filtered.append(('FNAL_GPGRID_1', 'ktev'))
+    filtered.append(('FNAL_GPGRID_1', 'hypercp'))
+    filtered.append(('FNAL_GPGRID_1', 'des'))
+    filtered.append(('FNAL_GPGRID_1', 'dzero'))
+    filtered.append(('FNAL_GPGRID_1', 'theory'))
+    filtered.append(('FNAL_GPGRID_1', 'ilc'))
+    filtered.append(('FNAL_GPGRID_1', 'minos'))
+    filtered.append(('FNAL_FERMIGRID', 'theory'))
+    filtered.append(('OU_OSCER_CONDOR', 'dzero'))
+    filtered.append(('HEPGRID_UERJ_OSG64', 'cms'))
+    return filtered, dummy
 
 def opportunistic_usage_parser(sql_results, vo="Unknown", globals=globals(), **kw):
     """
@@ -701,14 +804,101 @@ def opportunistic_usage_parser3(sql_results, globals=globals(), **kw):
     For a query, turn the pivots into "Usage Type" - opportunistic or owned.
     This does not restrict you to a certain VO.
     """
-    old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing, dummy = globals['RSVQueries'].simple_ownership()
+    old_vo_listing, dummy = get_gratia_ownership(globals)
     vo_listing = []
-    for vo, site in old_vo_listing:
-        vo_listing.append((vo.lower(), site))
+    for site, vo in old_vo_listing:
+        vo_listing.append((vo, site))
     def pivot_transform(*arg, **kw):
         if arg in vo_listing:
             return "Owned"
         return "Opportunistic"
+    try:
+        kw.pop('pivot_transform')
+    except:
+        pass
+    return results_parser(sql_results, pivot_transform=pivot_transform,\
+        globals=globals, **kw)
+
+def uslhc_opportunistic_provided_perc(sql_results, globals=globals(), **kw):
+    """
+    Returns the percentage of the opportunistic usage that occurs at USLHC
+    sites.
+    """
+    show_only_uslhc = kw.get('show_only_uslhc', 'False') == 'True'
+    old_vo_listing, dummy = get_gratia_ownership(globals)
+    resource_to_federation, _ = globals['RSVQueries'].resource_to_federation()
+    uslhc_listing = resource_to_federation.keys()
+    vo_listing = []
+    for site, vo in old_vo_listing:
+        vo_listing.append((vo, site))
+    def pivot_transform(*arg, **kw):
+        if arg in vo_listing:
+            return None
+        if arg[1] in uslhc_listing:
+            #print "USLHC", arg
+            return "Opportunistic usage of USLHC resources"
+        else:
+            #print "Non-USLHC", arg
+            return "All other opportunistic usage"
+    try:
+        kw.pop('pivot_transform')
+    except:
+        pass
+    results, md = results_parser(sql_results, pivot_transform=pivot_transform,\
+        globals=globals, **kw)
+
+    results = make_perc(results)
+    if show_only_uslhc:
+        if "All other opportunistic usage" in results:
+            del results["All other opportunistic usage"]
+
+    return results, md
+
+def nonuslhc_opportunistic_provided_sites(sql_results, globals=globals(), **kw):
+    """
+    Returns the percentage of the opportunistic usage that occurs at USLHC
+    sites.
+    """
+    old_vo_listing, dummy = get_gratia_ownership(globals)
+    resource_to_federation, _ = globals['RSVQueries'].resource_to_federation()
+    uslhc_listing = resource_to_federation.keys()
+    vo_listing = []
+    for site, vo in old_vo_listing:
+        vo_listing.append((vo, site))
+    def pivot_transform(*arg, **kw):
+        if arg in vo_listing:
+            return None
+        if arg[1] in uslhc_listing:
+            return None
+        else:
+            return arg
+    try:
+        kw.pop('pivot_transform')
+    except:
+        pass
+    return results_parser(sql_results, pivot_transform=pivot_transform,\
+        globals=globals, **kw)
+
+def uslhc_opportunistic_provided_sites(sql_results, globals=globals(), **kw):
+    """
+    Returns the percentage of the opportunistic usage that occurs at USLHC
+    sites.
+    """
+    old_vo_listing, dummy = get_gratia_ownership(globals)
+    resource_to_federation, _ = globals['RSVQueries'].resource_to_federation()
+    uslhc_listing = resource_to_federation.keys()
+    vo_listing = []
+    for site, vo in old_vo_listing:
+        vo_listing.append((vo, site))
+    def pivot_transform(*arg, **kw):
+        if arg in vo_listing:
+            return None
+        if arg[1] in uslhc_listing:
+            return arg
+        else:
+            return None
     try:
         kw.pop('pivot_transform')
     except:

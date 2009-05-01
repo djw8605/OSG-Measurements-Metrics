@@ -15,11 +15,11 @@
 
     <query name="admins">
         <sql>
-select OIMR.name, OIMP.first_name + " " + OIMP.last_name as name, OIMP.primary_email
+select OIMR.name, OIMC.name, OIMC.primary_email
 FROM oim.resource OIMR
-JOIN oim.resource_contact OIMRC on OIMRC.resource_id = OIMR.resource_id
-JOIN oim.person OIMP on OIMP.person_id = OIMRC.person_id
-GROUP BY OIMR.name, name
+JOIN oim.resource_contact OIMRC on OIMRC.resource_id = OIMR.id
+JOIN oim.contact OIMC on OIMC.id = OIMRC.contact_id
+GROUP BY OIMR.name, OIMC.name
 </sql>
             <results module="graphtool.database.query_handler" function="results_parser">
         <inputs>
@@ -61,16 +61,16 @@ GROUP BY OIMR.name, name
 select
   OIMR.fqdn as fqdn,
   from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
   rsvextra.metricdata RSVM
 join
-  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+  oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
-  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
 join
-  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+  oim.metric OIMM on OIMM.id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
@@ -106,20 +106,20 @@ group by
 SELECT
   OIMR.fqdn as fqdn,
   OIMM.name as metric_name,
-  OIMMS.metric_status_description as metric_status,
+  OIMMS.description as metric_status,
   from_unixtime(RSVM.timestamp) as timestamp,
   RSVMD.detail as details
 FROM
   rsvextra.metricdata as RSVM
-JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
-JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
-JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
+JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
+JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
 JOIN rsvextra.metricdetail RSVMD on RSVM.id = RSVMD.id
 WHERE
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
      OIMM.name regexp :metric AND
-     OIMMS.metric_status_description regexp :status
+     OIMMS.description regexp :status
 ORDER BY RSVM.timestamp desc
 LIMIT :limit
       </sql>
@@ -150,16 +150,16 @@ LIMIT :limit
 select
   OIMR.fqdn as fqdn,
   from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
   rsvextra.metricdata RSVM
 join
-  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+  oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
-  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
 join
-  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+  oim.metric OIMM on OIMM.id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
@@ -195,16 +195,16 @@ group by
 select
   OIMR.fqdn as fqdn,
   from_unixtime(truncate(RSVM.timestamp/7200, 0)*7200) as time,
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
   rsvextra.metricdata RSVM
 join
-  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+  oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
-  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
 join
-  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+  oim.metric OIMM on OIMM.id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
@@ -239,16 +239,16 @@ group by
 select
   OIMR.fqdn as fqdn,
   from_unixtime(truncate(RSVM.timestamp/7200, 0)*7200) as time,
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+  SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
   rsvextra.metricdata RSVM
 join
-  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+  oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
-  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
 join
-  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+  oim.metric OIMM on OIMM.id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
@@ -267,12 +267,11 @@ group by
         <sql>
             SELECT OIMS.name as service_type, OIMR.name, OIMRG.name as parent_name
             FROM oim.resource_service OIMRS
-            JOIN oim.service OIMS ON OIMS.service_id = OIMRS.service_id
-            JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.resource_id
-            JOIN oim.resource_resource_group OIMRRG ON OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
-            JOIN oim.resource_ext_attributes OIME on OIME.resource_id = OIMR.resource_id
-            WHERE OIME.interop_monitoring = 1 and OIMRG.osg_grid_type_id=1
+            JOIN oim.service OIMS ON OIMS.id = OIMRS.service_id
+            JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.id
+            JOIN oim.resource_group OIMRG ON OIMRG.id = OIMR.resource_group_id
+            JOIN oim.resource_wlcg OIMRW on OIMRW.resource_id = OIMR.id
+            WHERE OIMRW.interop_monitoring = 1 and OIMRG.osg_grid_type_id=1
             AND (OIMR.active=1 and OIMR.disable=0)
         </sql>
       <results module="gratia.database.query_handler" function="special_resource_group_parser1">
@@ -286,10 +285,10 @@ group by
     <query name="resource_to_federation">
         <!-- Build a map resource -> federation. -->
         <sql>
-            SELECT OIMR.name, OIMRE.wlcg_accounting_name
+            SELECT OIMR.name, OIMRW.accounting_name
             FROM oim.resource OIMR
-            JOIN oim.resource_ext_attributes OIMRE ON OIMRE.resource_id= OIMR.resource_id
-            WHERE OIMRE.wlcg_accounting_name is not null
+            JOIN oim.resource_wlcg OIMRW ON OIMRW.resource_id= OIMR.id
+            WHERE OIMRW.accounting_name is not null
         </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -302,12 +301,11 @@ group by
     <query name="resource_group_to_federation">
         <!-- Build a map resource_group -> federation. -->
         <sql>
-            SELECT OIMRG.name, OIMRE.wlcg_accounting_name
+            SELECT OIMRG.name, OIMRW.accounting_name
             FROM oim.resource OIMR
-            JOIN oim.resource_resource_group OIMRRG ON OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
-            JOIN oim.resource_ext_attributes OIMRE ON OIMRE.resource_id= OIMR.resource_id
-            WHERE OIMRE.wlcg_accounting_name is not null
+            JOIN oim.resource_group OIMRG ON OIMRG.id = OIMR.resource_group_id
+            JOIN oim.resource_wlcg OIMRW ON OIMRW.resource_id= OIMR.id
+            WHERE OIMRW.accounting_name is not null
             GROUP BY OIMRG.name
         </sql>
       <results module="gratia.database.query_handler" function="special_resource_group_parser2">
@@ -323,10 +321,9 @@ group by
         <sql>
             SELECT OIMS.name as service_type, OIMR.name, OIMRG.name as parent_name
             FROM oim.resource_service OIMRS
-            JOIN oim.service OIMS ON OIMS.service_id = OIMRS.service_id
-            JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.resource_id
-            JOIN oim.resource_resource_group OIMRRG ON OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG ON OIMRG.resource_group_id = OIMRRG.resource_group_id
+            JOIN oim.service OIMS ON OIMS.id = OIMRS.service_id
+            JOIN oim.resource OIMR ON OIMRS.resource_id = OIMR.id
+            JOIN oim.resource_group OIMRG ON OIMRG.id = OIMR.resource_group_id
             WHERE OIMRG.osg_grid_type_id=1 and (OIMR.active=1 and OIMR.disable=0)
         </sql>
       <results module="gratia.database.query_handler" function="special_resource_group_parser1">
@@ -352,9 +349,9 @@ group by
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn as fqdn
             FROM rsvextra.metricdata RSVM
-            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
             JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
-            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+            JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
                 RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
@@ -388,14 +385,13 @@ group by
             (SELECT
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn,
-                OIMGT.short_name as grid
+                OIMGT.name as grid
             FROM rsvextra.metricdata RSVM
-            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
-            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
-            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
+            JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
             JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
-            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+            JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
                 RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
@@ -435,12 +431,11 @@ group by
                 OIMR.fqdn,
                 left(RSVMD.detail, 9) as version
             FROM rsvextra.metricdata RSVM
-            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
-            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
-            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
+            JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
             JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
-            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+            JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
                 RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
@@ -481,12 +476,11 @@ group by
                 OIMR.fqdn,
                 concat('VDT-',substring(RSVMD.detail from 44 for 7)) as version
             FROM rsvextra.metricdata RSVM
-            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
-            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
-            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
+            JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
             JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
-            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+            JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
                 RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
@@ -526,12 +520,11 @@ group by
                 OIMR.fqdn,
                 concat('RSV-', substring(RSVMD.detail, locate('OSG Resource and Service Validation (RSV)', RSVMD.detail)+42, 6)) as version
             FROM rsvextra.metricdata RSVM
-            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
-            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
-            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
+            JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
             JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
-            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id 
+            JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id 
             WHERE
                 RSVMD.detail regexp :version AND
                 RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
@@ -571,12 +564,11 @@ group by
                 OIMR.fqdn,
                 concat('GIP-', substring(RSVMD.detail, locate('Generic Information Provider', RSVMD.detail)+29, 7)) as version
             FROM rsvextra.metricdata RSVM
-            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
-            JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
-            JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
-            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.grid_type_id
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
+            JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
+            JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
             JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
-            JOIN oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+            JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
                 RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
@@ -613,16 +605,16 @@ group by
 SELECT
   OIMM.name as name,
   from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 1 ELSE 0 END),
-  SUM(CASE OIMMS.metric_status_description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN :countunknown ELSE 1 END)
+  SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN :countunknown ELSE 1 END)
 from
   rsvextra.metricdata RSVM
 join
-  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+  oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
-  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
+  oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
 join
-  oim.metric OIMM on OIMM.metric_id = RSVM.metric_id
+  oim.metric OIMM on OIMM.id = RSVM.metric_id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
@@ -661,7 +653,7 @@ select
 from
   rsvextra.metricdata RSVM
 join
-  oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+  oim.resource OIMR on RSVM.resource_id=OIMR.id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility
@@ -692,17 +684,17 @@ group by
       </inputs>
       <sql>
 select
-  OIMMS.metric_status_description,
+  OIMMS.description,
   COUNT(*)
 from
   rsvextra.metricdata RSVM
-join oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.metric_status_id
-join oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
+join oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
+join oim.resource OIMR on RSVM.resource_id=OIMR.id
 where
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility
 group by
-  OIMMS.metric_status_description
+  OIMMS.description
       </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser">
         <inputs>
@@ -743,8 +735,8 @@ where Timestamp &gt;=:errorstart AND Timestamp &lt; :errorstart + INTERVAL :span
                 m.name as metric_name,
                 s.name as service_name
             FROM oim.metric m 
-            JOIN oim.metric_service ms ON ms.metric_id=m.metric_id
-            JOIN oim.service s ON s.service_id=ms.service_id
+            JOIN oim.metric_service ms ON ms.metric_id=m.id
+            JOIN oim.service s ON s.id=ms.service_id
             WHERE ms.critical=1
             <results module="graphtool.database.query_handler" function="complex_pivot_parser"/>
             <attribute name="graph_type"/>
@@ -755,12 +747,12 @@ where Timestamp &gt;=:errorstart AND Timestamp &lt; :errorstart + INTERVAL :span
     <query name="ownership">
       <sql>
         SELECT
-          r.name,
-          v.short_name,
+          OIMR.name,
+          v.name,
           o.percent
         FROM oim.vo_resource_ownership o
-        JOIN oim.virtualorganization v on v.vo_id = o.vo_id
-        JOIN oim.resource r on r.resource_id = o.resource_id
+        JOIN oim.vo v on v.id = o.vo_id
+        JOIN oim.resource OIMR on OIMR.id = o.resource_id
       </sql>
       <results module="graphtool.database.query_handler" function="complex_pivot_parser">
         <inputs>
@@ -775,6 +767,22 @@ where Timestamp &gt;=:errorstart AND Timestamp &lt; :errorstart + INTERVAL :span
       <attribute name="title">VO Ownership of Resources</attribute>
     </query>
 
+    <query name="simple_ownership">
+      <sql>
+        SELECT
+          OIMR.name as ResourceName,
+          v.name as VOName
+        FROM oim.vo_resource_ownership o
+        JOIN oim.vo v on v.id = o.vo_id
+        JOIN oim.resource OIMR on OIMR.id = o.resource_id
+      </sql>
+      <results module="gratia.database.query_handler" function="fake_parser">
+        <inputs>
+          <input name="columns">ResourceName, VOName</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="resources">
       <sql>
         SELECT r.name, r.fqdn FROM oim.resource r GROUP BY r.name
@@ -786,11 +794,11 @@ where Timestamp &gt;=:errorstart AND Timestamp &lt; :errorstart + INTERVAL :span
     <query name="field_of_science">
       <sql>
         SELECT
-          v.short_name,
+          v.name,
           s.name
         FROM oim.vo_field_of_science fos
-        JOIN oim.virtualorganization v on v.vo_id = fos.vo_id
-        JOIN oim.field_of_science s on s.id = fos.science_id
+        JOIN oim.vo v on v.id = fos.vo_id
+        JOIN oim.field_of_science s on s.id = fos.field_of_science_id
       </sql>
       <results module="graphtool.database.query_handler" function="complex_pivot_parser">
         <inputs>
