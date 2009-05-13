@@ -1,0 +1,119 @@
+<graphtool-config>
+
+  <import module="gratia.config" data_file="generic_queries.xml" />
+
+  <class type="SqlQueries" name="GratiaGenericRealtime">
+
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <aggregate>
+      <connection>gratia-rt</connection>
+    </aggregate>
+
+    <query name="ts">
+      <inputs>
+        <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-1*86400</input>
+        <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+        <input name="span" type="int" kind="sql">60</input>
+        <input name="facility" kind="sql"> .* </input>
+        <input name="probe" kind="sql"> .* </input>
+        <input name="user" kind="sql"> .* </input>
+        <input name="vo" kind="sql"> .* </input>
+        <input name="role" kind="sql"> .* </input>
+        <input name="exclude-role" kind="sql"> NONE </input>
+        <input name="exclude-vo" kind="sql"> unknown|other </input>
+        <input name="exclude-facility" kind="sql"> NONE </input>
+        <input name="exclude-user" kind="sql"> NONE </input>
+        <input name="exclude-probe" kind="sql"> NONE </input>
+      </inputs>
+      <sql>
+        SELECT
+          <slot name="group"/>,
+          truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
+          <slot name="column"/>
+        FROM JobUsageRecord JUR
+        JOIN JobUsageRecord_Meta JURM on JURM.dbid=JUR.dbid
+        JOIN Probe P on P.probeid=JURM.probeid
+        JOIN Site S on P.siteid=S.siteid
+        JOIN VONameCorrection VC on JUR.VOName=VC.VOName
+        WHERE
+          JUR.ResourceType = 'Batch' AND
+          JUR.EndTime &gt;= :starttime AND
+          JUR.EndTime &lt; :endtime AND
+          S.SiteName regexp :facility AND
+          VC.ReportableVOName regexp :vo AND
+          VC.VOName regexp :role AND
+          (NOT (VC.VOName regexp :exclude-role)) AND
+          (NOT (S.SiteName regexp :exclude-facility)) AND
+          (NOT (VC.ReportableVOName regexp :exclude-vo)) AND
+          JURM.ProbeName regexp :probe AND
+          (NOT (JURM.ProbeName regexp :exclude-probe))
+          <slot name="where"/>
+        GROUP BY
+          <slot name="group"/>,
+          time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <attribute name="pivot_name" />
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title" />
+      <attribute name="column_names" />
+      <attribute name="column_units" />
+    </query>
+
+  </class>
+
+  <class type="SqlQueries" name="GratiaRTQueries">
+
+    <attribute name="display_name"> Real-Time Graphs </attribute>
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <aggregate>
+      <connection>gratia-rt</connection>
+    </aggregate>
+
+    <query name="vo_hours_bar_smry" base="GratiaGenericRealtime.ts">
+      <sql>
+        <filler name="group">VC.ReportableVOName</filler>
+        <filler name="column">count(*)</filler>
+      </sql>
+        <attribute name="title"> Finished Jobs per VO </attribute>
+        <attribute name="pivot_name"> VO </attribute>
+        <attribute name="column_names"> Jobs </attribute>
+    </query>
+
+    <query name="live_display">
+      <inputs>
+        <input name="span" type="eval" kind="sql">60</input>
+        <input name="minutes" type="eval" kind="sql">120</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-120*60</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+      </inputs>
+      <sql>
+        SELECT
+          (truncate(unix_timestamp(ServerDate)/60, 0)*60) as time,
+          count(*) as Records
+        FROM JobUsageRecord_Meta 
+        WHERE
+          ServerDate >= now()-INTERVAL :minutes MINUTE
+        GROUP BY time;
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+      <attribute name="graph_type">GratiaBar</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">OSG Finished Job Records</attribute>
+      <attribute name="subtitle">Last $minutes of records</attribute>
+      <attribute name="column_names">Records</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>

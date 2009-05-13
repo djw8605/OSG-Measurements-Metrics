@@ -61,6 +61,17 @@
         <attribute name="column_units">GB</attribute>
     </query>
 
+    <query name="remote_site_transfer_volume" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> SUBSTRING_INDEX(R.RemoteSite, '.', -2) </filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 3)</filler>
+        </sql>
+        <attribute name="pivot_name">VO</attribute>
+        <attribute name="title">Volume of Gigabytes Transferred By VO</attribute>
+        <attribute name="column_names">Transfer Volume</attribute>
+        <attribute name="column_units">GB</attribute>
+    </query>
+
     <query name="vo_transfer_rate" base="GratiaStorageQuery.summary">
         <sql>
             <filler name="group"> VO.VOName </filler>
@@ -92,6 +103,17 @@
         <attribute name="title">Transfer Rate By Protocol</attribute>
         <attribute name="column_names">Transfer Rate</attribute>
         <attribute name="column_units">MB/s</attribute>
+    </query>
+
+    <query name="facility_transfer_count" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> SiteName </filler>
+            <filler name="column"> sum(Njobs)</filler>
+        </sql>
+        <attribute name="pivot_name">Protocol</attribute>
+        <attribute name="title">Transfer Count by Site</attribute>
+        <attribute name="column_names">Transfer Count</attribute>
+        <attribute name="column_units"/>
     </query>
 
     <query name="facility_quality" base="GratiaStorageQuery.summary">

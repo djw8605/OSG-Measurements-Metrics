@@ -37,6 +37,7 @@
 
   <class name="web" type="WebHost">
     <mount location="/gratia/bar_graphs" content="image/png"> <instance name="gratia_bar_grapher" /> </mount>
+    <mount location="/gratia/rt_graphs" content="image/png"> <instance name="gratia_rt_grapher" /> </mount>
     <mount location="/gratia/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
     <mount location="/gratia/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
     <mount location="/gratia/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>

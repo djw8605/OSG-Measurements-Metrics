@@ -2,6 +2,7 @@
 
   <import module="graphtool.graphs.graph"> Grapher </import>
   <import module="gratia.config" data_file="gratia_pie_queries.xml" />
+  <import module="gratia.config" data_file="gratia_realtime_queries.xml" />
   <import module="gratia.config" data_file="gratia_bar_queries.xml" />
   <import module="gratia.config" data_file="gratia_transfer_queries.xml" />
   <import module="gratia.config" data_file="gratia_site_queries.xml"/>
@@ -27,6 +28,11 @@
       <attribute name="access">facility</attribute>
 -->
     <queryobj> GratiaBarQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_rt_grapher">
+    <attribute name="display_name"> Real-Time Graphs </attribute>
+    <queryobj> GratiaRTQueries </queryobj>
   </class>
 
   <class type="Grapher" name="gratia_transfer_grapher">
