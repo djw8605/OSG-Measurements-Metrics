@@ -25,6 +25,7 @@
         <input name="exclude-facility" kind="sql"> NONE </input>
         <input name="exclude-user" kind="sql"> NONE </input>
         <input name="exclude-probe" kind="sql"> NONE </input>
+        <input name="record_type" kind="sql"> Batch </input>
       </inputs>
       <sql>
         SELECT
@@ -37,7 +38,7 @@
         JOIN Site S on P.siteid=S.siteid
         JOIN VONameCorrection VC on JUR.VOName=VC.VOName
         WHERE
-          JUR.ResourceType = 'Batch' AND
+          JUR.ResourceType = :record_type AND
           JUR.EndTime &gt;= :starttime AND
           JUR.EndTime &lt; :endtime AND
           S.SiteName regexp :facility AND
@@ -99,7 +100,7 @@
       </inputs>
       <sql>
         SELECT
-          (truncate(unix_timestamp(ServerDate)/60, 0)*60) as time,
+          (truncate(unix_timestamp(ServerDate)/:span, 0)*:span) as time,
           count(*) as Records
         FROM JobUsageRecord_Meta 
         WHERE
