@@ -87,7 +87,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
                 filter_dict['starttime'] = starttime
 		while True: 
 		 	try:
-				valid = time.strptime(starttime,'%Y-%m-%d %H:%M:%S')
+				valid = time.strptime(starttime,
+                                    '%Y-%m-%d %H:%M:%S')
 				break
 			except ValueError: 
 				relTime = 1209600
@@ -96,7 +97,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
 		filter_dict['endtime'] = endtime
 		while True: 
 			try: 
-                		valid2 = time.strptime(endtime,'%Y-%m-%d %H:%M:%S')
+                		valid2 = time.strptime(endtime,
+                                    '%Y-%m-%d %H:%M:%S')
 				break
 			except ValueError: 
 				relTime = 1209600
@@ -228,6 +230,22 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
             'osg_facility_hours', 'site', 'facility')
         self.image_map(token, data, 'GratiaPieQueries',
             'osg_facility_count', 'site', 'facility')
+        self.image_map(token, data, 'GratiaTransferQueries',
+            'facility_transfer_volume', 'site', 'facility')
+
+        # Special alteration for RSV graph.
+        data2 = dict(data)
+        data2['filter_dict'] = dict(data2['filter_dict'])
+        if 'facility' in data2['filter_dict'] and data2['filter_dict']['facility'] == '':
+            del data2['filter_dict']['facility']
+        data3 = dict(data2['filter_dict'])
+        data3['fixed-height'] = 'False'
+        data['filter_url2'] = urllib.urlencode(data3)
+        if data['filter_url2'] != '':
+            data['filter_url2'] = '?' + data['filter_url2']
+
+        self.image_map(token, data2, "RSVSummaryQueries",
+            "reli_summary_daily", "site", "facility")
 
         self.finish_image_maps(token)
 
@@ -458,15 +476,15 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         token = self.start_image_maps()
         #Generate image maps
         self.image_map(token, data, 'GratiaPieQueries',
-            'osg_facility_hours', 'site', 'vo')
+            'osg_facility_hours', 'site', 'facility')
         self.image_map(token, data, 'GratiaPieQueries',
-            'osg_facility_count', 'site', 'vo')
+            'osg_facility_count', 'site', 'facility')
         self.image_map(token, data, 'GratiaBarQueries',
-            'facility_hours_bar_smry', 'site', 'vo')
+            'facility_hours_bar_smry', 'site', 'facility')
         self.image_map(token, data, 'GratiaBarQueries',
-            'vo_opp_hours_bar2', 'site', 'vo')
+            'vo_opp_hours_bar2', 'site', 'facility')
         self.image_map(token, data, 'GratiaCumulativeQueries',
-            'facility_success_cumulative_smry', 'site', 'vo')
+            'facility_success_cumulative_smry', 'site', 'facility')
         self.finish_image_maps(token)
 
         data['title'] = 'VO Information'

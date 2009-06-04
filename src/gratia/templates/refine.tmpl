@@ -12,11 +12,19 @@
         <table>
           <tr>
             <td><label for="starttime">Start time:</label></td>
-            <td><input type="text" name="starttime"/> <br/></td>
+            #if 'starttime' in $query_kw
+                <td><input type="text" name="starttime" value="$query_kw['starttime']"/> <br/></td>
+            #else
+                <td><input type="text" name="starttime"/> <br/></td>
+            #end if
           </tr>
           <tr>
             <td><label for="endtime">End time:</label></td>
-            <td><input type="text" name="endtime"/> <br/></td>
+            #if 'endtime' in $query_kw
+                <td><input type="text" name="endtime" value="$query_kw['endtime']"/> <br/></td>
+            #else
+                <td><input type="text" name="endtime"/> <br/></td>
+            #end if
           </tr>
           <tr>
             <td><label for="span"> Bar width </label></td>

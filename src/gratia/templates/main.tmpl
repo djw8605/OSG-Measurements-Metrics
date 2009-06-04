@@ -77,17 +77,17 @@
     <p>From here, you may take the following actions:
     <ul>
         #if $is_vo_owner
-            #for $vo in $vo_ownership
+            #for $vo in set($vo_ownership)
                 <li><a href="$base_url/vo_owner?vo=$vo">View VO <b>$vo</b></a></li>
             #end for
         #end if
         #if $is_site_owner
-            #for $site in $site_ownership
+            #for $site in set($site_ownership)
                 <li><a href="$base_url/site_owner?facility=$site">View Site <b>$site</b></a></li>
             #end for
         #end if
         #if $is_view_other_users
-            #for $user in $user_ownership
+            #for $user in set($user_ownership)
                 <li><a href="$base_url/user?dn=$quote(user, safe='')">View User <b>$displayName(user)</b></a></li>
             #end for
         #end if
