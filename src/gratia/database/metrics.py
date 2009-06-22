@@ -6,7 +6,7 @@ import datetime
 import numpy
 
 from graphtool.database.query_handler import results_parser, \
-    complex_pivot_parser
+    complex_pivot_parser, simple_results_parser
 from query_handler import gip_parser, OIM_to_gratia_mapper
 
 class NMax(object):
@@ -61,6 +61,18 @@ def non_HEP_filter(sql_results, globals=globals(), **kw):
     hep_vos = HEP_classifier(results.keys(), globals=globals)
     #print "HEP VOs"
     #print "\n".join(hep_vos)
+    filtered_results = {}
+    for pivot, group in results.items():
+        if pivot not in hep_vos:
+            filtered_results[pivot] = group
+    return filtered_results, md
+
+def non_hep_filter_simple(sql_results, globals=globals(), **kw):
+    """
+    Removes results for HEP VOs for a pivot-type computation.
+    """
+    results, md = simple_results_parser(sql_results, globals=globals, **kw)
+    hep_vos = HEP_classifier(results.keys(), globals=globals)
     filtered_results = {}
     for pivot, group in results.items():
         if pivot not in hep_vos:

@@ -2,12 +2,26 @@
 
 import os
 import sys
+import time
 import types
 import datetime
 
 from gratia.gip.ldap import read_bdii, config_file
 from gratia.gip.analysis import *
 from graphtool.base.xml_config import XmlConfig
+
+# Bootstrap our python configuration.  This should allow us to discover the
+# configurations in the case where our environment wasn't really configured
+# correctly.
+paths = ['/opt/vdt/gratia/probe/common', '/opt/vdt/gratia/probe/services',
+    '$VDT_LOCATION/gratia/probe/common', '$VDT_LOCATION/gratia/probe/services']
+for path in paths:
+    gratia_path = os.path.expandvars(path)
+    if gratia_path not in sys.path and os.path.exists(gratia_path):
+        sys.path.append(gratia_path)
+
+import Gratia
+import Subcluster
 
 def main():
 
@@ -43,6 +57,11 @@ def main():
 
     site_ownership = create_site_dict(entries, cp)
     ownership = ownership_info(entries, cp)
+
+    # Initialize the Probe's configuration
+    ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
+    Gratia.Initialize(ProbeConfig)
+
     for cluster, cpu in cluster_info.items():
         print "* Cluster: ", cluster
         correct_sc_info(cluster, cpu, sc_info, specint)
@@ -56,7 +75,8 @@ def main():
             if int(sc.glue["HostBenchmarkSI00"]) != 400:
                 cpu_si2k = int(sc.glue["HostBenchmarkSI00"])
             if cluster not in site_ownership:
-                print >> sys.stderr, "Problem with %s site ownership; skipping." % cluster
+                print >> sys.stderr, "Problem with %s site ownership; " \
+                    "skipping." % cluster
                 continue
             site = site_ownership[cluster]
             own = ownership[cluster]
@@ -68,7 +88,33 @@ def main():
                 sc.glue["SubClusterUniqueID"],
                 sc.glue["SubClusterLogicalCPUs"], cpu_si2k, own_str, \
                 sc.glue["HostProcessorModel"]))
-            print >> sys.stderr, "Successfully inserted subcluster for site %s" % site
+            print >> sys.stderr, "Successfully inserted subcluster for site" \
+                " %s" % site
+
+            # Send the subcluster to Gratia
+            s = Subcluster.Subcluster()
+            s.UniqueID(sc.glue['SubClusterUniqueID'])
+            s.Name(sc.glue['SubClusterName'])
+            s.Cluster(cluster)
+            #s.Platform()
+            s.OS(sc.glue['HostOperatingSystemName'])
+            s.OSVersion(sc.glue['HostOperatingSystemRelease'])
+            s.Cores(sc.glue['SubClusterLogicalCPUs'])
+            s.Cpus(sc.glue['SubClusterPhysicalCPUs'])
+            s.RAM(sc.glue['HostMainMemoryRAMSize'])
+            s.Processor(sc.glue['HostProcessorModel'])
+            s.BenchmarkName('SI2K')
+            s.BenchmarkValue(cpu_si2k)
+            try:
+                smp_size = int(sc.glue['HostArchitectureSMPSize'])
+                cpus = int(sc.glue['SubClusterPhysicalCPUs'])
+                s.Hosts(cpus/smp_size)
+            except:
+                pass
+            s.Timestamp(time.time())
+            print "Sending subcluster %s to Gratia: %s." % \
+                (sc.glue['SubClusterUniqueID'], Gratia.Send(s))
+
     conn.commit()
         
 if __name__ == '__main__':

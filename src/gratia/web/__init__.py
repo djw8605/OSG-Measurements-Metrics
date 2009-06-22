@@ -634,15 +634,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
 
     def get_vo_list(self, vos_url, registered_vos_url, keep_vos):
         vos = self.get_variable_values(vos_url)
-        info = urllib2.urlopen(registered_vos_url)
-        reg_vos = []
-        for line in info.readlines():
-            line = line.strip()
-            if line.startswith('#'):
-                continue
-            if len(line) == 0:
-                continue
-            reg_vos.append(line.split(',')[0].lower())
+        reg_vos = self.get_variable_values(registered_vos_url)
         retval = []
         for vo in vos:
             if vo in keep_vos or vo.lower() in reg_vos:
@@ -657,7 +649,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
+            '/gratia/xml/vo')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':
@@ -674,7 +666,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
+            '/gratia/xml/vo')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':
@@ -692,7 +684,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
+            '/gratia/xml/vo')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':
@@ -713,7 +705,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.user_auth(data)
         vos_url = self.metadata.get('vos_url', '/gratia/xml/vo_corrected_table')
         registered_vos_url = self.metadata.get('registered_vos_url', \
-            'https://oim.grid.iu.edu/pub/vo/show.php?format=plain-text')
+            '/gratia/xml/vo')
         keep_vos = [i.strip() for i in self.metadata.get('keep_vos', \
             '').split(',') if len(i.strip()) > 0]
         if kw.get('filter', 'true').lower() == 'false':

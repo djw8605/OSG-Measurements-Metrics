@@ -2,12 +2,30 @@
 
 import os
 import sys
+import sets
+import time
 import datetime
 
 import MySQLdb
 
 from gratia.gip.ldap import query_bdii, read_ldap, config_file, read_bdii
 from gratia.gip.common import cp_get, getGipDBConn, findCE, join_FK
+
+# Bootstrap our python configuration.  This should allow us to discover the
+# configurations in the case where our environment wasn't really configured
+# correctly.
+paths = ['/opt/vdt/gratia/probe/common', '/opt/vdt/gratia/probe/services',
+    '$VDT_LOCATION/gratia/probe/common', '$VDT_LOCATION/gratia/probe/services']
+for path in paths:
+    gratia_path = os.path.expandvars(path)
+    if gratia_path not in sys.path and os.path.exists(gratia_path):
+        sys.path.append(gratia_path)
+        
+import Gratia
+import ComputeElement
+import ComputeElementRecord
+import StorageElement
+import StorageElementRecord
 
 insert_vo_info = """
 insert into vo_info values
@@ -277,6 +295,7 @@ def do_se_info(cp):
     conn = getGipDBConn(cp)
     curs = conn.cursor()
     today = datetime.date.today()
+    time_now = time.time()
     for entry in se_entries:
         try:
             site = join_FK(entry, site_entries, "SiteUniqueID")
@@ -293,6 +312,32 @@ def do_se_info(cp):
             continue
         curs.execute(insert_se_info, {'date': today, 'site': site_name, 'se': \
             se_name, 'total': total, 'free': free})
+
+        se = StorageElement.StorageElement()
+        unique_id = entry.glue['SEUniqueID']
+        space_unique_id = "%s:%s:%s" % (unique_id, "SE", se_name)
+        se.UniqueID(space_unique_id)
+        se.SE(se_name)
+        se.Name(se_name)
+        se.SpaceType("SE")
+        se.Timestamp(time_now)
+        se.Implementation(entry.glue['SEImplementationName'])
+        se.Version(entry.glue['SEImplementationVersion'])
+        se.Status(entry.glue['SEStatus'])
+        print "Sending SE %s to Gratia: %s." % \
+            (unique_id, Gratia.Send(se))
+
+        ser = StorageElementRecord.StorageElementRecord()
+        ser.UniqueID(space_unique_id)
+        ser.MeasurementType("raw")
+        ser.StorageType("disk")
+        ser.Timestamp(time_now)
+        ser.TotalSpace(total)
+        ser.FreeSpace(free)
+        ser.UsedSpace(total-free)
+        print "Sending SE Record %s to Gratia: %s." % \
+            (unique_id, Gratia.Send(ser))
+
     conn.commit()
 
 def do_ce_info(cp, ce_entries):
@@ -355,6 +400,12 @@ def main():
     conn = getGipDBConn(cp)
     curs = conn.cursor()
     now = datetime.datetime.now()
+    time_now = time.time()
+
+    ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
+    Gratia.Initialize(ProbeConfig)
+
+    sent_ce_entries = sets.Set()
     for entry in vo_entries:
         try:
             ce_entry = findCE(entry, ce_entries)
@@ -384,6 +435,41 @@ def main():
             print ce_entry
             continue
         curs.execute(insert_vo_info, info)
+
+        ce_unique_id = ce_entry.glue['CEUniqueID']
+        if ce_unique_id not in sent_ce_entries:
+            ce = ComputeElement.ComputeElement()
+            ce.UniqueID(ce_unique_id)
+            ce.CEName(ce_entry.glue['CEName'])
+            ce.Cluster(ce_entry.glue['CEHostingCluster'])
+            ce.HostName(ce_entry.glue['CEInfoHostName'])
+            ce.Timestamp(time_now)
+            ce.LrmsType(info['lrmsType'])
+            ce.LrmsVersion(info['lrmsVersion'])
+            ce.MaxRunningJobs(info['maxRunningJobs'])
+            ce.MaxTotalJobs(info['maxTotalJobs'])
+            ce.AssignedJobSlots(info['assignedJobSlots'])
+            ce.Status(ce_entry.glue['CEStateStatus'])
+            print "Sending CE %s to Gratia: %s." % \
+                (ce_unique_id, Gratia.Send(ce))
+            sent_ce_entries.add(ce_unique_id)
+
+        cer = ComputeElementRecord.ComputeElementRecord()
+        cer.UniqueID(ce_unique_id)
+        cer.VO(entry.glue['VOViewLocalID'])
+        cer.Timestamp(time_now)
+        try:
+            if int(info['runningJobs']) == 0 and int(info['totalJobs']) == 0 and \
+                    int(info['waitingJobs']) == 0:
+                continue
+        except:
+            continue
+        cer.RunningJobs(info['runningJobs'])
+        cer.TotalJobs(info['totalJobs'])
+        cer.WaitingJobs(info['waitingJobs'])
+        print "Sending CE Record %s:%s to Gratia: %s." % \
+            (ce_unique_id, entry.glue['VOViewLocalID'], Gratia.Send(cer))
+
     conn.commit()
     compactor(conn, cp)
     do_ce_info(cp, ce_entries)

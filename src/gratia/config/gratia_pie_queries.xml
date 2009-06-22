@@ -55,6 +55,27 @@
       <attribute name="title"> Computational Hours by VO </attribute>
     </query>
 
+    <query name="non_hep_vo_hours" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input kind="sql" type="float" name="min_hours"> 10 </input>
+        </inputs>
+      <sql>
+        <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> VO </attribute>
+      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_units"> Hours </attribute> 
+      <attribute name="title"> Computational Hours by non-HEP VOs </attribute>
+      <results module="gratia.database.metrics" function="non_hep_filter_simple">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="osg_user_count">
       <inputs>
             <input name="starttime" partial="down" type="datetime" kind="sql">2007-10-01 00:00:00</input>

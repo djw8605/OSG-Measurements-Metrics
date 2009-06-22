@@ -141,6 +141,7 @@ group by
         <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
+        <input name="queue" kind="sql">.*</input>
         <input name="facility" kind="sql">.*</input>
         <input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B|BNL_ATLAS_2|BNL_ITB_Test1|GLOW-CMS|TANYAT2|UCSDT2-ITB2</input>
         <input name="excludehost" kind="sql">NONE</input>
@@ -161,7 +162,8 @@ from
      vo_info
    where
      time &gt;= :starttime AND time &lt; :endtime AND
-     vo regexp :vo
+     vo regexp :vo AND
+     queue regexp :queue
    group by
      time, myGroup, hostName
   ) as foo

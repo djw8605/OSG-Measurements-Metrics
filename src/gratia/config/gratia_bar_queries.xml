@@ -269,6 +269,22 @@
       </results>
     </query>
 
+    <query name="monthly_facility_job_count" base="GratiaGenericQuery.monthly_master_summary">
+      <sql>
+      <filler name="group"> S.SiteName </filler>
+        <filler name="column"> sum(Njobs) </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">Monthly Job Count per Facility</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="monthly_vo_hours" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
       <filler name="group"> VO.VOName </filler>
