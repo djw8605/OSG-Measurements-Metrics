@@ -635,6 +635,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
     def get_vo_list(self, vos_url, registered_vos_url, keep_vos):
         vos = self.get_variable_values(vos_url)
         reg_vos = self.get_variable_values(registered_vos_url)
+        reg_vos = [i.lower() for i in reg_vos]
         retval = []
         for vo in vos:
             if vo in keep_vos or vo.lower() in reg_vos:
@@ -659,6 +660,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         data['vos'] = vos
         data['current_vo'] = kw.get('vo', None)
         data['static_url'] = self.metadata.get('static_url', '/store/gratia')
+        data['title'] = 'VO Overview'
         return data
 
     def vo_opp(self, *args, **kw):
