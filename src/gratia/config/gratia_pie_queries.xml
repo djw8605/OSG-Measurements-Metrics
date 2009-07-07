@@ -15,8 +15,8 @@
       </inputs>
       <sql>
         <filler name="group"> CETable.facility_name </filler>
-        <filler name="column"> sum(WallDuration)/3600 as WallHours </filler>
-        <filler name="having"> HAVING sum(WallDuration)/3600 >= :min_hours </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(Cores*WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> Facility </attribute>
       <attribute name="column_names"> Computation Time </attribute>
@@ -30,8 +30,8 @@
       </inputs>
       <sql>
         <filler name="group"> VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 as WallHours </filler>
-        <filler name="having"> HAVING sum(WallDuration)/3600 >= :min_hours </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(Cores*WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> VO </attribute>
       <attribute name="column_names"> Computation Time </attribute>
@@ -46,8 +46,8 @@
         </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
-        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> VO </attribute>
       <attribute name="column_names"> Computation Time </attribute>
@@ -61,8 +61,8 @@
         </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
-        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> VO </attribute>
       <attribute name="column_names"> Computation Time </attribute>
@@ -167,8 +167,8 @@
         </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
-        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> Facility </attribute>
       <attribute name="column_names"> Computation Time </attribute>
@@ -197,8 +197,8 @@
         </inputs>
       <sql>
         <filler name="group"> R.ProbeName </filler>
-        <filler name="column"> sum(R.WallDuration)/3600 as WallHours </filler>
-        <filler name="having"> HAVING sum(R.WallDuration)/3600 >= :min_hours </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> Probe </attribute>
       <attribute name="column_names"> Computation Time </attribute>
@@ -231,7 +231,7 @@
     <query name="osg_sharing_sites_pie_perc" base="GratiaGenericQuery.simple_master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>

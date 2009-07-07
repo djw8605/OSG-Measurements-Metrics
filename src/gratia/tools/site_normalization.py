@@ -7,6 +7,7 @@ from gratia.gip.ldap import read_bdii, config_file
 from gratia.gip.common import join_FK
 from gratia.gip.analysis import create_count_dict, sub_cluster_info, \
     correct_sc_info, create_site_dict
+from gratia.gip.cpu_normalizations import get_cpu_normalizations
 
 def main():
 
@@ -15,7 +16,7 @@ def main():
     entries = read_bdii(cp, query="(objectClass=GlueCE)")
     cluster_info = create_count_dict(entries)
     sc_info = sub_cluster_info(cluster_info.keys(), cp)
-    specint = eval(cp.get("cpu_count", "specint2k"))
+    specint = get_cpu_normalizations()
     for key, val in specint.items():
         if isinstance(val, types.TupleType):
             specint[key] = val[0]

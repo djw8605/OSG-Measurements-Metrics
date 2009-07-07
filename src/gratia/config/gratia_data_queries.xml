@@ -78,7 +78,7 @@
     <query name="gratia_data" base="GratiaGenericQuery.simple_summary">
         <sql>
             <filler name="group">R.VOName, S.SiteName</filler>
-            <filler name="column">sum(WallDuration)/3600000</filler>
+            <filler name="column">sum(Cores*WallDuration)/3600000</filler>
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
             <inputs>
@@ -97,9 +97,9 @@
         <sql>
             <filler name="group">S.SiteName</filler>
             <filler name="column">
-              CASE when WallDuration>0 THEN sum(CASE when ApplicationExitCode=0 THEN WallDuration ELSE 0 END)/sum(WallDuration)*100 ELSE 0 END,
-              sum(CASE when ApplicationExitCode=0 THEN WallDuration ELSE 0 END)/3600,
-              sum(CASE when ApplicationExitCode!=0 THEN WallDuration ELSE 0 END)/3600,
+              CASE when WallDuration>0 THEN sum(CASE when ApplicationExitCode=0 THEN Cores*WallDuration ELSE 0 END)/sum(Cores*WallDuration)*100 ELSE 0 END,
+              sum(CASE when ApplicationExitCode=0 THEN Cores*WallDuration ELSE 0 END)/3600,
+              sum(CASE when ApplicationExitCode!=0 THEN Cores*WallDuration ELSE 0 END)/3600,
               sum(CASE when ApplicationExitCode=0 THEN Njobs ELSE 0 END)/sum(Njobs)*100,
               sum(CASE when ApplicationExitCode=0 THEN Njobs ELSE 0 END),
               sum(CASE when ApplicationExitCode!=0 THEN Njobs ELSE 0 END)

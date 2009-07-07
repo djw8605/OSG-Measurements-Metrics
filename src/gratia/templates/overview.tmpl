@@ -36,6 +36,37 @@
     <p> <img src="$static_url/today/facility_quality.png"/></p>
 -->
 
+<h3>The size of the OSG</h3>
+<p>
+One common question we frequently get is "How large is the OSG?".  Because it
+ is a part of a distributed infrastructure, it's actually a difficult question
+ to answer.  Therefore, we have come up with three metrics:
+</p>
+<ol>
+<li>The <b>current usage</b> of the OSG.  We can determine the approximate size
+    of the OSG by measuring how many compute hours per day are being reported,
+    then dividing by 24.  This establishes a good minimum bar for the size of
+    the OSG, but is probably a significant under-estimate because not all
+    resources are used every day.
+</li>
+<li>The <b>accessible cores</b> of the OSG.  For each site, we calculate the
+    accessible cores by looking at the maximum usage over the past year.  This
+    assumes that the site has been utilized at its maximum capacity at some
+    point in the last year.  The accessible cores of the OSG is the sum of the
+    accessible cores at each site.  This metric is usually the most accurate -
+    especially as its based on actual usage, and is not affected by site
+    misconfiguration.
+</li>
+<li>The <b>total cores</b> of the OSG.  This is the number of cores the site
+    has in its batch system.  Due to the fact that many sites have a batch
+    system configuration which limits the number of grid jobs that can run,
+    this metric is usually an over-estimate.
+</li>
+</ol>
+<p> The graph below shows the OSG size using the three described metrics.
+</p>
+<p><img src="$static_url/today/osg_size.png"/></p>
+
 <h3>Frequently Asked Questions</h3>
 
 <ul>
@@ -51,6 +82,7 @@ So, the VO/facility with the smallest usage, at the very bottom of the stack
 in the graph, should be on the lower right.
 </p>
 </li>
+
 <li><b>Where can I find more information about the VOs?</b>
 <p>
 The GOC maintains the authoritative registration information for each VO.

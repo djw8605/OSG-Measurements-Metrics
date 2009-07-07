@@ -355,7 +355,9 @@ class NormalizationConstants:
         else:
             return self[site]
             
-
+USED = 'Used'
+ACCESSIBLE = 'Accessible, but not Used'
+UNACCESSIBLE = 'In OSG, but not Accessible'
 def osg_size(sql_results, globals=globals(), **kw):
     """
     Calculate the OSG's size in terms of utilized CPUs, accessible CPUs, and
@@ -393,14 +395,14 @@ def osg_size(sql_results, globals=globals(), **kw):
     for interval in all_intervals:
         ksi2k_max = max(ksi2k_results2.get(interval, ksi2k_min), ksi2k_max)
         avg_ksi2k_results[interval] = ksi2k_max
+    prev_interval = 0
     for interval in all_intervals:
-        print interval, avg_ksi2k_results[interval]
         cumulative = 0
         for site, vals in utilized_results.items():
             if site not in ksi2k_results:
                 ksi2k = avg_ksi2k_results[interval]
             elif interval not in ksi2k_results[site]:
-                ksi2k = min(ksi2k_results[site].values(),
+                ksi2k = min(min(ksi2k_results[site].values()),
                     avg_ksi2k_results[interval])
             else:
                 ksi2k = ksi2k_results[site][interval]
@@ -414,7 +416,7 @@ def osg_size(sql_results, globals=globals(), **kw):
             if site not in ksi2k_results:
                 ksi2k = avg_ksi2k_results[interval]
             elif interval not in ksi2k_results[site]:
-                ksi2k = min(ksi2k_results[site].values(), 
+                ksi2k = min(min(ksi2k_results[site].values()), 
                     avg_ksi2k_results[interval])
             else:
                 ksi2k = ksi2k_results[site][interval]
@@ -428,7 +430,7 @@ def osg_size(sql_results, globals=globals(), **kw):
             if site not in ksi2k_results:
                 ksi2k = avg_ksi2k_results[interval]
             elif interval not in ksi2k_results[site]:
-                ksi2k = min(ksi2k_results[site].values(), 
+                ksi2k = min(min(ksi2k_results[site].values()), 
                     avg_ksi2k_results[interval])
             else:
                 ksi2k = ksi2k_results[site][interval]
@@ -440,10 +442,108 @@ def osg_size(sql_results, globals=globals(), **kw):
 
         if interval < may_1:
             continue
-        final_results['Used'][interval] = cumulative
-        final_results['Accessible, but not Used'][interval] = cumulative2 - \
-            cumulative
-        final_results['In OSG, but not Accessible'][interval] = cumulative3 - \
-            cumulative2
+        final_results[USED][interval] = cumulative
+        final_results[ACCESSIBLE][interval] = max(cumulative2 -\
+            cumulative, 0)
+        final_results[UNACCESSIBLE][interval] = max(cumulative3\
+            - cumulative2, 0)
+
+        # Make sure numbers never go down.
+        # This should be true because all the numbers should be cumulative,
+        # but we're just being paranoid here.
+        #for pivot in [ACCESSIBLE, UNACCESSIBLE]:
+        #    if prev_interval in final_results[pivot] and final_results[pivot]\
+        #            [prev_interval] > final_results[pivot][interval]:
+        #        final_results[pivot][interval] = final_results[pivot]\
+        #            [prev_interval]
+        #prev_interval = interval
+    return final_results, md
+
+def osg_site_size(sql_results, globals=globals(), **kw):
+    """
+    Calculate the OSG's size in terms of utilized CPUs, accessible CPUs, and
+    total CPUs.  Break down these statistics by site.
+    """
+
+    USED = 'Max Used'
+    UNACCESSIBLE = 'In OSG, but never used'
+
+    if 'normalize' in kw and kw['normalize'].lower().find('t') >= 0:
+        normalize = True
+    else:
+        normalize = False
+    utilized_results, md = results_parser(sql_results, globals=globals, **kw)
+    accessible_results, _ = globals['GratiaBarQueries'].osg_avail_size(span=7*86400,
+        starttime=time.time()-7*86400*52)
+    total_results, _ = globals['GIPQueries'].gip_site_size(span=7*86400,
+        starttime=time.time()-7*86400*52, max_size=20000)
+    ksi2k_results, _ = globals['GIPQueries'].subcluster_score_ts()
+    ksi2k_results2, _ = globals['GIPQueries'].subcluster_score_ts2()
+    ksi2k_results2 = ksi2k_results2['Nebraska']
+    sites = utilized_results.keys()
+    new_results = {}
+    all_intervals = sets.Set()
+    for site in sites:
+        intervals = utilized_results[site].keys()
+        all_intervals.union_update(intervals)
+    all_intervals = list(all_intervals)
+    all_intervals.sort()
+    total_utilized_results = {}
+    total_accessible_results = {}
+    total_total_results = {}
+    final_results = {USED: {}, ACCESSIBLE: {}, UNACCESSIBLE: {}}
+    may_1 = time.mktime((2008, 05, 01, 0, 0, 0, 0, 0, 0))
+    avg_ksi2k_results = {}
+    ksi2k_min = min(1.7, ksi2k_results2.values())
+    ksi2k_max = ksi2k_min
+    for interval in all_intervals:
+        ksi2k_max = max(ksi2k_results2.get(interval, ksi2k_min), ksi2k_max)
+        avg_ksi2k_results[interval] = ksi2k_max
+    prev_interval = 0
+    for interval in all_intervals:
+
+        # Process accessible numbers
+        current_acc = 0
+        for site, vals in accessible_results.items():
+            if site not in ksi2k_results:
+                ksi2k = avg_ksi2k_results[interval]
+            elif interval not in ksi2k_results[site]:
+                ksi2k = min(min(ksi2k_results[site].values()), 
+                    avg_ksi2k_results[interval])
+            else:
+                ksi2k = ksi2k_results[site][interval]
+            if normalize:
+                current_acc = vals.get(interval, 0) * ksi2k
+            else:
+                current_acc = vals.get(interval, 0)
+            prev_acc = total_accessible_results.setdefault(site, 0)
+            total_accessible_results[site] = max(prev_acc, current_acc)
+
+        # Process total size numbers
+        cumulative3 = 0
+        for site, vals in total_results.items():
+            if site not in ksi2k_results:
+                ksi2k = avg_ksi2k_results[interval]
+            elif interval not in ksi2k_results[site]:
+                ksi2k = min(min(ksi2k_results[site].values()), 
+                    avg_ksi2k_results[interval])
+            else:
+                ksi2k = ksi2k_results[site][interval]
+            if normalize:
+                curr_total = vals.get(interval, 0) * ksi2k
+            else:
+                curr_total = vals.get(interval, 0)
+            prev_total = total_total_results.setdefault(site, 0)
+            total_total_results[site] = max(prev_total, curr_total)
+
+        if interval < may_1:
+            continue
+
+    for site in sites:
+        # Update the final results
+        final_results[USED][site] = total_accessible_results.get(site, 0)
+        final_results[UNACCESSIBLE][site] = max(total_total_results.get( \
+            site, 0) - total_accessible_results.get(site, 0), 0)
+
     return final_results, md
 

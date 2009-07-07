@@ -8,6 +8,7 @@ import datetime
 
 from gratia.gip.ldap import read_bdii, config_file
 from gratia.gip.analysis import *
+from gratia.gip.cpu_normalizations import get_cpu_normalizations
 from graphtool.base.xml_config import XmlConfig
 
 # Bootstrap our python configuration.  This should allow us to discover the
@@ -43,7 +44,7 @@ def main():
         
     cluster_info = create_count_dict(entries)
     sc_info = sub_cluster_info(cluster_info.keys(), cp)
-    specint = eval(cp.get("cpu_count", "specint2k"))
+    specint = get_cpu_normalizations()
 
     now = datetime.datetime.now()
 

@@ -609,6 +609,48 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         return "We're sorry, but the user details page has not been written."
     user.exposed = True
 
+    def gratia_live_display(self, *args, **kw):
+        bars = int(kw.get('bars', 12))
+        span = int(kw.get('span', 600))
+        now = time.time()
+        start = now - span*bars
+        minutes = span*bars/60
+        kw = {\
+              'span': span,
+              'starttime': start-(start % span),
+              'endtime': now - (now % span),
+              'minutes': minutes,
+             }
+        str = ''
+        results, metadata = self.globals['GratiaRTQueries'].live_display(**kw)
+        keys = results.keys()
+        keys.sort()
+        for pivot in keys:
+            cnt = results[pivot]
+            pivot = int(pivot)
+            #pivot = time.gmtime(pivot)
+            #pivot = time.strftime("%Y-%m-%d %H:%M:%S", pivot)
+            str += '%s,%i\n' % (pivot, cnt)
+
+        cherrypy.response.headers['Content-Type'] = 'text/plain'
+
+        return str
+    gratia_live_display.exposed = True
+
+    def osg_site_size(self, *args, **kw):
+        results, metadata = self.globals['GratiaBarQueries'].osg_site_size(**kw)
+        info = ['Site,Max Used,Total']
+        USED = 'Max Used'
+        UNACCESSIBLE = 'In OSG, but never used'
+        for site in results[USED].keys():
+            used = results[USED].get(site, None)
+            unaccessible = results[UNACCESSIBLE].get(site, None)
+            if used != None and unaccessible != None:
+                info.append('%s,%i,%i' % (site, used, used + unaccessible))
+        cherrypy.response.headers['Content-Type'] = 'text/plain'
+        return '\n'.join(info)
+    osg_site_size.exposed = True
+
     def overview(self, *args, **kw):
         data = dict(kw)
         self.user_auth(data)

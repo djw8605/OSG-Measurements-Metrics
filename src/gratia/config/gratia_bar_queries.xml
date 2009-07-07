@@ -10,7 +10,7 @@
     <query name="vo_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results>
@@ -51,7 +51,7 @@
         </inputs>
         <sql>
             <filler name="group"> VO.VOName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
         <attribute name="title"> Computation Hours Per Week </attribute>
@@ -69,7 +69,7 @@
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/:span </filler>
+            <filler name="column"> sum(Cores*WallDuration)/:span </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
         <attribute name="title"> Average Facility CPUs per Week </attribute>
@@ -82,7 +82,7 @@
     <query name="vo_site_wall_hours" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName, VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results>
@@ -110,7 +110,7 @@
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/:span </filler>
+            <filler name="column"> sum(Cores*WallDuration)/:span </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
       <results module="gratia.database.metrics" function="osg_size">
@@ -138,7 +138,7 @@
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
         </sql>
         <results module="gratia.database.metrics" function="site_size_parser">
@@ -165,7 +165,7 @@
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
         </sql>
         <results module="gratia.database.metrics" function="site_size_parser2">
@@ -192,7 +192,7 @@
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
         </sql>
         <results module="gratia.database.metrics" function="size_classifier">
@@ -219,7 +219,7 @@
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 AND CommonName not regexp :exclude-DN </filler>
         </sql>
         <results module="gratia.database.metrics" function="site_resource_classifier">
@@ -237,10 +237,41 @@
         <attribute name="graph_type"> GratiaHorizontalBar </attribute>
     </query>
 
+    <query name="osg_site_size" base="GratiaGenericQuery.master_summary">
+        <inputs>
+            <input name="span" type="eval" kind="sql">7*86400</input>
+            <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
+            <input name="endtime" type="datetime" kind="sql">time.time()</input>
+            <input name="exclude-user" kind="sql">Igor Sfiligoi 673872</input>
+            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID </input>
+            <input name="normalize">True</input>
+            <input name="croptime">True</input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(Cores*WallDuration)/:span </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+      <results module="gratia.database.metrics" function="osg_site_size">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaHorizontalBar </attribute>
+      <attribute name="grouping_name">Site</attribute>
+      <attribute name="title"> Measure of Size by Site </attribute>
+      <attribute name="pivot_name"> Site </attribute>
+      <attribute name="column_names"> Size </attribute>
+      <attribute name="column_units"> cores </attribute>
+    </query>
+
     <query name="facility_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -256,7 +287,7 @@
     <query name="monthly_facility_hours" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -288,7 +319,7 @@
     <query name="monthly_vo_hours" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
       <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">VO</attribute>
@@ -355,7 +386,7 @@
       </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(Cores*WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -374,7 +405,7 @@
       </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(WallDuration) </filler>
+        <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(Cores*WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -390,7 +421,7 @@
       </inputs>
       <sql>
         <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
-        <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(WallDuration) </filler>
+        <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(Cores*WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 AND WallDuration > 3600*:min_hours </filler>
       </sql>
         <results>
@@ -409,7 +440,7 @@
       </inputs>
       <sql>
         <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
         <results>
@@ -428,7 +459,7 @@
       </inputs>
       <sql>
         <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
-        <filler name="column"> sum(CASE when ApplicationExitCode = 0 THEN WallDuration-CpuUserDuration-CpuSystemDuration ELSE WallDuration END)/3600 </filler>
+        <filler name="column"> sum(CASE when ApplicationExitCode = 0 THEN Cores*WallDuration-CpuUserDuration-CpuSystemDuration ELSE Cores*WallDuration END)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
         <results>
@@ -447,7 +478,7 @@
       </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(CASE when ApplicationExitCode = 0 THEN WallDuration ELSE 0 END)/sum(WallDuration) </filler>
+        <filler name="column"> sum(CASE when ApplicationExitCode = 0 THEN Cores*WallDuration ELSE 0 END)/sum(Cores*WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results/>
@@ -477,7 +508,7 @@
       </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results/>
@@ -533,7 +564,7 @@
       </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(WallDuration) </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/sum(Cores*WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 AND WallDuration/Njobs > 3600*:min_hours </filler>
       </sql>
       <attribute name="pivot_name">VO</attribute>
@@ -549,7 +580,7 @@
     <query name="probe_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> R.ProbeName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -565,7 +596,7 @@
     <query name="vo_facility_hours_bar_smry" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -581,7 +612,7 @@
     <query name="vo_opp_hours_bar" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -621,7 +652,7 @@
     <query name="vo_opp_hours_bar2" base="GratiaGenericQuery.master_summary">
       <sql> 
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
@@ -637,7 +668,7 @@
     <query name="facility_opp_bar" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -656,7 +687,7 @@
     <query name="uslhc_opportunistic_provided_perc" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -675,7 +706,7 @@
     <query name="uslhc_opportunistic_provided_perc2" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -695,7 +726,7 @@
     <query name="uslhc_opportunistic_provided_sites" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -714,7 +745,7 @@
     <query name="nonuslhc_opportunistic_provided_sites" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -736,7 +767,7 @@
       </inputs>
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -755,7 +786,7 @@
     <query name="osg_sharing_vos" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -774,7 +805,7 @@
     <query name="osg_sharing_sites" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -793,7 +824,7 @@
     <query name="osg_sharing_vos_perc" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -812,7 +843,7 @@
     <query name="osg_sharing_sites_perc" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -831,7 +862,7 @@
     <query name="osg_sharing_perc" base="GratiaGenericQuery.master_summary">
       <sql> 
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -850,7 +881,7 @@
     <query name="osg_sharing_perc_vos" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -870,7 +901,7 @@
     <query name="osg_sharing_perc_sites" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Usage Type</attribute>
@@ -890,7 +921,7 @@
     <query name="failed_dn_hours_bar" base="GratiaGenericQuery.master_summary">
         <sql>
             <filler name="group"> COALESCE(R.CommonName, VO.VOName) </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 AND R.ApplicationExitCode != 0 </filler>
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
@@ -912,7 +943,7 @@
     <query name="failed_dn_site_hours_bar" base="GratiaGenericQuery.master_summary">
         <sql>   
             <filler name="group"> COALESCE(R.CommonName, VO.VOName), S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 AND R.ApplicationExitCode != 0 </filler>
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
@@ -934,7 +965,7 @@
     <query name="dn_site_hours_bar" base="GratiaGenericQuery.master_summary">
         <sql>
             <filler name="group"> COALESCE(R.CommonName, VO.VOName), S.SiteName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
@@ -956,7 +987,7 @@
     <query name="dn_hours_bar" base="GratiaGenericQuery.master_summary">
         <sql>
             <filler name="group"> COALESCE(R.CommonName, VO.VOName) </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
@@ -1011,9 +1042,9 @@
         </inputs> 
         <sql>
             <filler name="group"> COALESCE(R.CommonName, VO.VOName) </filler>
-            <filler name="column"> sum(WallDuration)/sum(Njobs)/60 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/sum(Njobs)/60 </filler>
             <!--<filler name="where"> AND 100*(CpuUserDuration + CpuSystemDuration)/(WallDuration) &lt;= :max_eff </filler>-->
-            <filler name="having"> HAVING sum(Njobs) > :min_jobs and sum(WallDuration)/sum(Njobs)/60 &lt; :max_avg </filler>
+            <filler name="having"> HAVING sum(Njobs) > :min_jobs and sum(Cores*WallDuration)/sum(Njobs)/60 &lt; :max_avg </filler>
         </sql>
         <attribute name="pivot_name">User Name</attribute>
         <results>
@@ -1030,7 +1061,7 @@
     <query name="monthly_science" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Science Field</attribute>
@@ -1049,7 +1080,7 @@
     <query name="monthly_non_hep" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">VO</attribute>

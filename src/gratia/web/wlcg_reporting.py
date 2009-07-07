@@ -3,6 +3,7 @@ import re
 import sys
 import time
 import types
+import urllib
 import urllib2
 import calendar
 import datetime
@@ -14,6 +15,7 @@ from pkg_resources import resource_stream
 
 from graphtool.base.xml_config import XmlConfig
 from auth import Authenticate
+from gratia.gip.cpu_normalizations import get_cpu_normalizations
 
 def gratia_interval(year, month):
     info = {}
@@ -36,10 +38,15 @@ class WLCGReporter(Authenticate):
         fp = resource_stream("gratia.config", "gip.conf")
         cp = ConfigParser()
         cp.readfp(fp, "gip.conf")
-        data['cpus'] = eval(cp.get("cpu_count", "specint2k"), {}, {})
+        data['cpus'] = get_cpu_normalizations()
         for key, val in data['cpus'].items():
             if not isinstance(val, types.TupleType):
                 data['cpus'][key] = (val, "")
+            value, note = data['cpus'][key]
+            note = note.replace('"', '')
+            note = note.replace("'", '')
+            note = note.replace("\n", '')
+            data['cpus'][key] = (value, note)
         data['title'] = "CPU Normalization constants table"
         return data
 

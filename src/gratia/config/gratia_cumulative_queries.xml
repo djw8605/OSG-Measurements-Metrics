@@ -12,7 +12,7 @@
     <query name="hours_success_cumulative" base="GratiaGenericQuery.jobs_query">
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
@@ -30,7 +30,7 @@
     <query name="vo_success_cumulative" base="GratiaGenericQuery.jobs_query">
       <sql>
         <filler name="group"> VO.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
@@ -49,7 +49,7 @@
     <query name="vo_success_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> R.VOName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
@@ -70,7 +70,7 @@
       </inputs>
       <sql>
         <filler name="group"> "OSG" </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results module="gratia.database.query_handler" function="cumulative_rate_estimator">
@@ -88,7 +88,7 @@
     <query name="facility_success_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
@@ -129,7 +129,7 @@
         </inputs>
         <sql>
             <filler name="group"> R.VOName </filler>
-            <filler name="column"> sum(WallDuration)/3600 </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
