@@ -50,9 +50,68 @@
         <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> VO </attribute>
-      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_names"> Wall Time </attribute>
       <attribute name="column_units"> Hours </attribute>
-      <attribute name="title"> Computational Hours by VO </attribute>
+      <attribute name="title"> Wall Hours by VO </attribute>
+    </query>
+
+    <query name="job_size_hours" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input kind="sql" type="float" name="min_hours"> 0 </input>
+        </inputs>
+      <sql>
+        <filler name="group"> CASE R.Cores WHEN 1 THEN "1 Core" ELSE concat(R.Cores, " Cores") END </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> Cores in Job </attribute>
+      <attribute name="column_names"> Wall Time </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Wall Hours by Number of Cores in the Job </attribute>
+    </query>
+
+    <query name="unclassified_users" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+        <input kind="sql" type="datetime" name="starttime"> time.time()-365*86400</input>
+      </inputs>
+      <sql>
+        <filler name="group"> R.CommonName, VC.VOName, VO.VOName </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+      </sql>
+      <attribute name="pivot_name"> Uncategorized Users </attribute>
+      <attribute name="column_names"> Wall Hours </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Wall Hours by Uncategorized User </attribute>
+      <results>
+        <inputs>
+          <input name="pivots"> 0, 1, 2 </input>
+          <input name="results"> 3 </input>
+          <input name="pivot_transform">unclassified_science_filter</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="science_field_user_count" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+        <input kind="sql" type="datetime" name="starttime"> time.time()-365*86400</input>
+        <input kind="sql" type="eval" name="min_hours"> 1000 </input>
+      </inputs>
+      <sql>
+        <filler name="group"> R.CommonName, VC.VOName, VO.VOName </filler>
+        <filler name="column"> 1 </filler>
+        <filler name="having"> HAVING sum(WallDuration)/3600 > :min_hours </filler>
+      </sql>
+      <attribute name="pivot_name"> Science Field </attribute>
+      <attribute name="column_names"> User </attribute>
+      <attribute name="column_units"> People </attribute>
+      <attribute name="title"> Number of Users by Science Field </attribute>
+      <results>
+        <inputs>
+          <input name="pivots"> 0, 1, 2 </input>
+          <input name="results"> 3 </input>
+          <input name="pivot_transform">science_filter</input>
+        </inputs>
+      </results>
     </query>
 
     <query name="non_hep_vo_hours" base="GratiaGenericQuery.simple_master_summary">
@@ -65,9 +124,9 @@
         <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> VO </attribute>
-      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_names"> Wall Time </attribute>
       <attribute name="column_units"> Hours </attribute> 
-      <attribute name="title"> Computational Hours by non-HEP VOs </attribute>
+      <attribute name="title"> Wall Hours by non-HEP VOs </attribute>
       <results module="gratia.database.metrics" function="non_hep_filter_simple">
         <inputs>
           <input name="pivots"> 0 </input>
@@ -171,7 +230,7 @@
         <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> Facility </attribute>
-      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_names"> Wall Time </attribute>
       <attribute name="column_units"> Hours </attribute>
       <attribute name="title"> Wall Hours by Facility </attribute>
     </query>
@@ -186,7 +245,7 @@
         <filler name="having"> HAVING CpuHours >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> Facility </attribute>
-      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_names"> Wall Time </attribute>
       <attribute name="column_units"> Hours </attribute>
       <attribute name="title"> CPU Hours by Facility </attribute>
     </query>
@@ -201,9 +260,9 @@
         <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
       <attribute name="pivot_name"> Probe </attribute>
-      <attribute name="column_names"> Computation Time </attribute>
+      <attribute name="column_names"> Wall Time </attribute>
       <attribute name="column_units"> Hours </attribute>
-      <attribute name="title"> Computational Hours by Probe </attribute>
+      <attribute name="title"> Wall Hours by Probe </attribute>
     </query>
 
     <query name="osg_vo_count" base="GratiaGenericQuery.simple_master_summary">

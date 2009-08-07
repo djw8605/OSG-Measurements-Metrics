@@ -3,10 +3,244 @@ import re
 import sets
 import time
 import copy
+import urllib2
 import datetime
+import xml.dom.minidom
 
 from graphtool.database.query_handler import results_parser, simple_results_parser, pivot_group_parser_plus
 from graphtool.tools.common import convert_to_datetime
+
+class PeriodicUpdater(object):
+
+    def __init__(self, url):
+        self.last_fetch = None
+        self.last_results = None
+        self.last_update_time = 0
+        self.last_fetch_status = 1
+        self.negative_ttl = 20
+        self.positive_ttl = 600
+        self.url = url
+
+    def fetch(self):
+        self.last_update_time = time.time()
+        try:
+            results = urllib2.urlopen(self.url).read()
+            self.last_fetch_status = 0
+            self.last_fetch = results
+            return results
+        except:
+            self.last_fetch_status = 1
+            if self.last_fetch != None:
+                return self.last_fetch
+            else:
+                raise Exception("Unable to fetch data from %s" % self.url)
+
+    def results(self):
+        age = time.time() - self.last_update_time
+        my_results = None
+        if self.last_fetch_status == 0:
+            if age > self.positive_ttl:
+                my_results = self.parse(self.fetch())
+            else:
+                my_results = self.last_results
+        else:
+            if age > self.negative_ttl:
+                my_results = self.parse(self.fetch())
+            else:
+                my_results = self.last_results
+        if my_results == None:
+            raise Exception("Unable to return results for %s" % self.url)
+        self.last_results = my_results
+        return my_results
+
+    def parse(self, results):
+        return results
+
+class OimVoFilter(PeriodicUpdater):
+
+    def __init__(self):
+        self.url = 'http://myosg.grid.iu.edu/vosummary/xml?' \
+            'datasource=summary&all_vos=on&active_value=1'
+        super(OimVoFilter, self).__init__(self.url)
+
+    def parse(self, results):
+        dom = xml.dom.minidom.parseString(results)
+        vo_list = []
+        for child in dom.getElementsByTagName('Name'):
+            try:
+                vo_list.append(str(child.firstChild.data))
+            except:
+                pass
+        return vo_list
+
+    def __call__(self, pivot, **kw):
+        results = self.results()
+        for result in results:
+            if result.lower() == pivot.lower():
+                return result
+        return None
+
+class GratiaOimVoFilter(OimVoFilter):
+    """
+    Only return VOs registered in OIM; returns with the capitalization and
+    spelling which is used by Gratia, in order to be compatible with other
+    parts of Gratia.
+    """
+
+    def __call__(self, pivot, **kw):
+        results = self.results()
+        for result in results:
+            if result.lower().find(pivot.lower()) >= 0:
+                return pivot
+        return None
+
+gratia_oim_vo_filter = GratiaOimVoFilter()
+
+class OimScienceFilter(PeriodicUpdater):
+
+    def __init__(self):
+        self.url = 'http://myosg.grid.iu.edu/vosummary/xml?datasource=summary' \
+            '&summary_attrs_showfield_of_science=on&all_vos=on&' \
+            'show_disabled=on&active_value=1'
+        super(OimScienceFilter, self).__init__(self.url)
+
+    def parse(self, results):
+        dom = xml.dom.minidom.parseString(results)
+        vo_to_fields = {}
+        for vo_dom in dom.getElementsByTagName('VO'):
+            try:
+                field_dom_list = vo_dom.getElementsByTagName('Field')
+                vo_name = str(vo_dom.getElementsByTagName('Name')[0].\
+                    firstChild.data)
+            except:
+                continue
+            for field_dom in field_dom_list:
+                try:
+                    field = str(field_dom.firstChild.data)
+                    field_set = vo_to_fields.setdefault(vo_name, sets.Set())
+                    field_set.add(field)
+                except:
+                    continue
+        return vo_to_fields
+
+    def __call__(self, *pivot, **kw):
+        results = self.results()
+        cn, fqan, vo_name = pivot
+        for vo in results:
+            vo1 = vo.lower()
+            vo2 = vo_name.lower()
+            if vo1.find(vo2) >= 0 or vo2.find(vo1) >= 0:
+                return results[vo]
+        return sets.Set()
+
+class CSVScienceFilter(PeriodicUpdater):
+
+    def __init__(self, url, debug=False):
+        self.url = url
+        super(CSVScienceFilter, self).__init__(url)
+        self.fqans = {}
+        self.dns = {}
+        self.debug = debug
+
+    def parse(self, results):
+        try:
+            for line in results.splitlines():
+                line = line.strip()
+                info = line.split(',')
+                if len(info) != 4:
+                    continue
+                kind, val, field, subfield = info
+                if kind.lower() == 'dn':
+                    cn = '/CN' + '/CN'.join(val.split('/CN', 1)[1:])
+                    self.dns[cn] = field
+                else:
+                    self.fqans[val] = field
+        except Exception, e:
+            print e
+            raise
+        return 0
+
+    def __call__(self, *pivot, **kw):
+        results = self.results()
+        cn, fqan, vo_name = pivot
+        result_set = sets.Set()
+        for val, field in self.fqans.items():
+            if field.startswith(val):
+                result_set.add(field)
+        if result_set:
+            return result_set
+        for val, field in self.dns.items():
+            if cn.startswith(val):
+                result_set.add(field)
+        if self.debug:
+            print cn, fqan, vo_name, result_set
+        return result_set
+
+class ScienceFilter(object):
+    
+    def __init__(self):
+        engage_filter = CSVScienceFilter('http://engage-central.renci.org/' \
+            'engage-sciences.csv')
+        #nysgrid_filter = CSVScienceFilter('http://t2.unl.edu/store/NYSGrid-' \
+        #    'classifications.csv')
+        nysgrid_filter = CSVScienceFilter('https://www.ccr.buffalo.edu/' \
+            'download/attachments/31558659/NYSGrid-classifications.csv')
+        override_filter = CSVScienceFilter('http://t2.unl.edu/store/' \
+            'override-classifications.csv')
+        oim_filter = OimScienceFilter()
+        self.filters = [engage_filter, nysgrid_filter, oim_filter,
+            override_filter]
+        self.priorities = {
+            'Physics': 'HEP',
+            'HEP': 'USLHC',
+            'Physics': 'USLHC',
+        }
+
+    def filter(self, field, exclude_re):
+        if exclude_re != None and exclude_re.search(field):
+            return None
+        return field
+
+    def __call__(self, *pivot, **kw):
+        if 'exclude-field' in kw:
+            exclude_re = re.compile(kw['exclude-field'])
+        else:
+            exclude_re = None
+        result = sets.Set()
+        for filter in self.filters:
+            result.union_update(filter(*pivot, **kw))
+        changed = True
+        while changed and len(result) > 0:
+            changed = False
+            for lower, higher in self.priorities.items():
+                if higher in result and lower in result:
+                    result.remove(lower)
+                    changed = True
+        if 'Community Grid' in result and len(result) > 1:
+            result.remove('Community Grid')
+        elif 'Generic' in pivot[0] and 'Community Grid' in result:
+            result.remove('Community Grid')
+        if 'Community Grid' in result:
+            print pivot, result
+        if result:
+            result = result.pop()
+            if 'Community Grid' in result:
+                return 'Uncategorized Community Grid (%s)' % pivot[-1]
+            return self.filter(result, exclude_re)
+        if 'Generic' in pivot[0]:
+            return 'DN not recorded (%s)' % pivot[-1]
+        print pivot
+        return "Uncategorized (%s)" % pivot[-1]
+
+oim_vo_filter = OimVoFilter()
+science_filter = ScienceFilter()
+
+def unclassified_science_filter(*pivot, **kw):
+    dn, fqan, vo = pivot
+    result = science_filter(*pivot)
+    if result.find('Community Grid') >= 0:
+        return '%s (%s)' % (dn, vo)
+    return None
 
 def critical_tests(globals):
     db_results = globals['RSVQueries'].critical_tests()[0]

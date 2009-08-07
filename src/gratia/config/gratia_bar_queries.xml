@@ -390,7 +390,7 @@
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
-      <attribute name="title">CPU Efficiency for $facility</attribute>
+      <attribute name="title">CPU Efficiency by VO for $facility</attribute>
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
@@ -409,8 +409,35 @@
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
-      <attribute name="title">CPU Efficiency</attribute>
+      <attribute name="title">CPU Efficiency Quality Map by Site for $vo</attribute>
       <attribute name="graph_type">QualityBarGraph</attribute>
+    </query>
+
+    <query name="vo_wall_efficiency_summary" base="GratiaGenericQuery.master_summary">
+      <inputs>
+          <input name="vo" kind="sql">dzero</input>
+          <input name="min_hours" type="eval" kind="sql">0</input>
+      </inputs>
+      <sql>
+        <filler name="group"> S.SiteName </filler>
+        <filler name="column">
+          sum(case when ApplicationExitCode = 0 then Cores*WallDuration else 0 end)/3600 as Successes,
+          sum(case when ApplicationExitCode != 0 then Cores*WallDuration else 0 end)/3600 as Failures
+        </filler>
+        <filler name="having"> HAVING sum(Cores*WallDuration) > 3600*:min_hours </filler>
+      </sql>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+          <input name="results"> 2, 3 </input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name">Facility</attribute>
+      <attribute name="title">Wall Efficiency Quality Map by Site for $vo</attribute>
+      <attribute name="graph_type">QualityMap</attribute>
+      <attribute name="fixed-height"> False </attribute>
+      <attribute name="column_names"> Successful, Failed</attribute>
+      <attribute name="column_units"> Hours, Hours </attribute>
     </query>
 
     <query name="dn_efficiency_summary" base="GratiaGenericQuery.simple_master_summary">
@@ -430,7 +457,7 @@
             </inputs>
         </results>
       <attribute name="pivot_name">User</attribute>
-      <attribute name="title">CPU Efficiency</attribute>
+      <attribute name="title">CPU Efficiency Quality Map by User for $vo</attribute>
       <attribute name="graph_type">QualityBarGraph</attribute>
     </query>
 
@@ -1091,6 +1118,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results module="gratia.database.metrics" function="non_HEP_filter">
         <inputs>
+          <input name="pivot_transform">oim_vo_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -1109,6 +1137,28 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results module="gratia.database.metrics" function="science_classifier">
         <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="monthly_field" base="GratiaGenericQuery.monthly_master_summary">
+      <sql>
+        <filler name="group"> R.CommonName, VC.VOName, VO.VOName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Science Field</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_names">Wall Hours</attribute>
+      <attribute name="title">Monthly Wall Hours per Science Field</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="pivots"> 0, 1, 2 </input>
+          <input name="grouping"> 3 </input>
+          <input name="results"> 4 </input>
+          <input name="pivot_transform">science_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>

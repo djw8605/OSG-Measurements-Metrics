@@ -61,7 +61,12 @@ def main():
 
     # Initialize the Probe's configuration
     ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
-    Gratia.Initialize(ProbeConfig)
+    has_gratia = True
+    try:
+        Gratia.Initialize(ProbeConfig)
+    except Exception, e:
+        print e
+        has_gratia = False
 
     for cluster, cpu in cluster_info.items():
         print "* Cluster: ", cluster
@@ -113,8 +118,9 @@ def main():
             except:
                 pass
             s.Timestamp(time.time())
-            print "Sending subcluster %s to Gratia: %s." % \
-                (sc.glue['SubClusterUniqueID'], Gratia.Send(s))
+            if has_gratia:
+                print "Sending subcluster %s to Gratia: %s." % \
+                    (sc.glue['SubClusterUniqueID'], Gratia.Send(s))
 
     conn.commit()
         

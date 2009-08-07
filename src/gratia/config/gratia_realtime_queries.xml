@@ -104,7 +104,8 @@
           count(*) as Records
         FROM JobUsageRecord_Meta 
         WHERE
-          ServerDate >= now()-INTERVAL :minutes MINUTE
+          ServerDate &gt;= :starttime AND
+          ServerDate &lt; :endtime
         GROUP BY time;
       </sql>
       <results module="graphtool.database.query_handler" function="simple_results_parser"/>

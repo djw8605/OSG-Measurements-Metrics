@@ -103,6 +103,27 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
 			except ValueError: 
 				relTime = 1209600
 				break
+                # try to determine default span
+                try:
+                    valid = datetime.datetime(*valid[:6])
+                    valid2 = datetime.datetime(*valid2[:6])
+                    timedelta = (valid2 - valid)
+                    myinterval = timedelta.days * 86400 + timedelta.seconds
+                    if myinterval < 4*86400:
+                        default_span = 3600
+                    elif myinterval <= 30*86400: 
+                        default_span = 86400
+                    elif myinterval < 365*86400:
+                        default_span = 86400*7
+                    else:
+                        default_span = 86400*30
+                except:
+                    default_span = 86400
+                # Set the span, defaulting to the determined default_span
+                try:
+                    filter_dict['span'] = int(data['span'])
+                except:
+                    filter_dict['span'] = default_span
             if relTime != 'absolute':
 		data['relTime'] = relTime
                 try:
@@ -611,6 +632,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
 
     def gratia_live_display(self, *args, **kw):
         bars = int(kw.get('bars', 12))
+        orig_bars = bars
+        bars += 3
         span = int(kw.get('span', 600))
         now = time.time()
         start = now - span*bars
@@ -625,6 +648,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         results, metadata = self.globals['GratiaRTQueries'].live_display(**kw)
         keys = results.keys()
         keys.sort()
+        keys = keys[-orig_bars:]
         for pivot in keys:
             cnt = results[pivot]
             pivot = int(pivot)
@@ -875,6 +899,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
             if weekly:
                 weekday = group.isoweekday()
                 group -= datetime.timedelta(weekday, 0)
+            print info[0], group
             pivot = info[1]
             results = int(info[3])
             if pivot not in data:

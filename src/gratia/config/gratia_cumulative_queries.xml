@@ -48,7 +48,7 @@
 
     <query name="vo_success_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
-        <filler name="group"> R.VOName </filler>
+        <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
@@ -128,7 +128,7 @@
             <input name="endtime" type="datetime" kind="sql">time.time()</input>
         </inputs>
         <sql>
-            <filler name="group"> R.VOName </filler>
+            <filler name="group"> VO.VOName </filler>
             <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>

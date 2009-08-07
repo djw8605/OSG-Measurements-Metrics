@@ -94,7 +94,7 @@
                 VO.VOName regexp :vo AND
                 VC.VOName regexp :role AND
                 (NOT (VC.VOName regexp :exclude-role)) AND
-                R.ResourceType = 'Batch' AND
+                (R.ResourceType = 'Batch' or R.ResourceType = '') AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
@@ -159,7 +159,7 @@
                 VO.VOName regexp :vo AND
                 VC.VOName regexp :role AND
                 (NOT (VC.VOName regexp :exclude-role)) AND
-                R.ResourceType = 'Batch' AND
+                (R.ResourceType = 'Batch' or R.ResourceType = '') AND
                 R.CommonName regexp :user AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
@@ -225,7 +225,7 @@
                 VO.VOName regexp :vo AND
                 VC.VOName regexp :role AND
                 (NOT (VC.VOName regexp :exclude-role)) AND
-                R.ResourceType = 'Batch' AND
+                (R.ResourceType = 'Batch' or R.ResourceType = '') AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (R.CommonName regexp :exclude-user)) AND
@@ -268,20 +268,24 @@
                 <slot name="group"/>,
                 <slot name="column"/>
             FROM
-                VOProbeSummary R
+                MasterSummaryData R
             JOIN
                 Probe P on R.ProbeName = P.probename
             JOIN
                 Site S on S.siteid = P.siteid
+            JOIN
+                VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+            JOIN
+                VO on (VC.void = VO.void)
             <slot name="join"/>
             WHERE
                 R.EndTime &gt;= :starttime AND
                 R.EndTime &lt; :endtime AND
                 S.SiteName regexp :facility AND
-                R.VOName regexp :vo AND
-                R.ResourceType = 'Batch' AND
+                VO.VOName regexp :vo AND
+                (R.ResourceType = 'Batch' or R.ResourceType = '') AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
-                (NOT (R.VOName regexp :exclude-vo)) AND
+                (NOT (VO.VOName regexp :exclude-vo)) AND
                 R.WallDuration &lt; 1100000000 AND
                 R.ProbeName regexp :probe
                 <slot name="where"/>
@@ -390,7 +394,7 @@
           VO on (VC.void = VO.void)
         <slot name="JOIN"/>
         WHERE
-          R.ResourceType = 'Batch' AND
+          (R.ResourceType = 'Batch' or R.ResourceType = '') AND 
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
           S.SiteName regexp :facility AND
@@ -442,22 +446,26 @@
           truncate( unix_timestamp(EndTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
-          VOProbeSummary R
+          MasterSummaryData R
         JOIN
           Probe P on R.ProbeName = P.probename
         JOIN
           Site S on S.siteid = P.siteid
+        JOIN
+          VONameCorrection VC ON (VC.corrid=R.VOcorrid)
+        JOIN
+          VO on (VC.void = VO.void)
         <slot name="JOIN"/>
         WHERE
-          R.ResourceType = 'Batch' AND
+          (R.ResourceType = 'Batch' or R.ResourceType = '') AND
           EndTime &gt;= :starttime AND
           EndTime &lt; :endtime AND
           S.SiteName regexp :facility AND
-          R.VOName regexp :vo AND
+          VO.VOName regexp :vo AND
           R.CommonName regexp :user AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
           (NOT (R.CommonName regexp :exclude-user)) AND
-          (NOT (R.VOName regexp :exclude-vo)) AND
+          (NOT (VO.VOName regexp :exclude-vo)) AND
           R.ProbeName regexp :probe AND
           WallDuration &lt; 1100000000
           <slot name="where"/>

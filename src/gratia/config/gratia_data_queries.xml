@@ -58,6 +58,19 @@
         <filler name="graph_type"/>
     </query>
 
+    <query name="vo_oim_corrected_table">
+        <sql>
+            select distinct VO.VOName, 1 from VO join VONameCorrection on (VO.void = VONameCorrection.void);
+        </sql>
+        <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+            <inputs>
+                <input name="pivot_transform"> gratia_oim_vo_filter </input>
+                <input name="pivots"> 0 </input>
+            </inputs>
+        </results>
+        <filler name="graph_type"/>
+    </query>
+
     <query name="si2k_score">
         <inputs>
             <input name="model" kind="sql">.*</input>
@@ -77,7 +90,7 @@
 
     <query name="gratia_data" base="GratiaGenericQuery.simple_summary">
         <sql>
-            <filler name="group">R.VOName, S.SiteName</filler>
+            <filler name="group">VO.VOName, S.SiteName</filler>
             <filler name="column">sum(Cores*WallDuration)/3600000</filler>
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
