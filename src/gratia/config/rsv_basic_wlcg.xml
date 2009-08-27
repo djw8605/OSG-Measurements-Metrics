@@ -1,0 +1,239 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/>
+
+  <import file="$DBPARAM_LOCATION" />
+
+  <class type="SqlQueries" name="GratiaRSVGeneric">
+
+    <attribute name="display_name"> RSV WLCG Queries </attribute>
+    <attribute name="connection_manager"> RSVConnMan </attribute>
+
+    <query name="reliability">
+        <inputs>
+            <input name="starttime" type="timestamp" kind="sql">time.time()-86400</input>
+            <input name="endtime" type="timestamp" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT substring_index(ServiceUri, ':', 1) as SiteName, MetricName, from_unixtime(Timestamp) as StartTime, null as EndTime, CASE WHEN MetricStatus = "WARNING" THEN "OK" ELSE MetricStatus END as MetricStatus
+            FROM MetricRecord FORCE INDEX (Timestamp)
+            Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+            ServiceUri regexp :facility AND
+            MetricName regexp :metric
+        </sql>
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">WLCG Reliability</attribute>
+    </query>
+
+  </class>
+
+  <class type="SqlQueries" name="GratiaRSVQueries">
+
+    <attribute name="display_name"> Gratia RSV Queries </attribute>
+    <attribute name="connection_manager"> RSVConnMan </attribute>
+
+    <aggregate>
+      <connection> gratia </connection>
+    </aggregate>
+
+    <query name="rsv_wlcg_reliability" base="GratiaRSVGeneric.reliability">
+        <results module="gratia.database.query_handler" function="wlcg_availability"/>
+        <attribute name="title">Resource WLCG Reliability</attribute>
+        <sql/>
+    </query>
+
+    <query name="wlcg_last_status">
+        <inputs>
+            <input name="starttime" type="timestamp" kind="sql">time.time()</input>
+            <input name="facility" kind="sql">.*</input>
+            <input name="metric" kind="sql">.*</input>
+        </inputs>
+        <sql>
+        SELECT substring_index(ServiceUri, ':', 1) as SiteName, MetricName, from_unixtime(foo.Timestamp) as Timestamp, CASE WHEN MetricStatus = "WARNING" THEN "OK" ELSE MetricStatus END as MetricStatus
+        FROM (SELECT ServiceUri, MetricName, max(Timestamp) AS Timestamp
+              FROM MetricRecord FORCE INDEX (Timestamp)
+              WHERE
+                  Timestamp &lt;= :starttime AND
+                  Timestamp &gt; :starttime-86400 AND
+                  ServiceUri regexp :facility AND
+                  MetricName regexp :metric
+              GROUP BY ServiceUri, MetricName) AS foo
+        </sql>
+        <results module="gratia.database.query_handler" function="simple_results_parser">
+            <inputs>
+                <input name="pivots">0,1,2</input>
+                <input name="results">3</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">Site</attribute>
+        <attribute name="title">Last Test Status</attribute>
+    </query>
+        
+    <query name="rsv_quality">
+      <inputs>
+        <input name="span" type="eval" kind="sql">7200</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="fixed-height">False</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+select
+  substring_index(ServiceUri, ':', 1) as SiteName,
+  from_unixtime(truncate(Timestamp/:span, 0)*:span) as time,
+  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+from
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceUri regexp :facility AND
+     MetricName regexp :metric
+group by
+  ServiceUri, time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Site Quality</attribute>
+      <attribute name="column_names">Successful, Failed</attribute>
+      <attribute name="column_units">Probes, Probes</attribute>
+    </query>
+
+    <query name="rsv_results">
+      <inputs>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="status" kind="sql">UNKNOWN|WARNING|CRITICAL</input>
+        <input name="limit" type="int" kind="sql">30</input>
+      </inputs>
+      <sql>
+SELECT
+  substring_index(ServiceUri, ':', 1) as SiteName,
+  MetricName,
+  MetricStatus,
+  from_unixtime(Timestamp) as timestamp,
+  DetailsData
+FROM
+  MetricRecord
+WHERE
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceUri regexp :facility AND
+     MetricName regexp :metric AND
+     MetricStatus regexp :status
+ORDER BY Timestamp desc
+LIMIT :limit
+      </sql>
+      <results module="graphtool.database.query_handler" function="complex_pivot_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1,2,3,4 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"/>
+      <attribute name="pivot_name">Service FQDN</attribute>
+      <attribute name="title">RSV Individual Results</attribute>
+      <attribute name="column_names">Metric, Status, Time, Output</attribute>
+      <attribute name="column_units">,,,</attribute>
+    </query>
+    <query name="rsv_reliability">
+      <inputs>
+        <input name="span" kind="sql" type="eval">7200</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="fixed-height">False</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+select  
+  substring_index(ServiceUri, ':', 1) as SiteName,
+  from_unixtime(truncate(Timestamp/:span, 0)*:span) as time,
+  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
+from  
+  MetricRecord
+where
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceUri regexp :facility AND
+     MetricName regexp :metric
+group by
+  ServiceUri, time
+      </sql>
+      <results module="gratia.database.query_handler" function="rsv_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Site Quality</attribute>
+      <attribute name="column_names">Successful, Failed</attribute>
+      <attribute name="column_units">Probes, Probes</attribute>
+    </query>
+
+    <query name="rsv_metric_quality">
+      <inputs>
+        <input name="span" type="eval" kind="sql">7200</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-4*86400</input>
+        <input name="endtime" type="timestamp" kind="sql">time.time()</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="metric" kind="sql">.*</input>
+        <input name="countunknown" type="int" kind="sql">0</input>
+        <!--<input name="excludefacility" kind="sql">USCMS-FNAL-WC1-CE2|USCMS-FNAL-WC1-CE3|USCMS-FNAL-WC1-CE4|UCSDT2-B</input>-->
+      </inputs>
+      <sql>
+SELECT
+  MetricName,
+  from_unixtime(truncate(Timestamp/:span, 0)*:span) as time,
+  SUM(CASE MetricStatus WHEN "OK" THEN 1 ELSE 0 END),
+  SUM(CASE MetricStatus WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN :countunknown ELSE 1 END)
+from
+  MetricRecord
+where   
+     Timestamp &gt;= :starttime AND Timestamp &lt; :endtime AND
+     ServiceUri regexp :facility AND 
+     MetricName regexp :metric
+group by
+  name, time
+      </sql>
+      <results module="graphtool.database.query_handler" function="results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2,3 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> QualityMap </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">RSV Quality for $facility</attribute>
+      <attribute name="column_names">Successful, Failed</attribute>
+      <attribute name="column_units">Probes, Probes</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>

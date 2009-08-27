@@ -56,6 +56,62 @@ class PeriodicUpdater(object):
     def parse(self, results):
         return results
 
+class OimCriticalMetrics(PeriodicUpdater):
+
+    """
+    This object, when called, will return a list of dictionaries.
+    Each dictionary represents a metric in OIM.  Each are guaranteed to have
+    the following keys (example):
+       * name (org.osg.batch.jobmanager-condor-status)
+       * common_name (Condor)
+       * abbreviation (jm-condor)
+       * service_name (CE)
+       * critical (False)
+    Each name / service_name abbreviation is unique.
+    """
+
+    def __init__(self):
+        self.url = 'http://myosg.grid.iu.edu/miscmetric/xml?datasource=' \
+            'metric&metric_attrs_showservices=on'
+        super(OimCriticalMetrics, self).__init__(self.url)
+
+    def _get_text(self, dom_elt):
+        try:
+            return str(dom_elt.firstChild.data)
+        except:
+            return ''
+
+    def _get_prop(self, dom_elt, prop_name):
+        try:
+            for elt in dom_elt.getElementsByTagName(prop_name):
+                if elt not in dom_elt.childNodes:
+                    continue
+                return self._get_text(elt)
+        except:
+            return ''
+        return ''
+
+    def parse(self, results):
+        dom = xml.dom.minidom.parseString(results)
+        metric_list = []
+        for rsvmetric_dom in dom.getElementsByTagName('RSVMetric'):
+            name = self._get_prop(rsvmetric_dom, 'Name')
+            cname = self._get_prop(rsvmetric_dom, 'CommonName')
+            abbrev = self._get_prop(rsvmetric_dom, 'CommonName')
+            metric_entry = {'name': name, 'common_name': cname, 'abbreviation':\
+                abbrev}
+            for service_dom in rsvmetric_dom.getElementsByTagName('Service'):
+                service_name = self._get_prop(service_dom, 'Name')
+                critical = self._get_prop(service_dom, 'CriticalMetric')\
+                    .lower() == 'true'
+                my_entry = dict(metric_entry)
+                my_entry['service_name'] = service_name
+                my_entry['critical'] = critical
+                metric_list.append(my_entry)
+        return metric_list
+
+oim_critical_metrics = OimCriticalMetrics()
+
 class OimVoFilter(PeriodicUpdater):
 
     def __init__(self):
@@ -616,6 +672,12 @@ def wlcg_availability(d, globals=globals(), **kw):
     # Add all the metric names:
     for metric in kw['metric'].split('|'):
         metricNames.add(metric)
+
+    # If there are no metrics given, get the critical ones from OIM
+    if 'metric' not in kw:
+        all_metrics = oim_critical_metrics()
+        critical_metrics = [i['name'] for i in all_metrics if i['critical']]
+        metricNames.update(critical_metrics)
 
     # initialize data
     init_data(d, serviceData, serviceNames, metricNames, startTime, endTime,
