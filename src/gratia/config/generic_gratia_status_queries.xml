@@ -1,0 +1,271 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/> 
+  <import file="$DBPARAM_LOCATION" />
+ 
+  <class type="SqlQueries" name="GratiaStatusGeneric">
+
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+    <aggregate>
+      <connection> gratia-status </connection>
+    </aggregate>
+
+    <query name="rt_hourly">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-3600</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="host" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">ITB</input>
+        <input name="excludehost" kind="sql">NONE</input>
+        <input name="excludevo" kind="sql">NONE</input>
+      </inputs>
+      <sql>
+SELECT
+  myGroup,
+  AVG(myCol)
+FROM
+(SELECT
+  <slot name="group"/> as myGroup,
+  CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) ELSE SUM(<slot name="column"/>) END as myCol
+FROM
+  MasterServiceSummaryHourly MSS
+JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
+JOIN VO on VO.void=VNC.void
+JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
+JOIN Cluster on Cluster.clusterid=CNC.clusterid
+WHERE
+  (MSS.SiteName regexp :facility)
+  AND NOT (MSS.SiteName regexp :excludefacility)
+  AND (MSS.HostName regexp :host)
+  AND NOT (MSS.HostName regexp :excludehost)
+  AND (VO.VOName regexp :vo)
+  AND NOT (VO.VOName regexp :excludevo)
+  AND Timestamp >= :starttime
+  AND Timestamp &lt; :endtime
+<slot name="where"/>
+GROUP BY
+  myGroup,
+  Timestamp
+<slot name="having"/>
+) as foo
+GROUP BY
+  myGroup
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+
+      </results>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="column_units"/>
+    </query>    
+
+    <query name="ts_hourly">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="span" kind="sql">3600</input>
+        <input name="host" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">ITB</input>
+        <input name="excludehost" kind="sql">NONE</input>
+        <input name="excludevo" kind="sql">NONE</input>
+      </inputs>
+      <sql>
+SELECT
+  <slot name="group"/>,
+  unix_timestamp(Timestamp),
+  (CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) WHEN 3 THEN SUM(<slot name="column"/>) END)
+FROM
+  MasterServiceSummaryHourly MSS
+JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
+JOIN VO on VO.void=VNC.void
+JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
+JOIN Cluster on Cluster.clusterid=CNC.clusterid
+WHERE
+      Timestamp >= :starttime
+  AND Timestamp &lt; :endtime
+  AND (MSS.SiteName regexp :facility)
+  AND NOT (MSS.SiteName regexp :excludefacility)
+  AND (MSS.HostName regexp :host)
+  AND NOT (MSS.HostName regexp :excludehost)
+  AND (VO.VOName regexp :vo)
+  AND NOT (VO.VOName regexp :excludevo)
+<slot name="where"/>
+GROUP BY
+  <slot name="group"/>,
+  Timestamp
+<slot name="having"/>
+      </sql>
+      <results module="gratia.database.query_handler" function="results_parser_fillin">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">VO.VOName</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="ts_daily">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="span" kind="sql">86400</input>
+        <input name="host" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">ITB</input>
+        <input name="excludehost" kind="sql">NONE</input>
+        <input name="excludevo" kind="sql">NONE</input>
+      </inputs>
+      <sql>
+SELECT
+  <slot name="group"/>,
+  truncate(unix_timestamp(Timestamp)/:span, 0)*:span,
+  (CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) ELSE SUM(<slot name="column"/>) END)
+FROM
+  MasterServiceSummary MSS
+JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
+JOIN VO on VO.void=VNC.void
+JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
+JOIN Cluster on Cluster.clusterid=CNC.clusterid
+WHERE
+      Timestamp >= :starttime
+  AND Timestamp &lt; :endtime
+  AND (MSS.SiteName regexp :facility)
+  AND NOT (MSS.SiteName regexp :excludefacility)
+  AND (MSS.HostName regexp :host)
+  AND NOT (MSS.HostName regexp :excludehost)
+  AND (VO.VOName regexp :vo)
+  AND NOT (VO.VOName regexp :excludevo)
+<slot name="where"/>
+GROUP BY
+  <slot name="group"/>,
+  Timestamp
+<slot name="having"/>
+      </sql>
+      <results module="gratia.database.query_handler" function="results_parser_fillin">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">VO.VOName</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
+    </query>
+
+    <query name="se_ts">
+      <inputs>
+          <input name="span" kind="sql">86400</input>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-14*86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="spacetype" kind="sql">SE</input>
+          <input name="spacename" kind="sql">.*</input>
+      </inputs>
+      <sql>
+SELECT
+  SE.Name,
+  time,
+  myCol
+FROM
+  (SELECT
+     UniqueID,
+     truncate(unix_timestamp(Timestamp)/86400, 0)*86400 as time,
+     AVG(<slot name="column"/>) as myCol
+   FROM StorageElementRecord FORCE INDEX(Timestamp)
+   WHERE
+     Timestamp >= :starttime AND
+     Timestamp &lt; :endtime
+   GROUP BY UniqueID, time
+  ) as SER
+JOIN 
+  (SELECT * 
+   FROM StorageElement FORCE INDEX(Timestamp)
+   WHERE Timestamp &lt;= :endtime AND
+         SpaceType regexp :spacetype AND
+         SE regexp :facility AND
+         Name regexp :spacename
+   GROUP BY UniqueID HAVING MAX(Timestamp)
+  ) as SE on SE.UniqueID=SER.UniqueID
+      </sql>
+      <results module="gratia.database.query_handler" function="results_parser_fillin">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="title">OSG Total Space By Facility</attribute>
+      <attribute name="column_names">Total Space</attribute>
+      <attribute name="column_units">GB</attribute>
+    </query>
+
+    <query name="se_rt">
+      <inputs>
+          <input name="facility" kind="sql">.*</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="spacetype" kind="sql">SE</input>
+          <input name="spacename" kind="sql">.*</input>
+      </inputs>
+      <sql>
+SELECT
+  SE.Name,
+  myCol
+  FROM
+  ( SELECT UniqueID, AVG(myCol) as myCol FROM
+     (SELECT UniqueID, AVG(<slot name="column"/>) as myCol
+      FROM StorageElementRecord FORCE INDEX(Timestamp)
+      WHERE
+        Timestamp >= :starttime AND
+        Timestamp &lt; :endtime
+      GROUP BY UniqueID, truncate(unix_timestamp(Timestamp)/86400, 0)*86400
+     ) as SER2
+    GROUP BY UniqueID
+  ) as SER
+  JOIN
+  (SELECT *
+   FROM StorageElement FORCE INDEX(Timestamp)
+   WHERE
+     Timestamp &lt;= :endtime AND
+     SpaceType regexp :spacetype AND
+     SE regexp :facility AND
+     Name regexp :spacename
+   GROUP BY UniqueID HAVING MAX(Timestamp)
+  ) as SE on SE.UniqueID=SER.UniqueID
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaPie </attribute>
+      <attribute name="pivot_name">Site</attribute>
+      <attribute name="title">OSG Total Space By Facility</attribute>
+      <attribute name="column_names">Total Space</attribute>
+      <attribute name="column_units">TB</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>

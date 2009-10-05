@@ -1459,3 +1459,34 @@ def cumulative_rate_estimator(sql_results, globals=globals(), **kw):
     Estimate the number of times the size has increased for a fixed time period
     """
 
+def results_parser_fillin(sql_results, globals=globals(), **kw):
+    """
+    Assume input is normal pivot-group format.  Generate data points such that
+    all pivots have data for all groups.
+    """
+    results, md = results_parser(sql_results, globals=globals, **kw)
+    all_groups = sets.Set()
+    for pivot, groups in results.items():
+        all_groups.update(groups.keys())
+    all_groups = list(all_groups)
+    all_groups.sort()
+    my_range = range(len(all_groups))
+    for pivot, groups in results.items():
+        for idx in my_range:
+            if all_groups[idx] not in groups:
+                # Set default val to 0.  First scan backward, then scan forward
+                # looking for an entry to fill in.
+                val = None
+                if idx != 0:
+                    for idx2 in all_groups[:idx-1][::-1]:
+                        if idx2 in groups:
+                            val = groups[idx2]
+                if val != None:
+                    for idx2 in all_groups[idx:]:
+                        if idx2 in groups:
+                            val = groups[idx2]
+                if val == None:
+                    val = 0
+                groups[all_groups[idx]] = val
+    return results, md
+

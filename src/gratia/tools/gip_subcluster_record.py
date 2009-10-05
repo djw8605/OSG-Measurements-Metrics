@@ -61,12 +61,13 @@ def main():
 
     # Initialize the Probe's configuration
     ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
-    has_gratia = True
-    try:
+    try:        
         Gratia.Initialize(ProbeConfig)
     except Exception, e:
         print e
-        has_gratia = False
+        raise
+
+    gratia_info = {}
 
     for cluster, cpu in cluster_info.items():
         print "* Cluster: ", cluster
@@ -98,6 +99,9 @@ def main():
                 " %s" % site
 
             # Send the subcluster to Gratia
+            Gratia.Config.setSiteName(site)
+            Gratia.Config.setMeterName('gip_subcluster:%s' % cluster)
+
             s = Subcluster.Subcluster()
             s.UniqueID(sc.glue['SubClusterUniqueID'])
             s.Name(sc.glue['SubClusterName'])
@@ -118,11 +122,37 @@ def main():
             except:
                 pass
             s.Timestamp(time.time())
-            if has_gratia:
-                print "Sending subcluster %s to Gratia: %s." % \
-                    (sc.glue['SubClusterUniqueID'], Gratia.Send(s))
+            site_list = gratia_info.setdefault((site, cluster), [])
+            site_list.append(s)
 
     conn.commit()
+
+    sendToGratia(gratia_info)
+
+def sendToGratia(gratia_info):
+    for cluster, subclusters in gratia_info.items():
+        pid = os.fork()
+        if pid == 0: # I am the child
+            sendToGratia_child(cluster, subclusters)
+            return
+        else: # I am parent
+            os.wait()
+
+def sendToGratia_child(cluster, sc_list):
+    site, cluster = cluster
+
+    ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
+    try:
+        Gratia.Initialize(ProbeConfig)
+    except Exception, e:
+        print e
+        return
+    Gratia.Config.setSiteName(site)
+    Gratia.Config.setMeterName('gip_subcluster:%s' % cluster)
+
+    for s in sc_list:
+        print "Sending subcluster of cluster %s in site %s to Gratia: %s."% \
+            (cluster, site, Gratia.Send(s))
         
 if __name__ == '__main__':
     main()

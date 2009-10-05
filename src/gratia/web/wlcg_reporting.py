@@ -140,8 +140,14 @@ class WLCGReporter(Authenticate):
                 report_time = val[0]
             site = key[0]
             if site not in wlcg_sites:
-                #print site
-                continue
+                #print >> sys.stderr, "Skipping site:", site
+                if site.startswith('BNL-ATLAS'):
+                    site = 'BNL_ATLAS_1'
+                elif site.startswith('USCMS-FNAL-WC1'):
+                    site = 'USCMS-FNAL-WC1-CE'
+                else:
+                    #print site
+                    continue
             info = tmp_norm.get(site, [])
             tmp_norm[site] = info
             info.append((val[2], val[3]))

@@ -261,22 +261,31 @@ def compactor(conn, cp):
 
 def do_site_info(cp):
     ce_entries = read_bdii(cp, "(objectClass=GlueCE)")
-    cluster_entries = read_bdii(cp, "(objectClass=GlueCluster)")
+    cluster_entries = read_bdii(cp, "(objectClass=GlueCluster)", multi=True)
     site_entries = read_bdii(cp, "(objectClass=GlueSite)")
     ce_map = {}
+    ce_map2 = {}
     for ce in ce_entries:
         try:
             cluster = ce.glue['ForeignKey'].split('=')[1]
         except:
             continue
         ce_map[ce.glue['CEHostingCluster']] = cluster
+        ce_map2[ce.glue['CEUniqueID']] = cluster
     cluster_map = {}
     for cluster in cluster_entries:
         try:
-            site = cluster.glue['ForeignKey'].split('=')[1]
+            site = None
+            for key in cluster.glue['ForeignKey']:
+                kind, name = key.split('=', 1)
+                if kind != 'GlueSiteUniqueID':
+                    continue
+                site = name
+            if not site:
+                continue
         except:
             continue
-        cluster_map[cluster.glue['ClusterName']] = site
+        cluster_map[cluster.glue['ClusterName'][0]] = site
     site_map = {}
     for site in site_entries:
         site_map[site.glue['SiteUniqueID']] = site.glue['SiteName']
@@ -288,6 +297,7 @@ def do_site_info(cp):
         if my_site:
             curs.execute(insert_site_info, {'site': my_site, 'cename': ce})
     conn.commit()
+    return ce_map2, cluster_map, site_map
 
 def do_se_info(cp):
     site_entries = read_bdii(cp, "(objectClass=GlueSite)")
@@ -296,6 +306,8 @@ def do_se_info(cp):
     curs = conn.cursor()
     today = datetime.date.today()
     time_now = time.time()
+
+    gratia_info = {}
     for entry in se_entries:
         try:
             site = join_FK(entry, site_entries, "SiteUniqueID")
@@ -313,8 +325,11 @@ def do_se_info(cp):
         curs.execute(insert_se_info, {'date': today, 'site': site_name, 'se': \
             se_name, 'total': total, 'free': free})
 
-        se = StorageElement.StorageElement()
         unique_id = entry.glue['SEUniqueID']
+        probeName = 'gip_storage:%s' % unique_id
+        Gratia.Config.setMeterName(probeName)
+        Gratia.Config.setSiteName(se_name)
+        se = StorageElement.StorageElement()
         space_unique_id = "%s:%s:%s" % (unique_id, "SE", se_name)
         se.UniqueID(space_unique_id)
         se.SE(se_name)
@@ -324,21 +339,54 @@ def do_se_info(cp):
         se.Implementation(entry.glue['SEImplementationName'])
         se.Version(entry.glue['SEImplementationVersion'])
         se.Status(entry.glue['SEStatus'])
-        print "Sending SE %s to Gratia: %s." % \
-            (unique_id, Gratia.Send(se))
+        se_list = gratia_info.setdefault((probeName, se_name), [])
+        se_list.append(se)
 
         ser = StorageElementRecord.StorageElementRecord()
         ser.UniqueID(space_unique_id)
         ser.MeasurementType("raw")
         ser.StorageType("disk")
         ser.Timestamp(time_now)
-        ser.TotalSpace(total)
-        ser.FreeSpace(free)
-        ser.UsedSpace(total-free)
-        print "Sending SE Record %s to Gratia: %s." % \
-            (unique_id, Gratia.Send(ser))
+        ser.TotalSpace(total*1000**3)
+        ser.FreeSpace(free*1000**3)
+        ser.UsedSpace((total-free)*1000**3)
+        se_list.append(ser)
 
     conn.commit()
+
+    sendToGratia(gratia_info)
+
+def sendToGratia(gratia_info):
+    for info, records in gratia_info.items():
+        pid = os.fork()
+        if pid == 0: # I am the child
+            sendToGratia_child(info, records)
+            return
+        else: # I am parent
+            try:
+                os.wait()
+            except:
+                pass
+
+def sendToGratia_child(info, record_list):
+    probeName, site = info
+
+    ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
+    try:
+        Gratia.Initialize(ProbeConfig)
+    except Exception, e:
+        print e
+        return
+    Gratia.Config.setSiteName(site)
+    Gratia.Config.setMeterName(probeName)
+
+    print Gratia.Config.get_SOAPHost()
+
+    for record in record_list:
+        print "Sending record for probe %s in site %s to Gratia: %s."% \
+            (probeName, site, Gratia.Send(record))
+
+    sys.exit(0)
 
 def do_ce_info(cp, ce_entries):
     now = datetime.datetime.now()
@@ -404,7 +452,12 @@ def main():
 
     ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
     Gratia.Initialize(ProbeConfig)
+    gratia_info = {}
 
+    ce_map, cluster_map, site_map = do_site_info(cp)
+    print ce_map
+    print cluster_map
+    print site_map
     sent_ce_entries = sets.Set()
     for entry in vo_entries:
         try:
@@ -437,7 +490,29 @@ def main():
         curs.execute(insert_vo_info, info)
 
         ce_unique_id = ce_entry.glue['CEUniqueID']
+
+        if ce_unique_id not in ce_map:
+            print "CE Unique ID %s is not in ce_map" % ce_unique_id
+            continue
+        if ce_map[ce_unique_id] not in cluster_map:
+            print "Cluster ID %s is not in cluster_map" % ce_map[ce_unique_id]
+            continue
+        if cluster_map[ce_map[ce_unique_id]] not in site_map:
+            print "Site ID %s is not in site_map" % cluster_map[ce_map[\
+                ce_unique_id]]
+            continue
+        probeName = 'gip_compute:%s' % ce_map[ce_unique_id]
+        siteName = site_map[cluster_map[ce_map[ce_unique_id]]]
+        Gratia.Config.setMeterName(probeName)
+        Gratia.Config.setSiteName(siteName)
+
+        ce_list = gratia_info.setdefault((probeName, siteName), [])
+
         if ce_unique_id not in sent_ce_entries:
+            probeName = 'gip_CE:%s' % ce_map[ce_unique_id]
+            siteName = site_map[cluster_map[ce_map[ce_unique_id]]]
+            Gratia.Config.setMeterName(probeName)
+            Gratia.Config.setSiteName(siteName)
             ce = ComputeElement.ComputeElement()
             ce.UniqueID(ce_unique_id)
             ce.CEName(ce_entry.glue['CEName'])
@@ -450,8 +525,7 @@ def main():
             ce.MaxTotalJobs(info['maxTotalJobs'])
             ce.AssignedJobSlots(info['assignedJobSlots'])
             ce.Status(ce_entry.glue['CEStateStatus'])
-            print "Sending CE %s to Gratia: %s." % \
-                (ce_unique_id, Gratia.Send(ce))
+            ce_list.append(ce)
             sent_ce_entries.add(ce_unique_id)
 
         cer = ComputeElementRecord.ComputeElementRecord()
@@ -467,14 +541,21 @@ def main():
         cer.RunningJobs(info['runningJobs'])
         cer.TotalJobs(info['totalJobs'])
         cer.WaitingJobs(info['waitingJobs'])
-        print "Sending CE Record %s:%s to Gratia: %s." % \
-            (ce_unique_id, entry.glue['VOViewLocalID'], Gratia.Send(cer))
+
+        ce_list.append(cer)
 
     conn.commit()
     compactor(conn, cp)
     do_ce_info(cp, ce_entries)
-    do_site_info(cp)
     do_se_info(cp)
+
+    ctr = 0
+    for ce, entries in gratia_info:
+        ctr += len(entries)
+    print "Number of unique clusters: %s" % len(gratia_info)
+    print "Number of unique records: %s" % ctr
+
+    sendToGratia(gratia_info)
 
 if __name__ == '__main__':
     main()

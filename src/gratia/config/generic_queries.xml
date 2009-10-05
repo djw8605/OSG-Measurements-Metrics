@@ -62,6 +62,7 @@
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
             <input name="includeFailed" kind="sql"> true </input>
+            <input name="includeSuccess" kind="sql"> true </input>
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="user" kind="sql"> .* </input>
@@ -69,7 +70,7 @@
             <input name="role" kind="sql"> .* </input>
             <input name="exclude-role" kind="sql"> NONE </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
-            <input name="exclude-facility" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
             <input name="exclude-user" kind="sql"> NONE </input>
         </inputs>
         <sql>
@@ -96,6 +97,7 @@
                 (NOT (VC.VOName regexp :exclude-role)) AND
                 (R.ResourceType = 'Batch' or R.ResourceType = '') AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
+                (:includeSuccess ='true' OR ApplicationExitCode!=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
                 R.WallDuration &lt; 1100000000 AND
@@ -126,6 +128,7 @@
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
             <input name="includeFailed" kind="sql"> true </input>
+            <input name="includeSuccess" kind="sql"> true </input>
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="user" kind="sql"> .* </input>
@@ -134,7 +137,7 @@
             <input name="exclude-role" kind="sql"> NONE </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-user" kind="sql"> NONE </input>
-            <input name="exclude-facility" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
         </inputs>
         <sql>
             SELECT
@@ -162,6 +165,7 @@
                 (R.ResourceType = 'Batch' or R.ResourceType = '') AND
                 R.CommonName regexp :user AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
+                (:includeSuccess ='true' OR ApplicationExitCode!=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (R.CommonName regexp :exclude-user)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
@@ -193,13 +197,14 @@
             <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-12*31*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
             <input name="includeFailed" kind="sql"> true </input>
+            <input name="includeSuccess" kind="sql"> true </input>
             <input name="facility" kind="sql"> .* </input>
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="role" kind="sql"> .* </input>
             <input name="exclude-role" kind="sql"> NONE </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
-            <input name="exclude-facility" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
             <input name="exclude-user" kind="sql"> NONE </input>
         </inputs>
         <sql>
@@ -227,6 +232,7 @@
                 (NOT (VC.VOName regexp :exclude-role)) AND
                 (R.ResourceType = 'Batch' or R.ResourceType = '') AND
                 (:includeFailed='true' OR ApplicationExitCode=0) AND
+                (:includeSuccess ='true' OR ApplicationExitCode!=0) AND
                 (NOT (S.SiteName regexp :exclude-facility)) AND
                 (NOT (R.CommonName regexp :exclude-user)) AND
                 (NOT (VO.VOName regexp :exclude-vo)) AND
@@ -261,7 +267,7 @@
             <input name="probe" kind="sql"> .* </input>
             <input name="vo" kind="sql"> .* </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
-            <input name="exclude-facility" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
         </inputs>
         <sql>
             SELECT
@@ -314,7 +320,7 @@
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
-        <input name="exclude-facility" kind="sql"> NONE </input> 
+        <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input> 
         <input name="user" kind="sql"> .* </input> 
       </inputs>
       <sql>
@@ -369,12 +375,13 @@
         <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
         <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
         <input name="includeFailed" kind="sql"> true </input>
+            <input name="includeSuccess" kind="sql"> true </input>
         <input name="facility" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="role" kind="sql"> .* </input>
          <input name="exclude-role" kind="sql"> NONE </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
-        <input name="exclude-facility" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
         <input name="probe" kind="sql"> .* </input>
       </inputs>
       <sql>
@@ -402,6 +409,7 @@
           VC.VOName regexp :role AND
           (NOT (VC.VOName regexp :exclude-role)) AND
           (:includeFailed='true' OR ApplicationExitCode=0) AND
+          (:includeSuccess ='true' OR ApplicationExitCode!=0) AND
           (NOT (S.SiteName regexp :exclude-facility)) AND
           (NOT (VO.VOName regexp :exclude-vo)) AND
           R.ProbeName regexp :probe AND
@@ -436,7 +444,7 @@
         <input name="vo" kind="sql"> .* </input>
         <input name="user" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
-        <input name="exclude-facility" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
         <input name="exclude-user" kind="sql"> NONE </input>
         <input name="probe" kind="sql"> .* </input>
       </inputs>
@@ -508,7 +516,7 @@
         <input name="protocol" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
-        <input name="exclude-facility" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
       </inputs>
       <sql>
         SELECT
@@ -560,7 +568,7 @@
         <input name="protocol" kind="sql"> .* </input>
         <input name="vo" kind="sql"> .* </input>
         <input name="exclude-vo" kind="sql"> unknown|other </input>
-        <input name="exclude-facility" kind="sql"> NONE </input>
+        <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
       </inputs>
       <sql>
        SELECT
