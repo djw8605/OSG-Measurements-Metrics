@@ -374,12 +374,12 @@ def sendToGratia_child(info, record_list):
     ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
     try:
         Gratia.Initialize(ProbeConfig)
-        Gratia.Handshake()
     except Exception, e:
         print e
         return
     Gratia.Config.setSiteName(site)
     Gratia.Config.setMeterName(probeName)
+    Gratia.Handshake()
 
     print Gratia.Config.get_SOAPHost()
 
