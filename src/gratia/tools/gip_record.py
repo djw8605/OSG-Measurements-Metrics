@@ -374,6 +374,7 @@ def sendToGratia_child(info, record_list):
     ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
     try:
         Gratia.Initialize(ProbeConfig)
+        Gratia.Handshake()
     except Exception, e:
         print e
         return
