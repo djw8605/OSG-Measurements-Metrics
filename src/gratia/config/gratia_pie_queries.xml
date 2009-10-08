@@ -229,6 +229,11 @@
         <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
         <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
       </sql>
+      <results>
+        <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
+        </inputs>
+      </results>
       <attribute name="pivot_name"> Facility </attribute>
       <attribute name="column_names"> Wall Time </attribute>
       <attribute name="column_units"> Hours </attribute>
@@ -244,6 +249,11 @@
         <filler name="column"> sum(R.CpuUserDuration + R.CpuSystemDuration)/3600 as CpuHours </filler>
         <filler name="having"> HAVING CpuHours >= :min_hours </filler>
       </sql>
+      <results>
+        <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
+        </inputs>
+      </results>
       <attribute name="pivot_name"> Facility </attribute>
       <attribute name="column_names"> Wall Time </attribute>
       <attribute name="column_units"> Hours </attribute>
@@ -281,6 +291,11 @@
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(R.Njobs) </filler>
       </sql>
+      <results>
+        <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
+        </inputs>
+      </results>
       <attribute name="pivot_name"> Facility </attribute>
       <attribute name="column_names"> Jobs </attribute>
       <attribute name="column_units"/>

@@ -72,6 +72,11 @@
             <filler name="column"> sum(Cores*WallDuration)/:span </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">oim_resource_filter</input>
+            </inputs>
+        </results>
         <attribute name="title"> Average Facility CPUs per Week </attribute>
         <attribute name="pivot_name"> Facility </attribute>
         <attribute name="column_names"> Average CPUs Occupied </attribute>
@@ -118,6 +123,7 @@
           <input name="pivots"> 0 </input>
           <input name="grouping"> 1 </input>
           <input name="results"> 2 </input>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -143,6 +149,7 @@
         </sql>
         <results module="gratia.database.metrics" function="site_size_parser">
             <inputs>
+                <input name="pivot_transform">oim_resource_filter</input>
                 <input name="pivots"> 0 </input>
                 <input name="grouping"> 1 </input>
                 <input name="results"> 2 </input>
@@ -170,6 +177,7 @@
         </sql>
         <results module="gratia.database.metrics" function="site_size_parser2">
             <inputs>
+                <input name="pivot_transform">oim_resource_filter</input>
                 <input name="pivots"> 0 </input>
                 <input name="grouping"> 1 </input>
                 <input name="results"> 2 </input>
@@ -197,6 +205,7 @@
         </sql>
         <results module="gratia.database.metrics" function="size_classifier">
             <inputs>
+                <input name="pivot_transform">oim_resource_filter</input>
                 <input name="pivots"> 0 </input>
                 <input name="grouping"> 1 </input>
                 <input name="results"> 2 </input>
@@ -224,6 +233,7 @@
         </sql>
         <results module="gratia.database.metrics" function="site_resource_classifier">
             <inputs>
+                <input name="pivot_transform">oim_resource_filter</input>
                 <input name="pivots"> 0 </input>
                 <input name="grouping"> 1 </input>
                 <input name="results"> 2 </input>
@@ -257,6 +267,7 @@
           <input name="pivots"> 0 </input>
           <input name="grouping"> 1 </input>
           <input name="results"> 2 </input>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -279,6 +290,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -295,6 +307,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -312,6 +325,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -328,6 +342,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -392,6 +407,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -411,6 +427,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -425,6 +442,11 @@
         <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(Cores*WallDuration) </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
+      <results>
+        <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
+        </inputs>
+      </results>
       <attribute name="pivot_name">Facility</attribute>
       <attribute name="title">CPU Efficiency Quality Map by Site for $vo</attribute>
       <attribute name="graph_type">QualityBarGraph</attribute>
@@ -445,7 +467,8 @@
       </sql>
       <results>
         <inputs>
-          <input name="grouping_transform">make_int</input>
+         <input name="pivot_transform">oim_resource_filter</input>
+         <input name="grouping_transform">make_int</input>
           <input name="results"> 2, 3 </input>
         </inputs>
       </results>
@@ -648,6 +671,7 @@
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -664,6 +688,7 @@
       <attribute name="graph_type">GratiaOpp</attribute>
       <results module="gratia.database.query_handler" function="opportunistic_usage_parser">
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -704,6 +729,7 @@
       <attribute name="graph_type">GratiaOpp</attribute>
       <results module="gratia.database.query_handler" function="opportunistic_usage_parser2">
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>

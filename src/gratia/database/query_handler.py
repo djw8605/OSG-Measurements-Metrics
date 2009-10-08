@@ -152,6 +152,63 @@ class GratiaOimVoFilter(OimVoFilter):
 
 gratia_oim_vo_filter = GratiaOimVoFilter()
 
+class OimResourceFilter(PeriodicUpdater):
+    """
+    Depending on the given keywords, take the Gratia SiteName and return the
+    OIM Resource, Resource Group, Site, or Facility.
+    """
+
+    def __init__(self):
+        self.url = "http://myosg.grid.iu.edu/rgsummary/xml?datasource=" \
+            "summary&all_resources=on&summary_attrs_showwlcg=on"
+        super(OimResourceFilter, self).__init__(self.url)
+
+    def parse(self, results):
+        dom = xml.dom.minidom.parseString(results)
+        rg_to_r = {}
+        wlcg_to_r = {}
+        r_to_rg = {}
+        r_to_wlcg = {}
+        for rg_dom in dom.getElementsByTagName("ResourceGroup"):
+            try:
+                rgname = str(rg_dom.getElementsByTagName("GroupName")[0].\
+                    firstChild.data)
+            except:
+                continue
+            for r_dom in rg_dom.getElementsByTagName("Resource")[::-1]:
+                try:
+                    rname = str(r_dom.getElementsByTagName("Name")[0].\
+                        firstChild.data)
+                    wlcgname = str(r_dom.getElementsByTagName("AccountingName")\
+                        [0].firstChild.data)
+                except:
+                    continue
+                rg_to_r[rgname] = rname
+                wlcg_to_r[wlcgname] = rname
+                r_to_rg[rname] = rgname
+                r_to_wlcg[rname] = wlcgname
+        return r_to_rg, r_to_wlcg, rg_to_r, wlcg_to_r
+
+    def __call__(self, *pivot, **kw):
+        pivot = pivot[0]
+        r_to_rg, r_to_wlcg, rg_to_r, wlcg_to_r = self.results()
+        preference = kw.get('group', 'resource')
+        if preference == 'resource':
+            if pivot in r_to_rg:
+                return pivot
+            return rg_to_r.get(pivot, pivot)
+        if preference == 'resource_group':
+            return r_to_rg.get(pivot, pivot)
+        if preference == 'wlcg':
+            if pivot in r_to_rg:
+                resource = pivot
+            else:
+                resource = rg_to_r.get(pivot, pivot)
+            return r_to_wlcg.get(resource, None)
+        return pivot
+
+oim_resource_filter = OimResourceFilter()
+
 class OimScienceFilter(PeriodicUpdater):
 
     def __init__(self):
