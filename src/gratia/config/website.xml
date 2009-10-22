@@ -41,6 +41,7 @@
     <mount location="/gratia/pie_graphs" content="image/png"> <instance name="gratia_pie_grapher" /> </mount>
     <mount location="/gratia/cumulative_graphs" content="image/png"> <instance name="gratia_cumulative_grapher" /> </mount>
     <mount location="/gratia/status_graphs" content="image/png"> <instance name="gratia_status_grapher" /> </mount>
+    <mount location="/gratia/events_graphs" content="image/png"> <instance name="gratia_events_grapher" /> </mount>
     <mount location="/gratia/gridscan_graphs" content="image/png"> <instance name="gridscan_grapher" /> </mount>
     <mount location="/gratia/gip_graphs" content="image/png"> <instance name="gip_grapher" /> </mount>
     <mount location="/gratia/rsv_graphs" content="image/png"> <instance name="rsv_grapher" /> </mount>

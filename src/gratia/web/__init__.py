@@ -551,8 +551,9 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.finish_image_maps(token)
 
     def fetch_gridscan(self, site):
-        doc = urllib2.urlopen('http://scan.grid.iu.edu/cgi-bin/show_results' \
-            '?grid=1')
+        return []
+        #doc = urllib2.urlopen('http://scan.grid.iu.edu/cgi-bin/show_results' \
+        #    '?grid=1')
         in_row = False
         in_font = False
         link_re = re.compile('HREF="(.*?)"')

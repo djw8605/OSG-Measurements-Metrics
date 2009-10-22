@@ -119,6 +119,7 @@ def upload_data(times, rsv, conn, interval, endTimeFunc):
             endtime)
         print "insert data"
         for site in sites:
+            print site, sites[site]
             insert_data(curs, name=site, resource_type='site',
                 time_length=interval, starttime=convert_to_datetime(starttime),
                 endtime=convert_to_datetime(endtime), **sites[site])

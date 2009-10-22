@@ -1,0 +1,114 @@
+<graphtool-config>
+
+  <import module="gratia.database.query_handler">*</import>
+  <import module="gratia.database.metrics">*</import>
+
+  <import module="graphtool.database.queries">SqlQueries</import>
+  <import module="graphtool.database.query_handler">*</import>
+  <import module="time"/>
+
+  <import file="$DBPARAM_LOCATION" />
+
+  <class type="SqlQueries" name="GenericEventsQueries">
+
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <aggregate>
+      <connection> gratia-status </connection>
+    </aggregate>
+
+    <query name="generic_events">
+        <inputs>
+            <input name="span" type="int" kind="sql">3600</input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-48*3600</input>
+            <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql"> .* </input>
+            <input name="probe" kind="sql"> .* </input>
+            <input name="user" kind="sql"> .* </input>
+            <input name="vo" kind="sql"> .* </input>
+            <input name="exclude-user" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
+        </inputs>
+        <sql>
+            SELECT
+                COALESCE(JUR.GlobalUsername, JUR.LocalUserId) as id,
+                truncate( unix_timestamp(JURM.CreateTime) / :span, 0 ) * :span as time,
+                count(*)
+            FROM
+                JobUsageRecord JUR
+            JOIN
+                JobUsageRecord_Meta JURM on JURM.dbid=JUR.dbid
+            JOIN
+                Probe P on JURM.ProbeName = P.probename
+            JOIN
+                Site S on S.siteid = P.siteid
+            WHERE
+                JURM.CreateTime &gt;= :starttime AND
+                JURM.CreateTime &lt; :endtime AND
+                S.SiteName regexp :facility AND
+                JUR.ResourceType = 'Events' AND
+                JUR.GlobalUsername regexp :user AND
+                (NOT (S.SiteName regexp :exclude-facility)) AND
+                (NOT (JUR.CommonName regexp :exclude-user)) AND
+                JURM.ProbeName regexp :probe AND
+                JUR.Status=<slot name="event"/>
+            GROUP BY
+                id,
+                time
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+        <attribute name="pivot_name">User</attribute>
+        <attribute name="title">Number of Jobs Started By User</attribute>
+        <attribute name="column_names">Started</attribute>
+        <attribute name="column_units">Jobs</attribute>
+    </query>
+
+  </class>
+
+  <class type="SqlQueries" name="GratiaEventsQueries">
+
+    <attribute name="display_name"> Gratia Events Graphs </attribute>
+    <attribute name="connection_manager"> GratiaConnMan </attribute>
+
+    <aggregate>
+      <connection> gratia-status </connection>
+    </aggregate>
+
+    <query name="start_events" base="GenericEventsQueries.generic_events">
+      <sql>
+        <filler name="event">"started"</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Number of Jobs Started by User</attribute>
+      <attribute name="column_names">Started</attribute>
+    </query>
+
+    <query name="submitted_events" base="GenericEventsQueries.generic_events">
+      <sql>
+        <filler name="event">"queued"</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Number of Jobs Submitted by User</attribute>
+      <attribute name="column_names">Submitted</attribute>
+    </query>
+
+    <query name="finished_events" base="GenericEventsQueries.generic_events">
+      <sql>
+        <filler name="event">"Completed"</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Number of Jobs Finished by User</attribute>
+      <attribute name="column_names">Finished</attribute>
+    </query>
+
+  </class>
+
+</graphtool-config>

@@ -7,6 +7,7 @@
   <import module="gratia.config" data_file="gratia_site_queries.xml" />
   <import module="gratia.config" data_file="gratia_data_queries.xml" />
   <import module="gratia.config" data_file="gratia_status_queries.xml" />
+  <import module="gratia.config" data_file="gratia_events_queries.xml" />
   <import module="gratia.config" data_file="gratia_user_queries.xml" />
   <import module="gratia.config" data_file="gratia_vo_queries.xml" />
   <import module="gratia.config" data_file="gridscan_queries.xml" />
@@ -21,6 +22,7 @@
   <class type="XmlGenerator" name="query_xml">
     <attribute name="timeout">600</attribute>
     <queryobj> GratiaStatusQueries </queryobj>
+    <queryobj> GratiaEventsQueries </queryobj>
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>
@@ -57,6 +59,7 @@
 
   <class type="CsvGenerator" name="query_csv">
     <queryobj> GratiaStatusQueries </queryobj>
+    <queryobj> GratiaEventsQueries </queryobj>
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>

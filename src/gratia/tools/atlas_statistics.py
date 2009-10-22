@@ -43,7 +43,7 @@ def dostats(now):
     #    end.strftime('%Y-%m-%d'))
     now = now.strftime('%Y-%m-%d %H:%M')
     end = end.strftime('%Y-%m-%d %H:%M')
-    info = {'name': 'CERN', 'fromDate': now, 'toDate': end}
+    info = {'name': '', 'fromDate': now, 'toDate': end, 'activity': '0'}
     info = urllib.urlencode(info)
     url = dashboard_t0_url + '?' + info
     amt1 = parse_and_print(url, to='BNL')

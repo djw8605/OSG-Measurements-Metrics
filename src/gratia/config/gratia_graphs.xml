@@ -8,6 +8,7 @@
   <import module="gratia.config" data_file="gratia_site_queries.xml"/>
   <import module="gratia.config" data_file="gratia_cumulative_queries.xml" />
   <import module="gratia.config" data_file="gratia_status_queries.xml" />
+  <import module="gratia.config" data_file="gratia_events_queries.xml" />
   <import module="gratia.config" data_file="gratia_user_queries.xml"/>
   <import module="gratia.config" data_file="gratia_vo_queries.xml"/>
   <import module="gratia.config" data_file="gridscan_queries.xml"/>
@@ -81,6 +82,11 @@
   <class type="Grapher" name="gratia_status_grapher">
     <attribute name="display_name"> Gratia Status Graphs </attribute>
     <queryobj> GratiaStatusQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_events_grapher">
+    <attribute name="display_name"> Gratia Events Graphs </attribute>
+    <queryobj> GratiaEventsQueries </queryobj>
   </class>
 
   <class type="Grapher" name="rsv_grapher">

@@ -13,6 +13,8 @@ vo_hours = 'http://t2.unl.edu/gratia/xml/osg_vo_hours'
 vo_count = 'http://t2.unl.edu/gratia/xml/osg_vo_count'
 
 cms_transfers = 'http://t2.unl.edu/phedex/xml/quantity_cumulative'
+datasvc_cms_transfers_prod = 'http://cmsweb.cern.ch/phedex/datasvc/json/prod/transferhistory'
+datasvc_cms_transfers_debug = 'http://cmsweb.cern.ch/phedex/datasvc/json/debug/transferhistory'
 
 CMS_owned = ['USCMS-FNAL', 'GLOW', 'Purdue', 'CIT_CMS_T2', 'Nebraska', 'MIT_CMS', 'UCSDT2', 'UFlorida']
 ATLAS_owned = ['BNL_ATLAS_1', 'MWT2_UC', 'AGLT2', 'WT2', 'MWT2_IU', 'BU_ATLAS_Tier2', 'UTA_SWT2', 'OU_OCHEP_SWT2', 'SWT2_CPB', 'IU_OSG', 'UC_ATLAS_MWT2', 'OU_OSCER_ATLAS', 'UTA_DPCC']
@@ -68,6 +70,48 @@ def do_cms_stats(now):
     to_total = sum([to_data[i][last_time] for i in to_data])
     print "\tFrom US sites: %.3f PB" % (from_total/1000)
     print "\tTo US sites: %.3f PB" % (to_total/1000)
+
+def sum_phedex_transferhistory_pb(results):
+    results = eval(results, {'null': None}, {})
+    results = results['phedex']
+    total = 0
+    for link_data in results['link']:
+        for data in link_data['transfer']:
+            total += int(data['done_bytes'])
+    return total / 1000.**5
+
+def do_cms_stats(now):
+    next_year = now.year + int(now.month == 12)
+    next_month = (now.month % 12) + 1
+    end = datetime.datetime(next_year, next_month, 1)
+    info_dict = {'from': 'T%_US_%', 'binwidth': '86400'}
+    info_dict['starttime'] = now.strftime('%Y-%m-%d %H:%M:%S')
+    info_dict['endtime'] = end.strftime('%Y-%m-%d %H:%M:%S')
+    info = urllib.urlencode(info_dict)
+    # From US sites; prod
+    url = datasvc_cms_transfers_prod + '?' + info
+    results = urllib2.urlopen(url).read()
+    from_total = sum_phedex_transferhistory_pb(results)
+    # debug
+    url = datasvc_cms_transfers_debug + '?' + info
+    results = urllib2.urlopen(url).read()
+    from_total += sum_phedex_transferhistory_pb(results)
+
+    # To US sites; prod
+    info_dict['to'] = 'T%_US_%'
+    del info_dict['from']
+    info = urllib.urlencode(info_dict)
+    url = datasvc_cms_transfers_prod + '?' + info
+    results = urllib2.urlopen(url).read()
+    to_total = sum_phedex_transferhistory_pb(results)
+    # debug
+    url = datasvc_cms_transfers_debug + '?' + info
+    results = urllib2.urlopen(url).read()
+    to_total = sum_phedex_transferhistory_pb(results)
+
+    print "\tFrom US sites: %.3f PB" % from_total
+    print "\tTo US sites: %.3f PB" % to_total
+
 
 def dojobstats(now):
     next_year = now.year + int(now.month == 12)

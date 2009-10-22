@@ -179,13 +179,16 @@ class OimResourceFilter(PeriodicUpdater):
                 try:
                     rname = str(r_dom.getElementsByTagName("Name")[0].\
                         firstChild.data)
+                except:
+                    continue
+                rg_to_r[rgname] = rname
+                r_to_rg[rname] = rgname
+                try:
                     wlcgname = str(r_dom.getElementsByTagName("AccountingName")\
                         [0].firstChild.data)
                 except:
                     continue
-                rg_to_r[rgname] = rname
                 wlcg_to_r[wlcgname] = rname
-                r_to_rg[rname] = rgname
                 r_to_wlcg[rname] = wlcgname
         return r_to_rg, r_to_wlcg, rg_to_r, wlcg_to_r
 
@@ -198,6 +201,7 @@ class OimResourceFilter(PeriodicUpdater):
                 return pivot
             return rg_to_r.get(pivot, pivot)
         if preference == 'resource_group':
+            print r_to_rg
             return r_to_rg.get(pivot, pivot)
         if preference == 'wlcg':
             if pivot in r_to_rg:
