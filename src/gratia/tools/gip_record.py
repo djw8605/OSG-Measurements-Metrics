@@ -380,7 +380,10 @@ def sendToGratia_child(info, record_list):
     Gratia.Config.setSiteName(site)
     Gratia.Config.setMeterName(probeName)
     Gratia.Handshake()
-    Gratia.SearchOutstandingRecords()
+    try:
+        Gratia.SearchOutstandingRecord()
+    except:
+        print Gratia.__file__
     Gratia.Reprocess()
 
     print Gratia.Config.get_SOAPHost()
