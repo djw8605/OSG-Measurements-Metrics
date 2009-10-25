@@ -14,6 +14,29 @@
       <attribute name="Port"> 3320 </attribute>
     </connection>
 
+    <connection name="gratia-transfer">
+      <attribute name="Interface"> MySQL </attribute>
+      <attribute name="Database"> gratia </attribute>
+      <attribute name="Host"> gratia.example.com </attribute>
+      <attribute name="AuthDBUsername"> ****** </attribute>
+      <attribute name="AuthDBPassword"> ****** </attribute>
+      <attribute name="Port"> 3320 </attribute>
+    </connection>
+
+  </class>
+
+  <class name="RSVConnMan" type="ConnectionManager">
+    <attribute name="default"> gratia </attribute>
+
+    <connection name="gratia">
+      <attribute name="Interface"> MySQL </attribute>
+      <attribute name="Database"> gratia </attribute>
+      <attribute name="Host"> gratia.example.com </attribute>
+      <attribute name="AuthDBUsername"> ****** </attribute>
+      <attribute name="AuthDBPassword"> ****** </attribute>
+      <attribute name="Port"> 3320 </attribute>
+    </connection>
+
   </class>
 
 </graphtool-config>
