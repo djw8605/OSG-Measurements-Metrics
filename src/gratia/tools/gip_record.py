@@ -325,6 +325,9 @@ def do_se_info(cp):
         curs.execute(insert_se_info, {'date': today, 'site': site_name, 'se': \
             se_name, 'total': total, 'free': free})
 
+        if total == 0 and free == 0:
+            continue
+
         unique_id = entry.glue['SEUniqueID']
         probeName = 'gip_storage:%s' % unique_id
         Gratia.Config.setMeterName(probeName)

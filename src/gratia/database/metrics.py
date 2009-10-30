@@ -132,7 +132,7 @@ def site_size_parser(sql_results, globals=globals(), **kw):
     Take in CPU hours information (# of wall hours per timespan per site)
     and convert it into the "size" of the site as a function of time.
     """
-    print "in site size parser"
+    #print "in site size parser"
     results, md = results_parser(sql_results, globals=globals, **kw)
     span = kw['span']
     hours = span / 3600.
@@ -142,7 +142,7 @@ def site_size_parser(sql_results, globals=globals(), **kw):
     for site in sites:
         intervals = results[site].keys()
         all_intervals.union_update(intervals)
-    print len(all_intervals)
+    #print len(all_intervals)
     all_intervals = list(all_intervals)
     all_intervals.sort()
     for site in sites:
@@ -219,7 +219,7 @@ def cms_filter(sql_results, globals=globals(), **kw):
             return None
         elif pivot not in feds:
             return pivot + ' (T3)'
-        print pivot, feds[pivot]
+        #print pivot, feds[pivot]
         if feds[pivot].startswith('T1'):
             return pivot + " (T1)"
         if feds[pivot].startswith('T2'):

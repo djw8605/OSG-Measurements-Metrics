@@ -72,7 +72,7 @@ def find_missing_months(s, all_summaries):
             missing.append(cur)
         next_month = (cur.month % 12) + 1
         next_year = cur.year + int(cur.month==12)
-        print next_month, next_year
+        #print next_month, next_year
         cur = datetime.datetime(next_year, next_month, 1, 0, 0, 0)
     try:
         last_missing = max(missing)
@@ -117,7 +117,7 @@ def upload_data(times, rsv, conn, interval, endTimeFunc):
         print "query sites"
         sites = query_rsv_site(rsv, 'wlcg_site_reliability', starttime,
             endtime)
-        print "insert data"
+        print "insert data for %s to %s" % (starttime, endtime)
         for site in sites:
             print site, sites[site]
             insert_data(curs, name=site, resource_type='site',
@@ -137,6 +137,11 @@ def upload_hours(times, rsv, conn):
 def upload_days(times, rsv, conn):
     def endTimeFunc(starttime):
         return starttime + datetime.timedelta(1, 0)
+    today = datetime.datetime.now()
+    today = datetime.datetime(today.year, today.month, today.day)
+    today -= datetime.timedelta(1, 0)
+    times.insert(0, today)
+    print times
     upload_data(times, rsv, conn, 86400, endTimeFunc)
 
 def upload_weeks(times, rsv, conn):

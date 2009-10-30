@@ -201,7 +201,7 @@ class OimResourceFilter(PeriodicUpdater):
                 return pivot
             return rg_to_r.get(pivot, pivot)
         if preference == 'resource_group':
-            print r_to_rg
+            #print r_to_rg
             return r_to_rg.get(pivot, pivot)
         if preference == 'wlcg':
             if pivot in r_to_rg:
@@ -337,8 +337,8 @@ class ScienceFilter(object):
             result.remove('Community Grid')
         elif 'Generic' in pivot[0] and 'Community Grid' in result:
             result.remove('Community Grid')
-        if 'Community Grid' in result:
-            print pivot, result
+        #if 'Community Grid' in result:
+        #    print pivot, result
         if result:
             result = result.pop()
             if 'Community Grid' in result:
@@ -346,7 +346,7 @@ class ScienceFilter(object):
             return self.filter(result, exclude_re)
         if 'Generic' in pivot[0]:
             return 'DN not recorded (%s)' % pivot[-1]
-        print pivot
+        #print pivot
         return "Uncategorized (%s)" % pivot[-1]
 
 oim_vo_filter = OimVoFilter()
@@ -532,7 +532,7 @@ def set_service_summary(serviceData, starttime, endtime, status):
     try:
         check_overlap(serviceData)
     except:
-        print serviceData, starttime, endtime, status
+        #print serviceData, starttime, endtime, status
         raise
 
 def check_overlap(serviceData):
@@ -701,8 +701,8 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
                     if metricName != 'Maintenance':
                         endtime = min(endtime, starttime + datetime.timedelta(0,
                             86400))
-                    else:
-                        print serviceName, starttime, endtime - starttime, 
+                    #else:
+                    #    print serviceName, starttime, endtime - starttime, 
                     max_j_endtime = endtime
 
                     # Make sure that our start and end times are within the
@@ -723,7 +723,7 @@ def init_service_summary(serviceSummary, serviceData, serviceNames,metricNames,
     #print "Anding results.", t1+time.time()
 
 def wlcg_availability(d, globals=globals(), **kw):
-    print "Starting WLCG avail summary."
+    #print "Starting WLCG avail summary."
     kw['kind'] = 'pivot-group'
     startTime = convert_to_datetime(kw['starttime'])
     endTime = convert_to_datetime(kw['endtime'])
@@ -770,7 +770,7 @@ def wlcg_availability(d, globals=globals(), **kw):
         serviceSummary)
     #print serviceSummary["Purdue-Steele"]
     if "Maintenance" in metricNames:
-        print "Filter maintenance times."
+        #print "Filter maintenance times."
         filter_summaries("MAINTENANCE", serviceNames, metricNames, serviceData,
             serviceSummary)
     return build_availability(serviceSummary), kw
@@ -789,10 +789,18 @@ def sam_site_summary(d, globals=globals(), **kw):
     else:
         service_to_resource, _ = globals['RSVQueries'].service_to_resource()
 
+    filtered_service_to_resource = {}
+    for service, resource in service_to_resource.items():
+        if resource.find("UCSD") >= 0:
+            print service, resource
+        if service[0] == 'GridFtp':
+            continue
+        filtered_service_to_resource[service] = resource
+    service_to_resource = filtered_service_to_resource
     # initialize data
-    print "Initializing data."
+    #print "Initializing data."
     init_data(d, serviceData, serviceNames, metricNames, startTime, endTime)
-    print "Done with initial data."
+    #print "Done with initial data."
 
     # Build a map from service_type->parent_resource->(child resource list)
     typeParentChildMap = {}
@@ -840,8 +848,8 @@ def sam_site_summary(d, globals=globals(), **kw):
     allSites = sets.Set()
 
     for service, serviceData in serviceTypeData.items():
-        print "Starting evaluation of service %s; %i entries." % (service,
-            len(serviceData))
+        #print "Starting evaluation of service %s; %i entries." % (service,
+        #    len(serviceData))
         serviceSummary = {}
         
         # add "Last Data" here 
@@ -918,7 +926,7 @@ def display_summary(summary):
     keys.sort()
     for key in keys:
         val = summary[key]
-        print key, val[0], val[1]
+        #print key, val[0], val[1]
 
 def sam_site_availability(*args, **kw):
     kw['kind'] = 'pivot-group'
