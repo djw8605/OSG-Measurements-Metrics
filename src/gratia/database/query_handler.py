@@ -370,7 +370,7 @@ def critical_tests(globals):
 def displayName(*args, **kw):
     dn = args[0]
     parts = dn.split('/')
-    display = 'Unknown'
+    display = dn
     if dn.find('Generic') >= 0 and dn.find('user') >= 0:
         return dn
     cns = []

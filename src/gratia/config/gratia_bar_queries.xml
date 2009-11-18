@@ -1078,12 +1078,12 @@
 
     <query name="exitcode_bar" base="GratiaGenericQuery.master_summary">
         <inputs>
-            <input name="includeSuccessful" type="int" kind="sql">1</input>
+            <!--<input name="includeSuccessful" type="int" kind="sql">1</input>-->
         </inputs>
         <sql>
             <filler name="group"> R.ApplicationExitCode </filler>
             <filler name="column"> sum(Njobs) </filler>
-            <filler name="where"> AND CASE WHEN :includeSuccessful!=1 THEN R.ApplicationExitCode!=0 ELSE true END </filler>
+            <!--<filler name="where"> AND CASE WHEN :includeSuccessful!=1 THEN R.ApplicationExitCode!=0 ELSE true END </filler>-->
         </sql>
         <results module="graphtool.database.query_handler" function="results_parser">
             <inputs>
