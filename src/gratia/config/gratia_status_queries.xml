@@ -186,11 +186,10 @@
       <attribute name="column_names">Waiting Jobs</attribute>
     </query>
 
-<!--
-    <query name="gip_queue_waiting" base="GipGeneric.non_host_ts">
+    <query name="status_queue_waiting" base="GratiaStatusGeneric.ts_hourly">
       <sql>
-        <filler name="column">waitingJobs</filler>
-        <filler name="group">queue</filler>
+        <filler name="column">WaitingJobs</filler>
+        <filler name="group">MSS.CEName</filler>
       </sql>
       <results/>
       <attribute name="pivot_name">Queue</attribute>
@@ -198,7 +197,19 @@
       <attribute name="column_names">Waiting Jobs</attribute>
     </query>
 
-    <query name="gip_facility_waiting" base="GipGeneric.host_ts">
+    <query name="status_queue_waiting_daily" base="GratiaStatusGeneric.ts_daily">
+      <sql>
+        <filler name="column">WaitingJobs</filler>
+        <filler name="group">MSS.CEName</filler>
+      </sql>
+      <results/>
+      <attribute name="pivot_name">Queue</attribute>
+      <attribute name="title">Count of Waiting Jobs by Queue</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+    </query>
+
+<!--
+    <query name="status_facility_waiting" base="GipGeneric.host_ts">
       <sql>
         <filler name="column">waitingJobs</filler>
       </sql>
@@ -309,6 +320,16 @@
       <attribute name="column_units">TB</attribute>
     </query>
 
+    <query name="status_se_bar" base="GratiaStatusGeneric.se_rt">
+      <sql>
+        <filler name="column">TotalSpace/pow(1000, 4)</filler>
+      </sql>
+      <attribute name="title">OSG Total Space By Facility</attribute>
+      <attribute name="column_names">Total Space</attribute>
+      <attribute name="column_units">TB</attribute>
+      <attribute name="graph_type"> GratiaHorizontalBar </attribute>
+    </query>
+
     <query name="status_se_pie" base="GratiaStatusGeneric.se_rt">
       <sql>
           <filler name="column">TotalSpace/pow(1000, 4)</filler>
@@ -327,6 +348,16 @@
       <attribute name="column_units">TB</attribute>
     </query>
 
+    <query name="status_se_free_bar" base="GratiaStatusGeneric.se_rt">
+      <sql>
+        <filler name="column">FreeSpace/pow(1000, 4)</filler>
+      </sql>
+      <attribute name="title">OSG Free Space By Facility</attribute>
+      <attribute name="column_names">Free Space</attribute>
+      <attribute name="column_units">TB</attribute>
+      <attribute name="graph_type"> GratiaHorizontalBar </attribute>
+    </query>
+
     <query name="status_se_pie_free" base="GratiaStatusGeneric.se_rt">
       <sql>
           <filler name="column">FreeSpace/pow(1000, 4)</filler>
@@ -343,6 +374,16 @@
       <attribute name="title">OSG Used Space By Facility</attribute>
       <attribute name="column_names">Used Space</attribute>
       <attribute name="column_units">TB</attribute>
+    </query>
+
+    <query name="status_se_used_bar" base="GratiaStatusGeneric.se_rt">
+      <sql>
+        <filler name="column">UsedSpace/pow(1000, 4)</filler>
+      </sql>
+      <attribute name="title">OSG Used Space By Facility</attribute>
+      <attribute name="column_names">Used Space</attribute>
+      <attribute name="column_units">TB</attribute>
+      <attribute name="graph_type"> GratiaHorizontalBar </attribute>
     </query>
 
     <query name="status_se_pie_used" base="GratiaStatusGeneric.se_rt">

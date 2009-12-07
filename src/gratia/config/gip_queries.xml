@@ -131,7 +131,7 @@
     <query name="gip_vo_waiting_pie" base="GipGeneric.non_host_rt">
       <sql>
         <filler name="column">runningJobs</filler>
-        <filler name="group">queue</filler>
+        <filler name="group">vo</filler>
       </sql>
       <results/>
       <attribute name="title"> Count of Waiting Jobs by VO</attribute>

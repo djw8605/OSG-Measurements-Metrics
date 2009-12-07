@@ -8,7 +8,7 @@
     <connection name="gratia">
       <attribute name="Interface"> MySQL </attribute>
       <attribute name="Database"> gratia </attribute>
-      <attribute name="Host"> gratia-db01.fnal.gov </attribute>
+      <attribute name="Host"> gratia09.fnal.gov </attribute>
       <attribute name="AuthDBUsername"> ****** </attribute>
       <attribute name="AuthDBPassword"> ****** </attribute>
       <attribute name="Port"> 3320 </attribute>
@@ -17,7 +17,7 @@
     <connection name="gratia-itb">
       <attribute name="Interface"> MySQL </attribute>
       <attribute name="Database"> gratia_itb </attribute>
-      <attribute name="Host"> gratia-db01.fnal.gov </attribute>
+      <attribute name="Host"> gratia07.fnal.gov </attribute>
       <attribute name="AuthDBUsername"> ****** </attribute>
       <attribute name="AuthDBPassword"> ****** </attribute>
       <attribute name="Port"> 3320 </attribute>

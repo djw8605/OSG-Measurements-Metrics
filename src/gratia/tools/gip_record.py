@@ -4,12 +4,17 @@ import os
 import sys
 import sets
 import time
+import signal
+import logging
 import datetime
 
 import MySQLdb
 
 from gratia.gip.ldap import query_bdii, read_ldap, config_file, read_bdii
 from gratia.gip.common import cp_get, getGipDBConn, findCE, join_FK
+
+logging.basicConfig(filename="/var/log/gip_record.log")
+log = logging.getLogger()
 
 # Bootstrap our python configuration.  This should allow us to discover the
 # configurations in the case where our environment wasn't really configured
@@ -312,7 +317,7 @@ def do_se_info(cp):
         try:
             site = join_FK(entry, site_entries, "SiteUniqueID")
         except ValueError, ve:
-            print "Unable to match SE:\n%s" % entry
+            log.warn("Unable to match SE:\n%s" % entry)
             continue
         try:
             site_name = site.glue['SiteName']
@@ -320,7 +325,7 @@ def do_se_info(cp):
             free = int(entry.glue['SESizeFree'])
             se_name = entry.glue['SEName']
         except:
-            print "Unable to parse attributes:\n%s" % entry
+            log.warn("Unable to parse attributes:\n%s" % entry)
             continue
         curs.execute(insert_se_info, {'date': today, 'site': site_name, 'se': \
             se_name, 'total': total, 'free': free})
@@ -363,11 +368,15 @@ def sendToGratia(gratia_info):
     for info, records in gratia_info.items():
         pid = os.fork()
         if pid == 0: # I am the child
-            sendToGratia_child(info, records)
-            return
+            signal.alarm(5*60)
+            try:
+                sendToGratia_child(info, records)
+            except Exception, e:
+                log.exception(e)
+                os._exit(0)
         else: # I am parent
             try:
-                os.wait()
+                os.waitpid(pid)
             except:
                 pass
 
@@ -378,24 +387,24 @@ def sendToGratia_child(info, record_list):
     try:
         Gratia.Initialize(ProbeConfig)
     except Exception, e:
-        print e
+        log.exception(e)
         return
     Gratia.Config.setSiteName(site)
     Gratia.Config.setMeterName(probeName)
     Gratia.Handshake()
     try:
         Gratia.SearchOutstandingRecord()
-    except:
-        print Gratia.__file__
+    except Exception, e:
+        log.exception(e)
     Gratia.Reprocess()
 
-    print Gratia.Config.get_SOAPHost()
+    log.info("Gratia collector to use: %s" % Gratia.Config.get_SOAPHost())
 
     for record in record_list:
-        print "Sending record for probe %s in site %s to Gratia: %s."% \
-            (probeName, site, Gratia.Send(record))
+        log.info("Sending record for probe %s in site %s to Gratia: %s."% \
+            (probeName, site, Gratia.Send(record)))
 
-    sys.exit(0)
+    os._exit(0)
 
 def do_ce_info(cp, ce_entries):
     now = datetime.datetime.now()
@@ -420,9 +429,11 @@ def do_ce_info(cp, ce_entries):
         total = running+waiting
         lrmsType = entry.glue["CEInfoLRMSType"]
         if 'CEInfoLRMSVersion' not in entry.glue:
-            print >> sys.stderr, "Incomplete GIP info for %s" % entry
+            log.warn("Incomplete GIP info for %s" % entry)
             continue
         lrmsVersion = entry.glue["CEInfoLRMSVersion"]
+        if len(lrmsVersion) > 32:
+            lrmsVersion=lrmsVersion[:32]
         if cluster not in info:
             info[cluster] = {'lrmsType'    : lrmsType,
                              'lrmsVersion' : lrmsVersion,
@@ -464,9 +475,6 @@ def main():
     gratia_info = {}
 
     ce_map, cluster_map, site_map = do_site_info(cp)
-    print ce_map
-    print cluster_map
-    print site_map
     sent_ce_entries = sets.Set()
     for entry in vo_entries:
         try:
@@ -474,6 +482,7 @@ def main():
         except Exception, e:
             #print e
             #print entry
+            log.error(e)
             continue
         try:
              info = {"time"        : now,
@@ -493,22 +502,23 @@ def main():
                 "hostName"         : ce_entry.glue["CEInfoHostName"],
                 "queue"            : ce_entry.glue["CEName"]
                }
-        except KeyError:
-            print ce_entry
+        except KeyError, ke:
+            log.exception(ke)
+            log.warn(ce_entry)
             continue
         curs.execute(insert_vo_info, info)
 
         ce_unique_id = ce_entry.glue['CEUniqueID']
 
         if ce_unique_id not in ce_map:
-            print "CE Unique ID %s is not in ce_map" % ce_unique_id
+            log.warn("CE Unique ID %s is not in ce_map" % ce_unique_id)
             continue
         if ce_map[ce_unique_id] not in cluster_map:
-            print "Cluster ID %s is not in cluster_map" % ce_map[ce_unique_id]
+            log.warn("Cluster ID %s is not in cluster_map" % ce_map[ce_unique_id])
             continue
         if cluster_map[ce_map[ce_unique_id]] not in site_map:
-            print "Site ID %s is not in site_map" % cluster_map[ce_map[\
-                ce_unique_id]]
+            log.warn("Site ID %s is not in site_map" % cluster_map[ce_map[\
+                ce_unique_id]])
             continue
         probeName = 'gip_compute:%s' % ce_map[ce_unique_id]
         siteName = site_map[cluster_map[ce_map[ce_unique_id]]]
@@ -518,8 +528,6 @@ def main():
         ce_list = gratia_info.setdefault((probeName, siteName), [])
 
         if ce_unique_id not in sent_ce_entries:
-            probeName = 'gip_CE:%s' % ce_map[ce_unique_id]
-            siteName = site_map[cluster_map[ce_map[ce_unique_id]]]
             Gratia.Config.setMeterName(probeName)
             Gratia.Config.setSiteName(siteName)
             ce = ComputeElement.ComputeElement()
@@ -546,7 +554,7 @@ def main():
                     int(info['waitingJobs']) == 0:
                 continue
         except:
-            continue
+            raise
         cer.RunningJobs(info['runningJobs'])
         cer.TotalJobs(info['totalJobs'])
         cer.WaitingJobs(info['waitingJobs'])
@@ -561,11 +569,12 @@ def main():
     ctr = 0
     for ce, entries in gratia_info:
         ctr += len(entries)
-    print "Number of unique clusters: %s" % len(gratia_info)
-    print "Number of unique records: %s" % ctr
+    log.info("Number of unique clusters: %s" % len(gratia_info))
+    log.info("Number of unique records: %s" % ctr)
 
     sendToGratia(gratia_info)
 
 if __name__ == '__main__':
+    signal.alarm(10*60)
     main()
 
