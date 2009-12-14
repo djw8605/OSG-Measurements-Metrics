@@ -2,13 +2,15 @@
 
 import os
 import sys
+import time
 import signal
 import logging
+import datetime
 
 logging.basicConfig(filename="/var/log/cms_storage_record.log")
 log = logging.getLogger()
 
-from gratia.gip.ldap import read_bdii
+from gratia.gip.ldap import read_bdii, config_file
 from gratia.gip.common import join_FK
 
 paths = ['/opt/vdt/gratia/probe/common', '/opt/vdt/gratia/probe/services',
@@ -28,11 +30,12 @@ def match_se_to_site(se, sites):
     if se in _se_to_site_cache:
         return _se_to_site_cache[se]
     try:
-        site = join_FK(se, site_entries, "SiteUniqueID")
-    except ValueError, ve:
-        log.warn("Unable to match SE:\n%s" % entry)
+        site = join_FK(se, sites, "SiteUniqueID")
+    except Exception, ve:
+        log.warn("Unable to match SE to a site:\n%s" % se)
         return None
     _se_to_site_cache[se] = site
+    return site
 
 def do_cms_se_info(cp):
     site_entries = read_bdii(cp, "(objectClass=GlueSite)")
@@ -43,10 +46,12 @@ def do_cms_se_info(cp):
 
     gratia_info = {}
     for sa in sa_entries:
+        if 'SAAccessControlBaseRule' not in sa.glue:
+            continue
         supports_cms = False
         for acbr in sa.glue['SAAccessControlBaseRule']:
             if 'cms' in acbr.lower():
-                support_cms = True
+                supports_cms = True
                 break
         if not supports_cms:
             continue
@@ -55,21 +60,22 @@ def do_cms_se_info(cp):
             free =  int(sa.glue['SAFreeOnlineSize'][0])
             used =  int(sa.glue['SAUsedOnlineSize'][0])
         except:
-            log.warn("Unable to parse attributes:\n%s" % entry)
+            log.warn("Unable to parse attributes:\n%s" % sa)
             continue
 
         try:
-            se = join_FK(sa, se_entries, "SEUniqueID")
-        except ValueError, ve:
-            log.warn("Unable to match SA to SE:\n%s" % entry)
+            se = join_FK(sa, se_entries, "SEUniqueID", join_fk_name="ChunkKey")
+        except Exception, ve:
+            log.warn("Unable to match SA to SE:\n%s" % sa)
             continue
         site = match_se_to_site(se, site_entries)
         if not site:
             log.warn("Unable to match SE %s to site." % \
-                entry.glue['SEUniqueID'])
+                se.glue['SEUniqueID'])
             continue
+        print sa.glue['ChunkKey'][0]
         se_unique_id = se.glue['SEUniqueID']
-        sa_name = sa.glue['SAName']
+        sa_name = sa.glue['SAName'][0]
         probeName = 'gip_storage:%s' % se_unique_id
         se_name = se.glue['SEName']
         gse = StorageElement.StorageElement()
@@ -83,9 +89,10 @@ def do_cms_se_info(cp):
         gse.Timestamp(time_now)
         gse.Implementation(se.glue['SEImplementationName'])
         gse.Version(se.glue['SEImplementationVersion'])
+        gse.VO("cms")
         gse.Status(se.glue['SEStatus'])
         se_list = gratia_info.setdefault((probeName, se_name), [])
-        se_list.append(se)
+        se_list.append(gse)
 
         ser = StorageElementRecord.StorageElementRecord()
         ser.UniqueID(space_unique_id)
@@ -151,6 +158,14 @@ def main():
             break
     if cp == None:
         print "Could not find cms_storage_record.conf in /etc!"
+        sys.exit(1)
+
+    ProbeConfig = '/etc/osg-storage-report/ProbeConfig'
+    try:
+        Gratia.Initialize(ProbeConfig)
+    except Exception, e:
+        log.exception(e)
+        print e
         sys.exit(1)
 
     do_cms_se_info(cp)

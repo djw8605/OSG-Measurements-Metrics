@@ -226,6 +226,7 @@ JOIN
           <input name="endtime" kind="sql" type="datetime">time.time()</input>
           <input name="spacetype" kind="sql">SE</input>
           <input name="spacename" kind="sql">.*</input>
+          <input name="vo" kind="sql">.*</input>
       </inputs>
       <sql>
 SELECT
@@ -249,7 +250,8 @@ SELECT
      Timestamp &lt;= :endtime AND
      SpaceType regexp :spacetype AND
      SE regexp :facility AND
-     Name regexp :spacename
+     Name regexp :spacename AND
+     VO regexp :vo
    GROUP BY UniqueID HAVING MAX(Timestamp)
   ) as SE on SE.UniqueID=SER.UniqueID
       </sql>

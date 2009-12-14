@@ -386,6 +386,56 @@
       <attribute name="graph_type"> GratiaHorizontalBar </attribute>
     </query>
 
+    <query name="cms_status_se_used_bar">
+      <inputs>
+          <input name="facility" kind="sql">T2_Nebraska_Hadoop2|CIT_CMS_SE|UCSDT2-SE2|GLOW-CMS-SE|UFlorida-SE|Purdue-CMS|MIT_CMS-SE</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-86400</input>
+          <input name="endtime" kind="sql" type="datetime">time.time()</input>
+          <input name="spacetype" kind="sql">GlueStorageArea</input>
+          <input name="spacename" kind="sql">.*</input>
+          <input name="vo" kind="sql">cms</input>
+      </inputs>
+      <sql>
+SELECT
+  SE.SE,
+  myCol
+  FROM
+  ( SELECT UniqueID, AVG(myCol) as myCol FROM
+     (SELECT UniqueID, AVG(UsedSpace)/pow(1000, 4) as myCol
+      FROM StorageElementRecord FORCE INDEX(Timestamp)
+      WHERE
+        Timestamp >= :starttime AND
+        Timestamp &lt; :endtime
+      GROUP BY UniqueID, truncate(unix_timestamp(Timestamp)/86400, 0)*86400
+     ) as SER2
+    GROUP BY UniqueID
+  ) as SER
+  JOIN
+  (SELECT *
+   FROM StorageElement FORCE INDEX(Timestamp)
+   WHERE
+     Timestamp &lt;= :endtime AND
+     SpaceType regexp :spacetype AND
+     SE regexp :facility AND
+     Name regexp :spacename AND
+     VO regexp :vo
+   GROUP BY UniqueID HAVING MAX(Timestamp)
+  ) as SE on SE.UniqueID=SER.UniqueID
+      </sql>
+      <results module="graphtool.database.query_handler" function="simple_results_parser">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="results"> 1 </input>
+        </inputs>
+      </results>
+      <attribute name="title">CMS Used Space By Site</attribute>
+      <attribute name="column_names">Used Space</attribute>
+      <attribute name="column_units">TB</attribute>
+      <attribute name="graph_type"> GratiaHorizontalBar </attribute>
+      <attribute name="fixed-height">False</attribute>
+      <attribute name="pivot_name">Site</attribute>
+    </query>
+
     <query name="status_se_pie_used" base="GratiaStatusGeneric.se_rt">
       <sql>
           <filler name="column">UsedSpace/pow(1000, 4)</filler>
