@@ -470,8 +470,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
 
         external = {}
         data['external'] = external
-        external['GridScan'] = self.fetch_gridscan(data['facility'])
-        external['GIP Validator'] = self.gip_validation(data['facility'])
+        #external['GridScan'] = self.fetch_gridscan(data['facility'])
+        #external['GIP Validator'] = self.gip_validation(data['facility'])
         data['title'] = 'Site Information'
         return data
 

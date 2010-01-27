@@ -140,7 +140,7 @@
             <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
             <input name="endtime" type="datetime" kind="sql">time.time()</input>
             <input name="exclude-DN" kind="sql">Igor Sfiligoi 673872</input>
-            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID </input>
+            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID|Generic|Obsolete </input>
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
@@ -168,7 +168,7 @@
             <input name="starttime" type="datetime" kind="sql">time.time()-7*86400*52</input>
             <input name="endtime" type="datetime" kind="sql">time.time()</input>
             <input name="exclude-DN" kind="sql">Igor Sfiligoi 673872</input>
-            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID </input>
+            <input name="exclude-facility" kind="sql"> FNAL_FERMIGRID|Generic|Obsolete </input>
         </inputs>
         <sql>
             <filler name="group"> S.SiteName </filler>
