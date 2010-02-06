@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # chkconfig: 5 99 99
-# description: Starts and stops the PBS graphs daemon.
-# processname: PBSWeb
+# description: Starts and stops the Gratia web graphs daemon.
+# processname: GratiaWeb
 # config: /etc/DBParam.xml
 
 export LANG=C
@@ -14,38 +14,49 @@ export HOME=/tmp
 export DBPARAM_LOCATION=/etc/DBParam.xml
 export DBSECURITY_LOCATION=/etc/DBParam.xml
 
-export CMD="make_daemon_gratia --user=$USER --cmdName=GratiaWeb --cmd=/usr/bin/gratia_web --args=$ARGS"
-
 case "$1" in
   start)
+        # Set up log files so we can read them.
         if [ ! -e /var/log/GratiaWeb-access.log ]; then
             touch /var/log/GratiaWeb-access.log
         fi
         if [ ! -e /var/log/GratiaWeb-error.log ]; then
             touch /var/log/GratiaWeb-error.log
         fi
+        if [ ! -e /var/log/GratiaWeb.out ]; then
+            touch /var/log/GratiaWeb.out
+        fi
+        if [ ! -e /var/run/GratiaWeb.pid ]; then
+            touch /var/run/GratiaWeb.pid
+        fi
         chown $USER /var/log/GratiaWeb-access.log
         chown $USER /var/log/GratiaWeb-error.log
-        $CMD start
+        chown $USER /var/log/GratiaWeb.out
+        chown $USER /var/run/GratiaWeb.pid
+
+        # Actually start the daemon now.
+        echo -n "Starting GratiaWeb: "
+        daemon --user $USER --pidfile /var/run/GratiaWeb.pid gratia_web -d
+        echo
+        touch /var/lock/subsys/GratiaWeb
         ;;
   stop)
-        $CMD stop
-        ;;
-  restart)
-    $CMD stop
-    $CMD status
-    ;;
-  reload)
-        $CMD reload
+        echo -n "Shutting down GratiaWeb: "
+        killproc -p /var/run/GratiaWeb.pid gratia_web
+        echo
+        rm -f /var/lock/subsys/GratiaWeb
         ;;
   status)
-        $CMD status
+        status gratia_web
+        ;;
+  restart)
+        $0 stop
+        $0 start
         ;;
   *)
-        echo $"Usage: $prog {start|stop|status|restart|reload}"
+        echo $"Usage: $prog {start|stop|status|restart}"
         exit 1
 esac
 
-exit $?
-
+exit 0
 

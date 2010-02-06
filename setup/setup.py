@@ -8,9 +8,9 @@ except:
 from setuptools import setup, find_packages
 
 setup(name="OSG-Measurements-Metrics",
-      version="0.2",
+      version="0.3",
       author="Brian Bockelman",
-      author_email="bbockelm@math.unl.edu",
+      author_email="bbockelm@cse.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
       description="OSG Measurements and Metrics webpages.",
 
@@ -30,8 +30,10 @@ setup(name="OSG-Measurements-Metrics",
           'console_scripts': [
               'gip_count = gratia.tools.gip_count:main',
               'gip_record = gratia.tools.gip_record:main',
+              'cms_storage_record = gratia.tools.cms_storage_record:main',
               'gratia_web_dev = gratia.tools.gratia_web_dev:main',
               'gratia_web = gratia.tools.gratia_web:main',
+              'gridscan_download = gratia.tools.gridscan_download:main',
               'static_graphs = gratia.tools.static_graphs:main',
               'site_normalization = gratia.tools.site_normalization:main',
               'gip_subcluster_record = gratia.tools.gip_subcluster_record:main',
