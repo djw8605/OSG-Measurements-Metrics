@@ -61,6 +61,17 @@
         <attribute name="column_units">GB</attribute>
     </query>
 
+    <query name="probe_transfer_volume" base="GratiaStorageQuery.summary">
+        <sql>
+            <filler name="group"> R.ProbeName </filler>
+            <filler name="column"> sum(TransferSize)/pow(1024, 3)</filler>
+        </sql>
+        <attribute name="pivot_name">Probe</attribute>
+        <attribute name="title">Volume of Gigabytes Transferred By Probe</attribute>
+        <attribute name="column_names">Transfer Volume</attribute>
+        <attribute name="column_units">GB</attribute>
+    </query>
+
     <query name="remote_site_transfer_volume" base="GratiaStorageQuery.summary">
         <sql>
             <filler name="group"> SUBSTRING_INDEX(R.RemoteSite, '.', -2) </filler>

@@ -265,8 +265,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         if data['filter_url2'] != '':
             data['filter_url2'] = '?' + data['filter_url2']
 
-        self.image_map(token, data2, "RSVSummaryQueries",
-            "reli_summary_daily", "site", "facility")
+        #self.image_map(token, data2, "RSVSummaryQueries",
+        #    "reli_summary_daily", "site", "facility")
 
         self.finish_image_maps(token)
 
@@ -287,18 +287,18 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.refine(data, filter_dict, dn=False, hours=False)
         token = self.start_image_maps()
         # Generate image maps:
-        self.image_map(token, data, 'GIPQueries',
-            'gip_facility', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_facility_pie', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_free_cpu_realtime', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_free_cpus_history', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_facility_waiting', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_facility_waiting_pie', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_facility', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_facility_pie', 'site', 'facility')
+        #self.image_map(token, data, 'GIPQueries',
+        #    'gip_free_cpu_realtime', 'site', 'facility')
+        #self.image_map(token, data, 'GIPQueries',
+        #    'gip_free_cpus_history', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_facility_waiting', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_facility_waiting_pie', 'site', 'facility')
 
         self.finish_image_maps(token)
 
@@ -344,14 +344,14 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.refine(data, filter_dict, dn=False, hours=False)
         token = self.start_image_maps()
         # Generate image maps:
-        self.image_map(token, data, 'GIPQueries',
-            'gip_vo', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_vo_pie', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_vo_waiting', 'site', 'facility')
-        self.image_map(token, data, 'GIPQueries',
-            'gip_vo_waiting_pie', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_vo', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_vo_pie', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_vo_waiting', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_vo_waiting_pie', 'site', 'facility')
 
         self.finish_image_maps(token)
         if data['is_authenticated']:

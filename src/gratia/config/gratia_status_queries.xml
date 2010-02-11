@@ -76,7 +76,7 @@
 
     <query name="status_vo_pie" base="GratiaStatusGeneric.rt_hourly">
       <sql>
-        <filler name="group">VO.VOName</filler>
+        <filler name="group">VOName</filler>
         <filler name="column">runningJobs</filler>
       </sql>
       <attribute name="title">Count of Running Jobs by VO</attribute>
@@ -85,7 +85,7 @@
 
     <query name="status_total_jobs_realtime" base="GratiaStatusGeneric.rt_hourly">
       <sql>
-        <filler name="group">MSS.SiteName</filler>
+        <filler name="group">SiteName</filler>
         <filler name="column">TotalJobs</filler>
       </sql>
       <results/>
@@ -95,7 +95,7 @@
 
     <query name="status_facility_pie" base="GratiaStatusGeneric.rt_hourly">
       <sql>
-        <filler name="group">MSS.SiteName</filler>
+        <filler name="group">SiteName</filler>
         <filler name="column">RunningJobs</filler>
       </sql>
       <results/>
@@ -106,8 +106,8 @@
 
     <query name="status_vo_waiting_pie" base="GratiaStatusGeneric.rt_hourly">
       <sql>
-        <filler name="column">RunningJobs</filler>
-        <filler name="group">VO.VOName</filler>
+        <filler name="column">WaitingJobs</filler>
+        <filler name="group">VOName</filler>
       </sql>
       <results/>
       <attribute name="title"> Count of Waiting Jobs by VO</attribute>
@@ -117,7 +117,7 @@
     <query name="status_facility_waiting_pie" base="GratiaStatusGeneric.rt_hourly">
       <sql>
         <filler name="column">WaitingJobs</filler>
-        <filler name="group">MSS.SiteName</filler>
+        <filler name="group">SiteName</filler>
       </sql>
       <results/>
       <attribute name="title"> Count of Waiting Jobs by Facility</attribute>
@@ -127,7 +127,7 @@
     <query name="status_vo" base="GratiaStatusGeneric.ts_hourly">
       <sql>
         <filler name="column">RunningJobs</filler>
-        <filler name="group">VO.VOName</filler>
+        <filler name="group">VOName</filler>
       </sql>
       <results/>
       <attribute name="title">Count of Running Jobs by VO</attribute>
@@ -137,7 +137,7 @@
     <query name="status_vo_daily" base="GratiaStatusGeneric.ts_daily">
       <sql>
         <filler name="column">RunningJobs</filler>
-        <filler name="group">VO.VOName</filler>
+        <filler name="group">VOName</filler>
       </sql>
       <results/>
       <attribute name="title">Count of Running Jobs by VO</attribute>
@@ -147,7 +147,7 @@
     <query name="status_queue" base="GratiaStatusGeneric.ts_hourly">
       <sql>
         <filler name="column">RunningJobs</filler>
-        <filler name="group">MSS.CEName</filler>
+        <filler name="group">CEName</filler>
       </sql>
       <results/>
       <attribute name="pivot_name">Queue</attribute>
@@ -158,7 +158,7 @@
     <query name="status_queue_daily" base="GratiaStatusGeneric.ts_daily">
       <sql>
         <filler name="column">RunningJobs</filler>
-        <filler name="group">MSS.CEName</filler>
+        <filler name="group">CEName</filler>
       </sql>
       <results/>
       <attribute name="pivot_name">Queue</attribute>
@@ -169,7 +169,7 @@
     <query name="status_vo_waiting" base="GratiaStatusGeneric.ts_hourly">
       <sql>
         <filler name="column">WaitingJobs</filler>
-        <filler name="group">VO.VOName</filler>
+        <filler name="group">VOName</filler>
       </sql>
       <results/>
       <attribute name="title">Count of Waiting Jobs by VO</attribute>
@@ -179,7 +179,7 @@
     <query name="status_vo_waiting_daily" base="GratiaStatusGeneric.ts_daily">
       <sql>
         <filler name="column">WaitingJobs</filler>
-        <filler name="group">VO.VOName</filler>
+        <filler name="group">VOName</filler>
       </sql>
       <results/>
       <attribute name="title">Count of Waiting Jobs by VO</attribute>
@@ -189,7 +189,7 @@
     <query name="status_queue_waiting" base="GratiaStatusGeneric.ts_hourly">
       <sql>
         <filler name="column">WaitingJobs</filler>
-        <filler name="group">MSS.CEName</filler>
+        <filler name="group">CEName</filler>
       </sql>
       <results/>
       <attribute name="pivot_name">Queue</attribute>
@@ -200,7 +200,7 @@
     <query name="status_queue_waiting_daily" base="GratiaStatusGeneric.ts_daily">
       <sql>
         <filler name="column">WaitingJobs</filler>
-        <filler name="group">MSS.CEName</filler>
+        <filler name="group">CEName</filler>
       </sql>
       <results/>
       <attribute name="pivot_name">Queue</attribute>
@@ -208,25 +208,47 @@
       <attribute name="column_names">Waiting Jobs</attribute>
     </query>
 
-<!--
-    <query name="status_facility_waiting" base="GipGeneric.host_ts">
+    <query name="status_facility" base="GratiaStatusGeneric.ts_hourly">
       <sql>
-        <filler name="column">waitingJobs</filler>
-      </sql>
-      <results/>
-      <attribute name="title">Count of Waiting Jobs by Facility</attribute>
-      <attribute name="column_names">Waiting Jobs</attribute>
-    </query>
-
-    <query name="gip_facility" base="GipGeneric.host_ts">
-      <sql>
-        <filler name="column">runningJobs</filler>
+        <filler name="group">SiteName</filler>
+        <filler name="column">RunningJobs</filler>
       </sql>
       <results/>
       <attribute name="title">Count of Running Jobs by Facility</attribute>
       <attribute name="column_names">Running Jobs</attribute>
     </query>
 
+    <query name="status_facility_daily" base="GratiaStatusGeneric.ts_daily">
+      <sql>
+        <filler name="column">RunningJobs</filler>
+        <filler name="group">SiteName</filler>        
+      </sql>
+      <results/>
+      <attribute name="title">Count of Running Jobs by Facility</attribute>
+      <attribute name="column_names">Running Jobs</attribute>
+    </query>
+
+    <query name="status_facility_waiting" base="GratiaStatusGeneric.ts_hourly">
+      <sql>
+        <filler name="column">WaitingJobs</filler>
+        <filler name="group">SiteName</filler>        
+      </sql>
+      <results/>
+      <attribute name="title">Count of Waiting Jobs by Facility</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+    </query>
+
+    <query name="status_facility_waiting_daily" base="GratiaStatusGeneric.ts_daily">
+      <sql>
+        <filler name="column">WaitingJobs</filler>
+        <filler name="group">SiteName</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Count of Waiting Jobs by Facility</attribute>
+      <attribute name="column_names">Waiting Jobs</attribute>
+    </query>
+
+<!--
     <query name="gip_free_cpus_history" base="GipGeneric.ce_info_ts">
       <sql>
         <filler name="column">freeCpus</filler>

@@ -30,29 +30,44 @@ SELECT
   myGroup,
   AVG(myCol)
 FROM
-(SELECT
+( SELECT
   <slot name="group"/> as myGroup,
-  CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) ELSE SUM(<slot name="column"/>) END as myCol
-FROM
-  MasterServiceSummaryHourly MSS
-JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
-JOIN VO on VO.void=VNC.void
-JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
-JOIN Cluster on Cluster.clusterid=CNC.clusterid
-WHERE
-  (MSS.SiteName regexp :facility)
-  AND NOT (MSS.SiteName regexp :excludefacility)
-  AND (MSS.HostName regexp :host)
-  AND NOT (MSS.HostName regexp :excludehost)
-  AND (VO.VOName regexp :vo)
-  AND NOT (VO.VOName regexp :excludevo)
-  AND Timestamp >= :starttime
-  AND Timestamp &lt; :endtime
-<slot name="where"/>
-GROUP BY
-  myGroup,
-  Timestamp
-<slot name="having"/>
+  unix_timestamp(Timestamp),
+  sum(MyColumn) as myCol
+  FROM
+  ( SELECT
+    MSS.SiteName,
+    VO.VOName,
+    MSS.CEName,
+    Cluster.Name,
+    Timestamp,
+    CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) ELSE SUM(<slot name="column"/>) END as MyColumn
+    FROM
+      MasterServiceSummaryHourly MSS
+    JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
+    JOIN VO on VO.void=VNC.void
+    JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
+    JOIN Cluster on Cluster.clusterid=CNC.clusterid
+    WHERE
+      (MSS.SiteName regexp :facility)
+      AND NOT (MSS.SiteName regexp :excludefacility)
+      AND (MSS.HostName regexp :host)
+      AND NOT (MSS.HostName regexp :excludehost)
+      AND (VO.VOName regexp :vo)
+      AND NOT (VO.VOName regexp :excludevo)
+      AND Timestamp >= :starttime
+      AND Timestamp &lt; :endtime
+    <slot name="where"/>
+    GROUP BY
+      VO.VOName,
+      Cluster.Name,
+      MSS.CEName,
+      Timestamp
+  ) as fooInner
+  GROUP BY
+    myGroup,
+    Timestamp
+  <slot name="having"/>
 ) as foo
 GROUP BY
   myGroup
@@ -81,23 +96,37 @@ GROUP BY
 SELECT
   <slot name="group"/>,
   unix_timestamp(Timestamp),
-  (CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) WHEN 3 THEN SUM(<slot name="column"/>) END)
+  sum(MyColumn)
 FROM
-  MasterServiceSummaryHourly MSS
-JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
-JOIN VO on VO.void=VNC.void
-JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
-JOIN Cluster on Cluster.clusterid=CNC.clusterid
-WHERE
-      Timestamp >= :starttime
-  AND Timestamp &lt; :endtime
-  AND (MSS.SiteName regexp :facility)
-  AND NOT (MSS.SiteName regexp :excludefacility)
-  AND (MSS.HostName regexp :host)
-  AND NOT (MSS.HostName regexp :excludehost)
-  AND (VO.VOName regexp :vo)
-  AND NOT (VO.VOName regexp :excludevo)
+( SELECT
+  MSS.SiteName,
+  VO.VOName,
+  MSS.CEName,
+  Cluster.Name,
+  Timestamp,
+  (CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) WHEN 3 THEN SUM(<slot name="column"/>) END) AS MyColumn
+  FROM
+    MasterServiceSummaryHourly MSS
+  JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
+  JOIN VO on VO.void=VNC.void
+  JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
+  JOIN Cluster on Cluster.clusterid=CNC.clusterid
+  WHERE
+        Timestamp >= :starttime
+    AND Timestamp &lt; :endtime
+    AND (MSS.SiteName regexp :facility)
+    AND NOT (MSS.SiteName regexp :excludefacility)
+    AND (MSS.HostName regexp :host)
+    AND NOT (MSS.HostName regexp :excludehost)
+    AND (VO.VOName regexp :vo)
+    AND NOT (VO.VOName regexp :excludevo)
 <slot name="where"/>
+GROUP BY
+VO.VOName,
+Cluster.Name,
+MSS.CEName,
+Timestamp
+) as foo
 GROUP BY
   <slot name="group"/>,
   Timestamp
@@ -132,24 +161,38 @@ GROUP BY
       <sql>
 SELECT
   <slot name="group"/>,
-  truncate(unix_timestamp(Timestamp)/:span, 0)*:span,
-  (CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) ELSE SUM(<slot name="column"/>) END)
+  unix_timestamp(Timestamp),
+  sum(MyColumn)
 FROM
-  MasterServiceSummary MSS
-JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
-JOIN VO on VO.void=VNC.void
-JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
-JOIN Cluster on Cluster.clusterid=CNC.clusterid
-WHERE
-      Timestamp >= :starttime
-  AND Timestamp &lt; :endtime
-  AND (MSS.SiteName regexp :facility)
-  AND NOT (MSS.SiteName regexp :excludefacility)
-  AND (MSS.HostName regexp :host)
-  AND NOT (MSS.HostName regexp :excludehost)
-  AND (VO.VOName regexp :vo)
-  AND NOT (VO.VOName regexp :excludevo)
+( SELECT
+  MSS.SiteName,
+  VO.VOName,
+  MSS.CEName,
+  Cluster.Name,
+  Timestamp,
+  (CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) WHEN 3 THEN SUM(<slot name="column"/>) END) AS MyColumn
+  FROM
+    MasterServiceSummary MSS
+  JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
+  JOIN VO on VO.void=VNC.void
+  JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
+  JOIN Cluster on Cluster.clusterid=CNC.clusterid
+  WHERE
+        Timestamp >= :starttime
+    AND Timestamp &lt; :endtime
+    AND (MSS.SiteName regexp :facility)
+    AND NOT (MSS.SiteName regexp :excludefacility)
+    AND (MSS.HostName regexp :host)
+    AND NOT (MSS.HostName regexp :excludehost)
+    AND (VO.VOName regexp :vo)
+    AND NOT (VO.VOName regexp :excludevo)
 <slot name="where"/>
+GROUP BY
+VO.VOName,
+Cluster.Name,
+MSS.CEName,
+Timestamp
+) as foo
 GROUP BY
   <slot name="group"/>,
   Timestamp
