@@ -14,7 +14,7 @@
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
     <aggregate>
-      <connection> gratia-status </connection>
+      <connection> gratia-events </connection>
     </aggregate>
 
     <query name="generic_events">
@@ -79,7 +79,7 @@
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
     <aggregate>
-      <connection> gratia-status </connection>
+      <connection> gratia-events </connection>
     </aggregate>
 
     <query name="start_events" base="GenericEventsQueries.generic_events">
@@ -107,6 +107,67 @@
       <results/>
       <attribute name="title">Number of Jobs Finished by User</attribute>
       <attribute name="column_names">Finished</attribute>
+    </query>
+
+    <query name="error_events" base="GenericEventsQueries.generic_events">
+      <sql>
+        <filler name="event">"Error"</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Number of Condor Errors by User</attribute>
+      <attribute name="column_names">Finished</attribute>
+    </query>
+
+    <query name="event_count">
+        <inputs>
+            <input name="span" type="int" kind="sql">3600</input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-48*3600</input>
+            <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
+            <input name="facility" kind="sql"> .* </input>
+            <input name="probe" kind="sql"> .* </input>
+            <input name="user" kind="sql"> .* </input>
+            <input name="vo" kind="sql"> .* </input>
+            <input name="exclude-user" kind="sql"> NONE </input>
+            <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
+        </inputs>
+        <sql>
+            SELECT
+                JUR.Status,
+                truncate( unix_timestamp(JURM.CreateTime) / :span, 0 ) * :span as time,
+                count(*)
+            FROM
+                JobUsageRecord JUR
+            JOIN
+                JobUsageRecord_Meta JURM on JURM.dbid=JUR.dbid
+            JOIN
+                Probe P on JURM.ProbeName = P.probename
+            JOIN
+                Site S on S.siteid = P.siteid
+            WHERE
+                JURM.CreateTime &gt;= :starttime AND
+                JURM.CreateTime &lt; :endtime AND
+                S.SiteName regexp :facility AND
+                JUR.ResourceType = 'Events' AND
+                JUR.GlobalUsername regexp :user AND
+                (NOT (S.SiteName regexp :exclude-facility)) AND
+                (NOT (JUR.CommonName regexp :exclude-user)) AND
+                JURM.ProbeName regexp :probe AND
+                JUR.Status regexp '[0-9]+'
+            GROUP BY
+                JUR.Status,
+                time
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+            </inputs>
+        </results>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+        <attribute name="pivot_name">Event Code</attribute>
+        <attribute name="title">Number of Events By Event Code</attribute>
+        <attribute name="column_names">Event Count</attribute>
     </query>
 
   </class>

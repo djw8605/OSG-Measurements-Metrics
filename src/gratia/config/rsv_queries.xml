@@ -419,7 +419,7 @@ group by
             <input name="starttime" type="timestamp" kind="sql">time.time()-60*86400</input>
             <input name="endtime" type="timestamp" kind="sql">time.time()</input>
             <input name="span" kind="sql" type="int">86400</input>
-            <input name="version" kind="sql">^OSG-.\..\..</input>
+            <input name="version" kind="sql">^OSG..\..\..</input>
         </inputs>
         <sql>
 
