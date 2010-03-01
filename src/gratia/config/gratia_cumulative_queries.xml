@@ -93,6 +93,7 @@
       </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
@@ -111,6 +112,7 @@
       </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">
         <inputs>
+          <input name="pivot_transform">oim_resource_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>
