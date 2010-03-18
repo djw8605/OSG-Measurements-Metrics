@@ -83,14 +83,14 @@ my_data = {
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU},
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU},
     #end for
         #set key = keys[-1]
         #set val=$pledge['atlas'][key]
         #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
         #set delivered=int($val.wlcgNormCPU/float($goal)*100)
         #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
-        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, KSI2KAvail: $act_avail[key], OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU}
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU}
   #end if
   ],
 
@@ -104,19 +104,6 @@ my_data = {
         {Site: '$key', WLCGAccounting: "$summary[$key]['accounting']", Subclusters: $summary[$key]['subclusters']}
   #end if
   ],
-
-  availability: [
-  #if len($availability) > 0
-    #set keys = sorted($availability.keys(), $getVar('key_sorter', '', False))
-    #for site in keys[:-1]
-      #set val=$availability[$site]
-      {Site: '$site', Ownership: $val['ownership'], KSI2KSize: $val['size'], RSVAvail: $val['rsv'], Availability: $val['availability']},
-    #end for
-      #set key = keys[-1]
-      #set val=$availability[$site]
-      {Site: '$site', Ownership: $val['ownership'], KSI2KSize: $val['size'], RSVAvail: $val['rsv'], Availability: $val['availability']}
-  #end if
-  ]
 
 };
 
@@ -181,7 +168,6 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Goal", label:"Month goal of Norm CPU hours", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"wlcgCPU", label:"Norm CPU hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"KSI2KAvail", label:"CMS KSI2K Availability", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"OwnedWCT", label:"Norm Wall hours for CMS", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"wlcgWCT", label:"Norm Wall hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"totalWCT", label:"Norm Wall for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
@@ -195,20 +181,11 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Goal", label:"Month goal of CPU hours", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"wlcgCPU", label:"Norm CPU hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"KSI2KAvail", label:"ATLAS KSI2K Availability", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"OwnedWCT", label:"Norm Wall hours for ATLAS", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"wlcgWCT", label:"Norm Wall hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"totalWCT", label:"Norm Wall hours for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"delivered", label:"Percent of WLCG goal achieved", sortable:true, resizeable:true, formatter:perc_formatter},
             {key:"nonwlcg", label:"Percent of site's time delivered to non-WLCG VOs", sortable:true, resizeable:true, formatter:perc_formatter}
-        ];
-
-        var availabilityColumnDefs = [
-            {key:"Site", label:"OSG Site name", sortable:true, resizeable:true},
-            {key:"Ownership", label:"MoU VO Ownership", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"KSI2KSize", label:"MoU VO Owned KSI2K Size", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"RSVAvail", label:"RSV Availability", sortable:true, resizeable:true, formatter:perc_formatter},
-            {key:"Availability", label:"Month's MoU VO KSI2K-Availability", sortable:true, resizeable:true, formatter:num_formatter}
         ];
 
         var summaryColumnDefs = [
@@ -238,19 +215,13 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.atlasDataSource = new YAHOO.util.DataSource(my_data.atlas_pledge);
         this.atlasDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.atlasDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
         };
 
         this.cmsDataSource = new YAHOO.util.DataSource(my_data.cms_pledge);
         this.cmsDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.cmsDataSource.responseSchema = {
-            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "KSI2KAvail", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
-        };
-
-        this.availabilityDataSource = new YAHOO.util.DataSource(my_data.availability);
-        this.availabilityDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        this.availabilityDataSource.responseSchema = {
-            fields: ["Site", "Ownership", "KSI2KSize", "RSVAvail", "Availability"]
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
         };
 
         this.summaryDataSource = new YAHOO.util.DataSource(my_data.summary);
@@ -293,7 +264,6 @@ YAHOO.util.Event.addListener(window, "load", function() {
     <li><a href="#cms">USCMS T2 WLCG Accounting Data</a></li>
     <li><a href="#gip">GIP Subcluster Summary</a></li>
     <li><a href="#sitenorm">Site Normalization Factors</a></li>
-    <li><a href="#availability">Site Availability Measurements</a></li>
     <li><a href="#summary">Available Data Summary</a></li>
 </ul>
 
@@ -388,31 +358,6 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 <p>This data was reported at $gip_report_time.</p>
 #end if
 <div id="gip"></div>
-
-<br/>
-<hr/>
-<h1>Availability Data</h1>
-<p>(WARNING: Experimental metric).  A site's KSI2K-availability is calculated by
-   multiplying the following three values, calculated daily, then summed over
-   the whole month
-   <ul>
-      <li>The total cluster size, measured in KSI2K.</li>
-      <li>The ownership percentage of the sponsoring VO.</li>
-      <li>The RSV-measured daily availability percentage</li>
-   </ul>
-   Specifically, the first two bullet points are dependent on site admins giving
-   the correct inputs (which is getting more accurate as site admins are being
-   educated in the GIP).  The third bullet point is dependent on the reliability
-   if the RSV measurements, which is a new component to the OSG.
-   <br/>
-   The below table shows, for each site, the average monthly value of the above
-   bullet points, in addition to the total KSI2K-availability for the month.
-   The first three values cannot be multiplied together to get the fourth; the
-   first three are averages over the whole month, while the fourth is derived
-   by computing the daily amount.
-</p>
-<br/>
-<div id="availability"></div>
 
 <br/>
 <hr/>

@@ -20,12 +20,12 @@
       <connection> gratia-status </connection>
     </aggregate>
 
-    <query name="subcluster_latest">
+    <query name="status_subcluster_latest">
         <inputs>
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
         </inputs>
         <sql>
-            SELECT SiteName, Cluster, Subcluster.Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, null
+            SELECT SiteName, Cluster, Name, Subcluster.Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, null
             FROM Subcluster
             WHERE Timestamp=(select max(Timestamp) from Subcluster where Timestamp &lt;= :endtime) 
             GROUP BY SiteName, Cluster, Name
@@ -38,7 +38,12 @@
         </results>
     </query>
 
-    <query name="subcluster_interval">
+    <query name="status_subcluster_times">
+        <sql> SELECT distinct Timestamp, 1 from Subcluster </sql>
+        <results module="graphtool.database.query_handler" function="simple_results_parser"/>
+    </query>
+
+    <query name="status_subcluster_interval">
         <inputs>
             <input kind="sql" type="datetime" name="starttime">time.time()-30*86400</input>
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
@@ -57,13 +62,13 @@
         </results>
     </query>
 
-    <query name="subcluster">
+    <query name="status_subcluster">
         <inputs>
             <input name="timestamp" type="datetime" kind="sql">time.time()</input>
         </inputs>
         <sql>
-            SELECT SiteName, Cluster, Name, Timestamp, Processor, Cores, BenchmarkValue, null
-            FROM subcluster_score
+            SELECT SiteName, Cluster, Name, Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, null
+            FROM Subcluster
             WHERE Timestamp=:timestamp and BenchmarkName='SI2K'
         </sql>
         <results module="gratia.database.query_handler" function="gip_parser_simple">
