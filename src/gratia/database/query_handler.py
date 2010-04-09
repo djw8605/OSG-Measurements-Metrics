@@ -261,7 +261,7 @@ class CSVScienceFilter(PeriodicUpdater):
 
     def parse(self, results):
         try:
-            for line in results.splitlines():
+            for line in (results+'\n').splitlines():
                 line = line.strip()
                 info = line.split(',')
                 if len(info) != 4:
@@ -282,7 +282,7 @@ class CSVScienceFilter(PeriodicUpdater):
         cn, fqan, vo_name = pivot
         result_set = sets.Set()
         for val, field in self.fqans.items():
-            if field.startswith(val):
+            if fqan.startswith(val):
                 result_set.add(field)
         if result_set:
             return result_set
@@ -305,7 +305,9 @@ class ScienceFilter(object):
         override_filter = CSVScienceFilter('http://t2.unl.edu/store/' \
             'override-classifications.csv')
         oim_filter = OimScienceFilter()
-        self.filters = [engage_filter, nysgrid_filter, oim_filter,
+        twiki_filter = CSVScienceFilter('https://twiki.grid.iu.edu/twiki/pub' \
+            '/MeasurementsAndMetrics/MetricScienceUsage/othermapping.csv')
+        self.filters = [engage_filter, nysgrid_filter, oim_filter, twiki_filter,
             override_filter]
         self.priorities = {
             'Physics': 'HEP',
@@ -351,6 +353,15 @@ class ScienceFilter(object):
 
 oim_vo_filter = OimVoFilter()
 science_filter = ScienceFilter()
+
+def nonhep_science_filter(*pivot, **kw):
+    """
+    Take in the science filter and removes HEP and Physics.
+    """
+    results = science_filter(*pivot, **kw)
+    if results in ['HEP', 'USLHC', 'High Energy Physics']:
+        return None
+    return results
 
 def unclassified_science_filter(*pivot, **kw):
     dn, fqan, vo = pivot

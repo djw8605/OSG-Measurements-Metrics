@@ -116,6 +116,8 @@ def science_classifier(sql_results, globals=globals(), default="Other", **kw):
         else:
             #print "Unclassified VO:", pivot
             new_pivot = default
+        if new_pivot == 'High Energy Physics':
+            new_pivot = 'HEP'
         if new_pivot not in filtered_results:
             filtered_results[new_pivot] = groups
         else:
@@ -125,6 +127,20 @@ def science_classifier(sql_results, globals=globals(), default="Other", **kw):
     if 'Physics' in filtered_results:
         filtered_results['non-HEP Physics'] = filtered_results['Physics']
         del filtered_results['Physics']
+    return filtered_results, md
+
+def nonhep_science_classifier(sql_results, globals=globals(), default="Other", **kw):
+    """
+    Take in some VO-based metric and convert it to a field of science-based
+    metric.  Uses the fact that the field of science is recorded by OIM.
+
+    Removes HEP and Physics.
+    """
+    results, md = science_classifier(sql_results, globals=globals, **kw)
+    filtered_results = {}
+    for pivot, groups in results.items():
+        if pivot not in ['HEP', 'USLHC', 'High Energy Physics']:
+            filtered_results[pivot] = groups
     return filtered_results, md
 
 def site_size_parser(sql_results, globals=globals(), **kw):

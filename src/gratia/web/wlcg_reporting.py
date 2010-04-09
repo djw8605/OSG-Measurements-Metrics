@@ -361,6 +361,7 @@ class WLCGReporter(Authenticate):
         for key, val in data['subclusters'].items():
             if key[0] in wlcg_sites:
                 new_subclusters[key] = val
+                print key, val
         data['subclusters'] = new_subclusters
 
         # Add in the pledge data

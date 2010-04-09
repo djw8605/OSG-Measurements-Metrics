@@ -25,7 +25,7 @@
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
         </inputs>
         <sql>
-            SELECT SiteName, Cluster, Name, Subcluster.Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, null
+            SELECT SiteName, Cluster, Name, Subcluster.Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, ""
             FROM Subcluster
             WHERE Timestamp=(select max(Timestamp) from Subcluster where Timestamp &lt;= :endtime) 
             GROUP BY SiteName, Cluster, Name
@@ -49,7 +49,7 @@
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
         </inputs>
         <sql>
-            SELECT SiteName, Cluster, Name, DATE(timestamp) as date, coalesce(Processor, "Unknown"), max(Cores), max(BenchmarkValue), null
+            SELECT SiteName, Cluster, Name, DATE(timestamp) as date, coalesce(Processor, "Unknown"), max(Cores), max(BenchmarkValue), ""
             FROM Subcluster
             WHERE Timestamp &lt; :endtime and Timestamp &gt;= :starttime AND BenchmarkName='SI2K'
             GROUP BY date, SiteName, Cluster, Name
@@ -67,7 +67,7 @@
             <input name="timestamp" type="datetime" kind="sql">time.time()</input>
         </inputs>
         <sql>
-            SELECT SiteName, Cluster, Name, Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, null
+            SELECT SiteName, Cluster, Name, Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, ""
             FROM Subcluster
             WHERE Timestamp=:timestamp and BenchmarkName='SI2K'
         </sql>
