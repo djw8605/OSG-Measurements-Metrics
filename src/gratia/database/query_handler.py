@@ -310,8 +310,8 @@ class ScienceFilter(object):
         self.filters = [engage_filter, nysgrid_filter, oim_filter, twiki_filter,
             override_filter]
         self.priorities = {
-            'Physics': 'HEP',
-            'HEP': 'USLHC',
+            'Physics': 'High Energy Physics',
+            'High Energy Physics': 'USLHC',
             'Physics': 'USLHC',
         }
 
@@ -359,7 +359,7 @@ def nonhep_science_filter(*pivot, **kw):
     Take in the science filter and removes HEP and Physics.
     """
     results = science_filter(*pivot, **kw)
-    if results in ['HEP', 'USLHC', 'High Energy Physics']:
+    if results in ['USLHC', 'High Energy Physics']:
         return None
     return results
 

@@ -26,30 +26,6 @@ def gratia_interval(year, month):
 
 class WLCGReporter(Authenticate):
 
-    def cpu_normalization(self, **kw):
-        """
-        Show a table of the CPU normalization factors used, with comments where
-        applicable.
-
-        This page is exposed to the web.
-        """
-        data = dict(kw)
-        data['error'] = None
-        fp = resource_stream("gratia.config", "gip.conf")
-        cp = ConfigParser()
-        cp.readfp(fp, "gip.conf")
-        data['cpus'] = get_cpu_normalizations()
-        for key, val in data['cpus'].items():
-            if not isinstance(val, types.TupleType):
-                data['cpus'][key] = (val, "")
-            value, note = data['cpus'][key]
-            note = note.replace('"', '')
-            note = note.replace("'", '')
-            note = note.replace("\n", '')
-            data['cpus'][key] = (value, note)
-        data['title'] = "CPU Normalization constants table"
-        return data
-
     def add_effort(self, site_info, site, VOMoU, apel_data, gratia_data, \
             gratia_cpu_data):
         for key in ['wlcgNormWCT', 'voNormWCT', 'totalNormWCT', 'wlcgNormCPU',\

@@ -35,7 +35,10 @@ def correct_sc_info(cluster, cpu, sc_info, specint):
             cpu_model = sc.glue["HostProcessorModel"]
             if cpu_model not in specint:
                 raise KeyError("Unknown CPU model: %s" % cpu_model)
-            sc.glue["HostBenchmarkSI00"] = specint[cpu_model]
+            si2k, hs, note = specint[cpu_model]
+            if hs:
+                si2k = hs * 250
+            sc.glue["HostBenchmarkSI00"] = si2k
         # Finally, the KSI2K value is the per-core number multiplied by
         # the number of cores.
         ksi2k = int(sc.glue["HostBenchmarkSI00"])* \

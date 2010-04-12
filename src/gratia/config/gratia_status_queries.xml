@@ -23,11 +23,12 @@
     <query name="status_subcluster_latest">
         <inputs>
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
+            <input kind="sql" name="benchmark">SI2K</input>
         </inputs>
         <sql>
             SELECT SiteName, Cluster, Name, Subcluster.Timestamp, coalesce(Processor, "Unknown"), Cores, BenchmarkValue, ""
             FROM Subcluster
-            WHERE Timestamp=(select max(Timestamp) from Subcluster where Timestamp &lt;= :endtime) 
+            WHERE Timestamp=(select max(Timestamp) from Subcluster where Timestamp &lt;= :endtime)  and BenchmarkName=:benchmark
             GROUP BY SiteName, Cluster, Name
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">
@@ -47,11 +48,12 @@
         <inputs>
             <input kind="sql" type="datetime" name="starttime">time.time()-30*86400</input>
             <input kind="sql" type="datetime" name="endtime">time.time()</input>
+            <input kind="sql" name="benchmark">SI2K</input>
         </inputs>
         <sql>
             SELECT SiteName, Cluster, Name, DATE(timestamp) as date, coalesce(Processor, "Unknown"), max(Cores), max(BenchmarkValue), ""
             FROM Subcluster
-            WHERE Timestamp &lt; :endtime and Timestamp &gt;= :starttime AND BenchmarkName='SI2K'
+            WHERE Timestamp &lt; :endtime and Timestamp &gt;= :starttime AND BenchmarkName=:benchmark
             GROUP BY date, SiteName, Cluster, Name
         </sql>
         <results module="gratia.database.query_handler" function="simple_results_parser">

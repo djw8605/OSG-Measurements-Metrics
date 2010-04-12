@@ -52,7 +52,7 @@ def main():
     for cpu, score in specint.items():
         if isinstance(score, types.TupleType):
             score = score[0]
-            specint[cpu] = score
+            #specint[cpu] = score
         curs.execute("INSERT INTO cpu_score VALUES (%s, %s, %s)", (cpu, \
             int(score), int(0)));
 

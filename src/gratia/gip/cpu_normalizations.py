@@ -29,7 +29,7 @@ def get_cpu_normalizations(url=OIM_url):
             notes = str(notes_dom[0].firstChild.data)
         except:
             continue
-        results[name] = (normalization, notes)
+        results[name] = (normalization, 0, notes)
     return results
 
 if __name__ == '__main__':

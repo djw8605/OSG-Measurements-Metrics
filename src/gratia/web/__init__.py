@@ -48,8 +48,6 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(\
             self.apel_data)
         self.jot_reporting = self.template('jot_uslhc.tmpl')(self.uslhc_table)
-        self.cpu_normalization = self.template('cpu_normalization.tmpl')(\
-            self.cpu_normalization)
         self.email_lookup = self.template('email_lookup.tmpl')(\
             self.email_lookup)
         self.email_lookup_xml = self.plain_template('email_lookup_xml.tmpl',

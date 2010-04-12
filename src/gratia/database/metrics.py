@@ -33,9 +33,9 @@ class NMinMax(object):
     def get_max(self):
         return min(self.data)
 
-addl_fields_of_science = [('lhcb', 'HEP'), ('lhcb', 'Physics'),
-    ('FermilabHypercp', 'HEP'), ('FermilabHypercp', 'Physics'),
-    ('geant4', 'HEP'), ('geant4', 'Physics'),]
+addl_fields_of_science = [('lhcb', 'High Energy Physics'), ('lhcb', 'Physics'),
+    ('FermilabHypercp', 'High Energy Physics'), ('FermilabHypercp', 'Physics'),
+    ('geant4', 'High Energy Physics'), ('geant4', 'Physics'),]
 def HEP_classifier(vos, globals=globals()):
     """
     Returns all the VOs that are HEP VOs.
@@ -49,7 +49,7 @@ def HEP_classifier(vos, globals=globals()):
         is_hep = False
         oim_vo = gratia_to_oim.get(vo, None)
         for ov, science in fields_of_science:
-             if ov == oim_vo and science == 'HEP':
+             if ov == oim_vo and science in ['High Energy Physics', 'HEP']:
                  hep_vos.append(vo)
     return hep_vos
 
@@ -81,7 +81,7 @@ def non_hep_filter_simple(sql_results, globals=globals(), **kw):
 
 precedence = {\
   'USLHC': 0,
-  'HEP': 1,
+  'High Energy Physics': 1,
   'Physics': 2,
   'Community Grid': 3,
   'Other': 4,
@@ -116,8 +116,8 @@ def science_classifier(sql_results, globals=globals(), default="Other", **kw):
         else:
             #print "Unclassified VO:", pivot
             new_pivot = default
-        if new_pivot == 'High Energy Physics':
-            new_pivot = 'HEP'
+        if new_pivot == 'HEP':
+            new_pivot = 'High Energy Physics'
         if new_pivot not in filtered_results:
             filtered_results[new_pivot] = groups
         else:
