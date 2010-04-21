@@ -67,6 +67,38 @@ def non_HEP_filter(sql_results, globals=globals(), **kw):
             filtered_results[pivot] = group
     return filtered_results, md
 
+def physics_classifier(vos, globals=globals()):
+    """
+    Returns all the VOs that are HEP VOs.
+    """
+    fields_of_science, _ = globals['RSVQueries'].field_of_science()
+    fields_of_science += addl_fields_of_science
+    oim_vos = [i[0] for i in fields_of_science]
+    oim_to_gratia, gratia_to_oim = OIM_to_gratia_mapper(oim_vos, vos)
+    hep_vos = []
+    for vo in vos:
+        is_hep = False
+        oim_vo = gratia_to_oim.get(vo, None)
+        for ov, science in fields_of_science:
+             if ov == oim_vo and (science in ['High Energy Physics', 'HEP'] \
+                     or science.lower().find("physics") >= 0):
+                 hep_vos.append(vo)
+    return hep_vos
+
+def non_physics_filter(sql_results, globals=globals(), **kw):
+    """
+    Removes results for Physics VOs.
+    """
+    results, md = results_parser(sql_results, globals=globals, **kw)
+    hep_vos = physics_classifier(results.keys(), globals=globals)
+    #print "HEP VOs"
+    #print "\n".join(hep_vos)
+    filtered_results = {}
+    for pivot, group in results.items():
+        if pivot not in hep_vos:
+            filtered_results[pivot] = group
+    return filtered_results, md
+
 def non_hep_filter_simple(sql_results, globals=globals(), **kw):
     """
     Removes results for HEP VOs for a pivot-type computation.

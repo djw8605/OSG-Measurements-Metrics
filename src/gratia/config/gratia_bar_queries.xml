@@ -1246,6 +1246,26 @@
       </results>
     </query>
 
+    <query name="monthly_non_physics" base="GratiaGenericQuery.monthly_master_summary">
+      <sql>
+        <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_names">Wall Time</attribute>
+      <attribute name="column_units">Hours</attribute>
+      <attribute name="title">Monthly Wall Hours per VO for non-Physics VOs</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results module="gratia.database.metrics" function="non_physics_filter">
+        <inputs>
+          <input name="pivot_transform">oim_vo_filter</input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="monthly_science_jobs" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
         <filler name="group"> VO.VOName </filler>
@@ -1295,7 +1315,7 @@
       <attribute name="pivot_name">Science Field</attribute>
       <attribute name="grouping_name">Time</attribute>
       <attribute name="column_names">Wall Hours</attribute>
-      <attribute name="title">Monthly Wall Hours per Science Field</attribute>
+      <attribute name="title">Monthly non-HEP Wall Hours per Science Field</attribute>
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
@@ -1303,6 +1323,28 @@
           <input name="grouping"> 3 </input>
           <input name="results"> 4 </input>
           <input name="pivot_transform">nonhep_science_filter</input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="monthly_nonphysics_field" base="GratiaGenericQuery.monthly_master_summary">
+      <sql>
+        <filler name="group"> R.CommonName, VC.VOName, VO.VOName </filler>
+        <filler name="column"> sum(WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">Science Field</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_names">Wall Hours</attribute>
+      <attribute name="title">Monthly non-Physics Wall Hours per Science Field</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="pivots"> 0, 1, 2 </input>
+          <input name="grouping"> 3 </input>
+          <input name="results"> 4 </input>
+          <input name="pivot_transform">nonphysics_science_filter</input>
           <input name="grouping_transform">make_int</input>
         </inputs>
       </results>

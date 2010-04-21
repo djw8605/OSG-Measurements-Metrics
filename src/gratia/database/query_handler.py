@@ -363,6 +363,16 @@ def nonhep_science_filter(*pivot, **kw):
         return None
     return results
 
+def nonphysics_science_filter(*pivot, **kw):
+    """
+    Take in the science filter and removes all Physics.
+    """
+    results = science_filter(*pivot, **kw)
+    if results in ['USLHC', 'High Energy Physics'] or \
+            results.lower().find("physics") >= 0:
+        return None
+    return results
+
 def unclassified_science_filter(*pivot, **kw):
     dn, fqan, vo = pivot
     result = science_filter(*pivot)
