@@ -248,8 +248,8 @@ class JOTReporter(Authenticate):
         return apel_data
 
     def get_gridview(self, month, year, federations):
-        url = self.metadata.get('gridview_url', 'http://gridview001.cern.ch/' \
-            'GVVAI/js/lib/sam-demo.php')
+        url = self.metadata.get('gridview_url', 'http://gridview.cern.ch' \
+            '/GRIDVIEW/pi/xml/sam-xml.php')
         params = {\
             'summary_period': 'monthly',
             'value_fields': 'availability,reliability,unknown',
@@ -273,15 +273,17 @@ class JOTReporter(Authenticate):
                     val = float(str(value_dom.firstChild.data))
                 except:
                     continue
-            if val != None:
-                gridview_data[name][1] = val
+            gridview_data[name][1] = val
+            val = None
             for value_dom in site_dom.getElementsByTagName('unknown'):
                 try: 
                     val = float(str(value_dom.firstChild.data))
                 except:
                     continue
-            if val != None and val < gridview_data[name][1]:
+            if val != None and gridview_data[name][1] != None and val < \
+                    gridview_data[name][1]:
                 gridview_data[name][1] += val
+            val = None
             for value_dom in site_dom.getElementsByTagName('reliability'):
                 try:
                     val = float(str(value_dom.firstChild.data))
@@ -297,7 +299,7 @@ class JOTReporter(Authenticate):
                     val = fed_data.setdefault(fed, [0., 0., 0., 0.])
                     val[2] += 1
                     val[1] += data[1]
-                    if data[0] >= 0:
+                    if data[0] != None and data[0] >= 0:
                         val[0] += data[0]
                         val[3] += 1
         results = {}

@@ -63,16 +63,6 @@
 
   <class name="GIPConnMan" type="ConnectionManager">
     <attribute name="default"> gip </attribute>
-    
-    <connection name="gip"> 
-      <attribute name="Interface"> MySQL </attribute>
-      <attribute name="Database"> gip </attribute>
-      <attribute name="Host"> osg-test2.unl.edu </attribute>
-      <attribute name="Port">49152</attribute>
-      <attribute name="AuthDBUsername"> ****** </attribute>
-      <attribute name="AuthDBPassword"> ****** </attribute>
-    </connection>
-
   </class>
 
   <class name="RSVConnMan" type="ConnectionManager">
@@ -90,38 +80,15 @@
   </class>
 
   <class name="RegistrationDB" type="ConnectionManager">
-
     <attribute name="default"> regdb </attribute>
-
-    <connection name="regdb">
-      <attribute name="Interface"> MySQL </attribute>
-      <attribute name="Database"> registration </attribute>
-      <attribute name="AuthDBUsername"> ****** </attribute>
-      <attribute name="AuthDBPassword"> ****** </attribute>
-    </connection>
-
   </class>
 
   <class name="GratiaSecurityDB" type="ConnectionManager">
-
     <attribute name="default"> accessdb </attribute>
-
-    <connection name="accessdb">
-      <attribute name="Interface"> sqlite </attribute>
-      <attribute name="DatabaseFile"> /etc/access.db </attribute>
-    </connection>
-
   </class>
 
   <class name="GridScanDB" type="ConnectionManager">
-
     <attribute name="default"> gridscandb </attribute>
-
-    <connection name="gridscandb">
-      <attribute name="Interface"> sqlite </attribute>
-      <attribute name="DatabaseFile"> /var/db/gridscan.db </attribute>
-    </connection>
-
   </class>
 
 </graphtool-config>
