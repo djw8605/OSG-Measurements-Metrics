@@ -5,6 +5,7 @@ import sys
 import sets
 import time
 import signal
+import socket
 import logging
 import datetime
 
@@ -15,6 +16,8 @@ from gratia.gip.common import cp_get, getGipDBConn, findCE, join_FK
 
 logging.basicConfig(filename="/var/log/gip_record.log")
 log = logging.getLogger()
+
+hostname = socket.gethostname()
 
 # Bootstrap our python configuration.  This should allow us to discover the
 # configurations in the case where our environment wasn't really configured
@@ -334,7 +337,7 @@ def do_se_info(cp):
             continue
 
         unique_id = entry.glue['SEUniqueID']
-        probeName = 'gip_storage:%s' % unique_id
+        probeName = 'gip_storage:%s:%s' % (unique_id, hostname)
         Gratia.Config.setMeterName(probeName)
         Gratia.Config.setSiteName(se_name)
         se = StorageElement.StorageElement()
@@ -520,7 +523,7 @@ def main():
             log.warn("Site ID %s is not in site_map" % cluster_map[ce_map[\
                 ce_unique_id]])
             continue
-        probeName = 'gip_compute:%s' % ce_map[ce_unique_id]
+        probeName = 'gip_compute:%s:%s' % (ce_map[ce_unique_id], hostname)
         siteName = site_map[cluster_map[ce_map[ce_unique_id]]]
         Gratia.Config.setMeterName(probeName)
         Gratia.Config.setSiteName(siteName)

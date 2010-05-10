@@ -4,12 +4,15 @@ import os
 import sys
 import time
 import types
+import socket
 import datetime
 
 from gratia.gip.ldap import read_bdii, config_file
 from gratia.gip.analysis import *
 from gratia.gip.cpu_normalizations import get_cpu_normalizations
 from graphtool.base.xml_config import XmlConfig
+
+hostname = socket.gethostname()
 
 # Bootstrap our python configuration.  This should allow us to discover the
 # configurations in the case where our environment wasn't really configured
@@ -100,7 +103,7 @@ def main():
 
             # Send the subcluster to Gratia
             Gratia.Config.setSiteName(site)
-            Gratia.Config.setMeterName('gip_subcluster:%s' % cluster)
+            Gratia.Config.setMeterName('gip_subcluster:%s:%s' % (cluster, hostname))
 
             s = Subcluster.Subcluster()
             s.UniqueID(sc.glue['SubClusterUniqueID'])
