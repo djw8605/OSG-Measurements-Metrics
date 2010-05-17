@@ -13,6 +13,7 @@ import time
 
 import cherrypy
 from xml.dom.minidom import parse
+from xml.dom.minidom import Node
 from graphtool.tools.common import to_timestamp, convert_to_datetime
 from graphtool.graphs.common_graphs import QualityMap, BarGraph, TimeGraph
 from graphtool.graphs.basic import BasicStackedBar
@@ -56,8 +57,17 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.installed = self.template('installed_capacity.tmpl')\
             (self.site_table)
         self.site_report = self.template('gratia_site_report.tmpl')\
-            (self.site_report)
-
+            (self.site_report)    
+        configfile=''
+        try:
+            configfile=os.environ["DBPARAM_LOCATION"]                 
+        except KeyError:
+            configfile= "/etc/DBParam.xml"
+        doc = parse(configfile)
+        for node in doc.getElementsByTagName("staticfilehostname"):
+            self.metadata['static_url']=node.getAttribute("value")  
+        
+        
         self._cp_config ={}
         self.index = self.overview
 

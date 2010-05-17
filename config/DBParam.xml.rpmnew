@@ -1,6 +1,7 @@
 <graphtool-config>
 
   <import module="graphtool.database.connection_manager"> ConnectionManager </import>
+ <staticfilehostname value='http://localhost/gratia' />
 
   <class name="GratiaConnMan" type="ConnectionManager">
     <attribute name="default"> gratia </attribute>
