@@ -1561,22 +1561,36 @@ def results_parser_fillin(sql_results, globals=globals(), **kw):
     all_groups = list(all_groups)
     all_groups.sort()
     my_range = range(len(all_groups))
+    new_results = {}
     for pivot, groups in results.items():
+        new_results[pivot] = {}
         for idx in my_range:
-            if all_groups[idx] not in groups:
+            if all_groups[idx] in groups:
+                new_results[pivot][all_groups[idx]] = groups[all_groups[idx]]
+            else:
                 # Set default val to 0.  First scan backward, then scan forward
                 # looking for an entry to fill in.
                 val = None
                 if idx != 0:
+                    ctr = 0
                     for idx2 in all_groups[:idx-1][::-1]:
+                        ctr += 1
+                        if ctr > 3:
+                            break
                         if idx2 in groups:
                             val = groups[idx2]
+                            break
                 if val != None:
+                    ctr = 0
                     for idx2 in all_groups[idx:]:
+                        ctr += 1
+                        if ctr > 3:
+                            break
                         if idx2 in groups:
                             val = groups[idx2]
+                            break
                 if val == None:
                     val = 0
-                groups[all_groups[idx]] = val
-    return results, md
+                new_results[pivot][all_groups[idx]] = val
+    return new_results, md
 

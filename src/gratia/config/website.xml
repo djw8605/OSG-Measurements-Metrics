@@ -14,9 +14,9 @@
 
   <class name="GratiaWeb" type="Gratia">
       <sets>
-          <set kind="site" focus="both" name="CMS T2 Sites">Nebraska, UCSD, CIT, GLOW, MIT_CMS, Purdue, UFlorida</set>
+          <set kind="site" focus="both" name="CMS T2 Sites">Nebraska, UCSD, CIT, GLOW, MIT_CMS, Purdue, UFlorida, UERJ, SPRACE</set>
           <set kind="site" focus="both" name="ATLAS T2 Sites">AGLT2, BU_ATLAS_Tier2, IU_OSG, MWT2_IU, MWT2_UC, WT2, OU_OCHEP_SWT2, OU_OSCER_ATLAS, UC_Teraport, UC_ATLAS_MWT2, UTA_SWT2, SWT2_CPB</set>
-          <set kind="vo" focus="both" name="Non-HEP VOs">nanohub,glow,sdss,dteam,ligo,osg,engage,osgedu,tigre,nysgrid,cigi,compbiogrid,des,fmri,gpn,grase,gugrid,i2u2,mariachi,nwicg,sbgrid,star</set>
+          <set kind="vo" focus="both" name="Non-HEP VOs">nanohub,glow,sdss,dteam,ligo,osg,engage,osgedu,tigre,nysgrid,cigi,compbiogrid,des,fmri,gpn,grase,gugrid,i2u2,mariachi,nwicg,sbgrid,star,hcc,nebiogrid</set>
       </sets>
       <attribute name="base_url">/gratia</attribute>
       <attribute name="base_url_noauth">/gratia</attribute>

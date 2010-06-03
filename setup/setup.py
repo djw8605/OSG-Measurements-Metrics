@@ -8,7 +8,7 @@ except:
 from setuptools import setup, find_packages
 
 setup(name="OSG-Measurements-Metrics",
-      version="0.4",
+      version="0.5",
       author="Brian Bockelman",
       author_email="bbockelm@cse.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
