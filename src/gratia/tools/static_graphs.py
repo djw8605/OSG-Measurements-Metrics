@@ -114,7 +114,7 @@ def generate(cp, entry=None):
     utcOffset = cp.getint("General", "UTCOffset")
     suffix = cp.get("General", "Suffix")
     replace = cp.getboolean("General", "Replace")
-
+    generate_hist_graphs = cp.getboolean("General", "GenerateHistoricalGraphs")
     variables = parse_variables(cp)
     
     today_date = datetime.date.today()
@@ -123,8 +123,23 @@ def generate(cp, entry=None):
     time_tuple = time.strptime(start_str, '%Y-%m-%d')
     firstDate = datetime.datetime(*time_tuple[0:3])
     curDate = today
+
     while curDate >= firstDate:
         timestamp = int(curDate.strftime('%s')) + 3600*utcOffset
+        if curDate == today:
+            dest = os.path.join(orig_dest, 'today')
+            try:
+                os.makedirs(dest)
+            except OSError, e:
+                if e.errno != 17:
+                    raise
+            dest = os.path.join(dest, '%s' + suffix)
+            generateImages(cp, timestamp, src, dest, replace=True, \
+                variables=variables, entry=entry)
+        if  not generate_hist_graphs:
+            print "Historical graph parameter not set exiting now...\n"
+            break
+            
         dest = os.path.join(orig_dest, curDate.strftime('%Y/%m/%d'))
         try:
             os.makedirs(dest)
@@ -138,16 +153,6 @@ def generate(cp, entry=None):
                        variables=variables)
         destdir = os.path.join(orig_dest, curDate.strftime('%Y/%m/%d'))
         generate_thumbnails(cp, destdir)
-        if curDate == today:
-            dest = os.path.join(orig_dest, 'today')
-            try:
-                os.makedirs(dest)
-            except OSError, e:
-                if e.errno != 17:
-                    raise
-            dest = os.path.join(dest, '%s' + suffix)
-            generateImages(cp, timestamp, src, dest, replace=True, \
-                variables=variables, entry=entry)
         curDate = curDate - one_day
 
 def parse_variables(cp):
