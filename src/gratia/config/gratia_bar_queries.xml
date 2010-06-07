@@ -1368,6 +1368,27 @@
       </results>
     </query>
 
+    <query name="facility_usage_statistics" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input name="fixed-height">False</input>
+        </inputs>
+        <sql>
+            <filler name="group"> S.SiteName </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+        <results module="gratia.database.metrics" function="usage_statistics">
+            <inputs>
+                <input name="pivot_transform">oim_resource_filter</input>
+            </inputs>
+        </results>
+        <attribute name="title"> OSG Facility Usage Statistics </attribute>
+        <attribute name="pivot_name"> Facility </attribute>
+        <attribute name="column_names"> Average CPUs Occupied </attribute>
+        <attribute name="column_units"/>
+        <attribute name="graph_type"> GratiaHorizontalBar </attribute>
+    </query>
+
     <query name="unique_user_count">
         <inputs>
             <input name="span" type="eval" kind="sql">86400</input>

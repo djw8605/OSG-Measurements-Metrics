@@ -8,6 +8,7 @@ import numpy
 from graphtool.database.query_handler import results_parser, \
     complex_pivot_parser, simple_results_parser
 from query_handler import gip_parser, OIM_to_gratia_mapper
+from graphtool.tools.common import convert_to_datetime
 
 class NMax(object):
 
@@ -594,4 +595,43 @@ def osg_site_size(sql_results, globals=globals(), **kw):
             site, 0) - total_accessible_results.get(site, 0), 0)
 
     return final_results, md
+
+def usage_statistics(sql_results, globals=globals(), **kw):
+    """
+    This data mining function is meant to calculate the current usage of each
+    site, the maximum historical usage, and the mean historical usage.  It is
+    meant to be the results parser class of the facility_usage_statistics graph.
+    """
+    # Query the last 4 months or so of data
+    starttime = convert_to_datetime(kw['starttime'])
+    endtime = convert_to_datetime(kw['endtime'])
+    diff = endtime - starttime
+    span = 86400*diff.days + diff.seconds
+    kw2 = dict(kw)
+    del kw2['results']
+    del kw2['query']
+    del kw2['fixed-height']
+    del kw2['pivot_transform']
+    kw2['span'] = span
+    # cover 4 months (13 weeks)
+    kw2['starttime'] = endtime - datetime.timedelta(7*13, 0) 
+    historical_info, _ = globals['GratiaBarQueries'].facility_hours_bar_smry( \
+        globals=globals, **kw2)
+
+    results, metadata = simple_results_parser(sql_results, globals=globals,
+        **kw)
+    
+    filtered_results = {}
+    for pivot, val in results.items():
+        historical_values = historical_info.get(pivot, {0: val}).values()
+        if historical_values:
+            historical_max = max(historical_values)
+            historical_avg = numpy.average(historical_values)
+        else:
+            historical_max, historical_avg = 0, 0
+        left_error = val - historical_avg
+        right_error = historical_max - val
+        filtered_results[pivot] = (val, left_error, right_error)
+
+    return filtered_results, metadata
 
