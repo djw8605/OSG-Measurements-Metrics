@@ -1266,6 +1266,46 @@
       </results>
     </query>
 
+    <query name="non_hep" base="GratiaGenericQuery.master_summary">
+      <sql>
+        <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_names">Wall Time</attribute>
+      <attribute name="column_units">Hours</attribute>
+      <attribute name="title">Wall Hours per VO for non-HEP VOs</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results module="gratia.database.metrics" function="non_HEP_filter">
+        <inputs>
+          <input name="pivot_transform">oim_vo_filter</input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="non_physics" base="GratiaGenericQuery.master_summary">
+      <sql>
+        <filler name="group"> VO.VOName </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+      </sql>
+      <attribute name="pivot_name">VO</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_names">Wall Time</attribute>
+      <attribute name="column_units">Hours</attribute>
+      <attribute name="title">Wall Hours per VO for non-Physics VOs</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results module="gratia.database.metrics" function="non_physics_filter">
+        <inputs>
+          <input name="pivot_transform">oim_vo_filter</input>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="monthly_science_jobs" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
         <filler name="group"> VO.VOName </filler>
