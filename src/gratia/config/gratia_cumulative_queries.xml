@@ -88,7 +88,7 @@
     <query name="facility_success_cumulative_smry" base="GratiaGenericQuery.jobs_summary_query">
       <sql>
         <filler name="group"> S.SiteName </filler>
-        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+        <filler name="column"> sum(IF(CommonName regexp 'Thain' AND Cores = 1, 8, Cores)*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <results module="graphtool.database.query_handler" function="cumulative_pivot_group_parser">

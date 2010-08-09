@@ -7,9 +7,6 @@ from pkg_resources import resource_filename
 from graphtool.web import WebHost
 import sys
 
-sys.path.append('/home/aguru/gratia')
-sys.path.append('/home/aguru/gratia/src')
-
 
 if 'DBPARAM_LOCATION' not in os.environ:
     os.environ['DBPARAM_LOCATION'] = '/etc/DBParam.xml'
@@ -18,7 +15,7 @@ if 'DBSECURITY_LOCATION' not in os.environ:
 
 
 def main():
-    filename = resource_filename("gratia.config", "website.xml")
+    filename = resource_filename("gratia.config", "website-basic.xml")
     WebHost(file=filename)
     #cherrypy.server.quickstart()
     cherrypy.engine.start() 

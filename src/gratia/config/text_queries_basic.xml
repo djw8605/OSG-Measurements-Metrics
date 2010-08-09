@@ -2,7 +2,9 @@
 
   <import module="gratia.config" data_file="gratia_pie_queries.xml" />
   <import module="gratia.config" data_file="gratia_bar_queries.xml" />
+  <import module="gratia.config" data_file="gratia_transfer_queries.xml" />
   <import module="gratia.config" data_file="gratia_cumulative_queries.xml" />
+  <import module="gratia.config" data_file="gratia_status_queries.xml" />
   <import module="gratia.config" data_file="rsv_basic.xml" />
 
   <import module="graphtool.tools.query_output">XmlGenerator</import>
@@ -14,6 +16,7 @@
     <queryobj> GratiaBarQueries </queryobj>
     <queryobj> GratiaTransferQueries </queryobj>
     <queryobj> GratiaCumulativeQueries </queryobj>
+    <queryobj> GratiaStatusQueries </queryobj>
     <queryobj> GratiaRSVQueries </queryobj>
   </class>
 
@@ -23,6 +26,7 @@
     <queryobj> GratiaBarQueries </queryobj>
     <queryobj> GratiaTransferQueries </queryobj>
     <queryobj> GratiaCumulativeQueries </queryobj>
+    <queryobj> GratiaStatusQueries </queryobj>
     <queryobj> GratiaRSVQueries </queryobj>
   </class>
 

@@ -5,6 +5,7 @@
   <import module="gratia.config" data_file="gratia_bar_queries.xml" />
   <import module="gratia.config" data_file="gratia_transfer_queries.xml" />
   <import module="gratia.config" data_file="gratia_site_queries.xml"/>
+  <import module="gratia.config" data_file="gratia_status_queries.xml" />
   <import module="gratia.config" data_file="gratia_cumulative_queries.xml" />
   <import module="gratia.config" data_file="rsv_basic.xml" />
   <import module="gratia.graphs.gratia_graphs">*</import>
@@ -27,6 +28,11 @@
   <class type="Grapher" name="gratia_cumulative_grapher">
     <attribute name="display_name"> Cumulative Graphs </attribute>
     <queryobj> GratiaCumulativeQueries </queryobj>
+  </class>
+
+  <class type="Grapher" name="gratia_status_grapher">
+    <attribute name="display_name"> Status Graphs </attribute>
+    <queryobj> GratiaStatusQueries </queryobj>
   </class>
 
   <class type="Grapher" name="rsv_basic_grapher">
