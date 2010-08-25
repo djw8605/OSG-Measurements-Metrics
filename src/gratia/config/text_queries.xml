@@ -20,7 +20,7 @@
   <import module="graphtool.tools.csv_output">CsvGenerator</import>
 
   <class type="XmlGenerator" name="query_xml">
-    <attribute name="timeout">600</attribute>
+    <attribute name="timeout">900</attribute>
     <queryobj> GratiaStatusQueries </queryobj>
     <queryobj> GratiaEventsQueries </queryobj>
     <queryobj> GratiaDataQueries </queryobj>
