@@ -44,9 +44,33 @@ def main():
 
     # Read the CE entries from the BDII.    
     entries = read_bdii(cp, query="(&(objectClass=GlueCE))")
-        
+    
     cluster_info = create_count_dict(entries)
-    sc_info = sub_cluster_info(cluster_info.keys(), cp)
+
+    # Map from the cluster hostname to the unique ID
+    id_to_hostname = {}
+    for entry in entries:
+        fk = entry.glue['ForeignKey']
+        info = fk.split("=", 1)
+        if len(info) != 2:
+            continue
+        if info[0] != "GlueClusterUniqueID":
+            print >> sys.stderr, "Entry has unknown cluster FK: %s" % entry
+            continue
+        id = info[1]
+        id_to_hostname[id] = entry.glue['CEHostingCluster']
+
+    sc_info = sub_cluster_info(id_to_hostname.keys(), cp)
+
+    # For each unique cluster ID, map to one of the cluster hostnames
+    new_sc_info = {}
+    for id, info in sc_info.items():
+        if id not in id_to_hostname:
+            print >> sys.stderr, "ID %s has no matching cluster hostname." % id
+            continue
+        new_sc_info[id_to_hostname[id]] = info
+    sc_info = new_sc_info
+
     specint = get_cpu_normalizations()
 
     now = datetime.datetime.now()
@@ -74,6 +98,8 @@ def main():
 
     for cluster, cpu in cluster_info.items():
         print "* Cluster: ", cluster
+        if cluster not in sc_info:
+            continue
         correct_sc_info(cluster, cpu, sc_info, specint)
         # Print out SC info.
         if len(sc_info[cluster]) > 0:
