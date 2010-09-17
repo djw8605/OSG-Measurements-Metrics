@@ -456,7 +456,8 @@ class WLCGReporter(Authenticate):
             rsv_data):
         info = gratia_interval(year, month)
         print info
-        gip_data, dummy = self.globals['GIPQueries'].subcluster_interval(**info)
+        #gip_data, dummy = self.globals['GIPQueries'].subcluster_interval(**info)
+        gip_data, dummy = self.globals['StatusQueries'].status_subcluster_interval(**info)
         cur = info['starttime']
         end = min(info['endtime'], datetime.datetime.today())
         wlcg_sites = self.get_wlcg_sites(apel_data)
@@ -490,7 +491,7 @@ class WLCGReporter(Authenticate):
         for key, val in gip_data.items():
             #print key
             site = key[0]
-            date = datetime.datetime(*time.strptime(key[3], '%Y-%m-%d')[:3])
+            date = datetime.datetime(*time.strptime(str(key[3]), '%Y-%m-%d')[:3])
             if site not in wlcg_sites:
                 continue
             pledge_vo = None
