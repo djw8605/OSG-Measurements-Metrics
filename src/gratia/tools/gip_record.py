@@ -9,8 +9,6 @@ import socket
 import logging
 import datetime
 
-import MySQLdb
-
 from gratia.gip.ldap import query_bdii, read_ldap, config_file, read_bdii
 from gratia.gip.common import cp_get, getGipDBConn, findCE, join_FK
 
@@ -34,238 +32,6 @@ import ComputeElement
 import ComputeElementRecord
 import StorageElement
 import StorageElementRecord
-
-insert_vo_info = """
-insert into vo_info values
-( %(time)s,
-  %(runningJobs)s,
-  %(totalCpus)s,
-  %(freeJobSlots)s,
-  %(maxTotalJobs)s,
-  %(totalJobs)s,
-  %(status)s,
-  %(lrmsType)s,
-  %(lrmsVersion)s,
-  %(vo)s,
-  %(assignedJobSlots)s,
-  %(freeCpus)s,
-  %(waitingJobs)s,
-  %(maxRunningJobs)s,
-  %(hostName)s,
-  %(queue)s
-)
-"""
-
-insert_vo2 = """
-insert into vo_info values
-( %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s
-)
-"""
-
-insert_ce2 = """
-insert into ce_info values
-( %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s,
-  %s
-)
-"""
-
-insert_ce_info = """
-insert into ce_info values (
-  %(time)s,
-  %(runningJobs)s,
-  %(totalCpus)s,
-  %(lrmsType)s,
-  %(lrmsVersion)s,
-  %(freeCpus)s,
-  %(hostName)s,
-  %(waitingJobs)s
-)
-"""
-
-insert_site_info = """
-replace into site_info values( %(site)s, %(cename)s)
-"""
-
-insert_se_info = """
-replace into se_info(date, se, site, total, free) 
-    values (%(date)s, %(se)s, %(site)s, %(total)s, %(free)s)
-"""
-
-compact_vo = """
-select 
-    from_unixtime(truncate(unix_timestamp(time)/%(span)s, 0)*%(span)s) as unixtimestamp, 
-    avg(runningJobs), avg(totalCpus), avg(freeJobSlots), avg(maxTotalJobs), 
-    avg(totalJobs), status, lrmsType, lrmsVersion, vo, avg(assignedJobSlots), 
-    avg(freeCpus), avg(waitingJobs), avg(maxRunningJobs), hostName, queue 
-from 
-    vo_info 
-where 
-    time >= %(starttime)s AND
-    time < %(endtime)s
-group by 
-    unixtimestamp, status, lrmsType, 
-    lrmsVersion, vo, hostName, queue
-"""
-
-compact_ce = """
-select
-    from_unixtime(truncate(unix_timestamp(time)/%(span)s, 0)*%(span)s) as unixtimestamp,
-    avg(runningJobs), avg(totalCpus), lrmsType, lrmsVersion, avg(freeCpus),
-    hostName, avg(waitingJobs)
-from
-    ce_info
-where
-    time >= %(starttime)s AND
-    time < %(endtime)s
-group by
-    unixtimestamp, lrmsType, lrmsVersion, hostName
-"""
-
-drop_compact = """
-delete from vo_info
-where
-    time > %(starttime)s AND
-    time <= %(endtime)s
-"""
-
-drop_compact_ce = """
-delete from ce_info
-where
-    time > %(starttime)s AND
-    time <= %(endtime)s
-"""
-
-select_compactor_info = """
-select size, last from compactor
-"""
-
-update_compactor_info = """
-update compactor set last=%s where size=%s
-"""
-
-def compactor(conn, cp):
-    c_30m = cp.getint("gip_db", "compact_30m")
-    c_hourly = cp.getint("gip_db", "compact_hourly")
-    c_daily = cp.getint("gip_db", "compact_daily")
-    curs = conn.cursor()
-    curs.execute(select_compactor_info)
-    last_compactor = curs.fetchall()
-    l_hourly = 0
-    l_daily = 0
-    l_30m = 0
-    l_ce_hourly = 0
-    l_ce_daily = 0
-    l_ce_30m = 0
-    for row in last_compactor:
-        if row[0] == 'hourly':
-            l_hourly = row[1]
-        elif row[0] == 'daily':
-            l_daily = row[1]
-        elif row[0] == '30m':
-            l_30m = row[1]
-        elif row[0] == 'ce_hourly':
-            l_ce_hourly = row[1]
-        elif row[0] == 'ce_daily':
-            l_ce_daily = row[1]
-        elif row[0] == 'ce_30m':
-            l_ce_30m = row[1]
-    now = datetime.datetime.now()
-    n_hourly = datetime.datetime(now.year, now.month, now.day, now.hour)
-    n_hourly -= c_hourly*datetime.timedelta(0, 3600)
-    n_daily = datetime.datetime(now.year, now.month, now.day)
-    n_daily -= c_daily*datetime.timedelta(1, 0)
-    t = int(now.minute/30.0)*30
-    n_30m = datetime.datetime(now.year, now.month, now.day, now.hour, t)
-    n_30m -= c_30m*datetime.timedelta(0, 1800)
-
-    info = {'span': 1800,
-            'endtime': n_30m,
-            'starttime': l_30m,
-           }
-    curs.execute(compact_vo, info)
-    rows = curs.fetchall()
-    #print l_30m, n_30m
-    #print len(rows)
-    curs.execute(drop_compact, info)
-    for row in rows:
-        curs.execute(insert_vo2, row)
-    curs.execute(update_compactor_info, (n_30m, '30m'))
-    conn.commit()
-    #return
-
-    info['starttime'] = l_ce_30m
-    #info['endtime'] = datetime.datetime(2008, 3, 14)
-    curs.execute(compact_ce, info)
-    rows = curs.fetchall()
-    curs.execute(drop_compact_ce, info)
-    for row in rows:
-        curs.execute(insert_ce2, row)
-    curs.execute(update_compactor_info, (n_30m, 'ce_30m'))
-    conn.commit()
-
-    info = {'span': 3600,
-            'endtime': n_hourly,
-            'starttime': l_hourly
-           }
-    curs.execute(compact_vo, info)
-    rows = curs.fetchall()
-    curs.execute(drop_compact, info)
-    for row in rows:
-        curs.execute(insert_vo2, row)
-    curs.execute(update_compactor_info, (n_hourly, 'hourly'))
-    conn.commit()
-
-    info['starttime'] = l_ce_hourly
-    curs.execute(compact_ce, info)
-    rows = curs.fetchall()
-    curs.execute(drop_compact_ce, info)
-    for row in rows:
-        curs.execute(insert_ce2, row)
-    curs.execute(update_compactor_info, (n_hourly, 'ce_hourly'))
-    conn.commit()
-
-    curs = conn.cursor()
-    info = {'span': 86400,
-            'endtime': n_daily,
-            'starttime': l_daily,
-           }
-    curs.execute(compact_vo, info)
-    rows = curs.fetchall()
-    curs.execute(drop_compact, info)
-    for row in rows:
-        curs.execute(insert_vo2, row)
-    curs.execute(update_compactor_info, (n_daily, 'daily'))
-
-    info['starttime'] = l_ce_daily
-    curs.execute(compact_ce, info)
-    rows = curs.fetchall()
-    curs.execute(drop_compact_ce, info)
-    for row in rows:
-        curs.execute(insert_ce2, row)
-    curs.execute(update_compactor_info, (n_daily, 'ce_daily'))
-    conn.commit()
-    return
 
 def do_site_info(cp):
     ce_entries = read_bdii(cp, "(objectClass=GlueCE)")
@@ -297,21 +63,11 @@ def do_site_info(cp):
     site_map = {}
     for site in site_entries:
         site_map[site.glue['SiteUniqueID']] = site.glue['SiteName']
-    conn = getGipDBConn(cp)
-    curs = conn.cursor()
-    for ce, cluster in ce_map.items():
-        my_cluster = cluster_map.get(cluster, None)
-        my_site = site_map.get(my_cluster, None)
-        if my_site:
-            curs.execute(insert_site_info, {'site': my_site, 'cename': ce})
-    conn.commit()
     return ce_map2, cluster_map, site_map
 
 def do_se_info(cp):
     site_entries = read_bdii(cp, "(objectClass=GlueSite)")
     se_entries = read_bdii(cp, "(objectClass=GlueSE)")
-    conn = getGipDBConn(cp)
-    curs = conn.cursor()
     today = datetime.date.today()
     time_now = time.time()
 
@@ -330,8 +86,6 @@ def do_se_info(cp):
         except:
             log.warn("Unable to parse attributes:\n%s" % entry)
             continue
-        curs.execute(insert_se_info, {'date': today, 'site': site_name, 'se': \
-            se_name, 'total': total, 'free': free})
 
         if total == 0 and free == 0:
             continue
@@ -362,8 +116,6 @@ def do_se_info(cp):
         ser.FreeSpace(free*1000**3)
         ser.UsedSpace((total-free)*1000**3)
         se_list.append(ser)
-
-    conn.commit()
 
     sendToGratia(gratia_info)
 
@@ -447,12 +199,6 @@ def do_ce_info(cp, ce_entries):
         add_info(info, cluster, 'runningJobs', running)
         add_info(info, cluster, 'waitingJobs', waiting)
 
-    conn = getGipDBConn(cp)
-    curs = conn.cursor()
-    for cluster, dbinfo in info.items():
-        curs.execute(insert_ce_info, dbinfo)
-    conn.commit()
-
 def main():
     cp = None
     for filename in ["$HOME/dbinfo/gip_password.conf",
@@ -468,8 +214,6 @@ def main():
     vo_entries = read_ldap(fp)
     fp = query_bdii(cp, "(objectClass=GlueCE)")
     ce_entries = read_ldap(fp)
-    conn = getGipDBConn(cp)
-    curs = conn.cursor()
     now = datetime.datetime.now()
     time_now = time.time()
 
@@ -509,7 +253,6 @@ def main():
             log.exception(ke)
             log.warn(ce_entry)
             continue
-        curs.execute(insert_vo_info, info)
 
         ce_unique_id = ce_entry.glue['CEUniqueID']
 
@@ -564,8 +307,6 @@ def main():
 
         ce_list.append(cer)
 
-    conn.commit()
-    compactor(conn, cp)
     do_ce_info(cp, ce_entries)
     do_se_info(cp)
 
