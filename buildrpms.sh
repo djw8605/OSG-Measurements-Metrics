@@ -6,14 +6,14 @@ rm -rf setup.py setup.cfg
 cp setup/setup_Db.py setup.py
 cp setup/setup_Db.cfg setup.cfg
 
-python setup.py bdist_rpm
+python setup.py bdist_rpm --obsoletes="OSG-Measurements-Metrics"
 
 echo "Building Measurements-Metrics-Web rpm"
 rm -rf setup.py setup.cfg
 cp setup/setup_Web.py setup.py
 cp setup/setup_Web.cfg setup.cfg
 
-python setup.py bdist_rpm
+python setup.py bdist_rpm --obsoletes="OSG-Measurements-Metrics"
 
 rm -rf setup.py setup.cfg
 
