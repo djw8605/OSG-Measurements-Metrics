@@ -2,7 +2,8 @@
 01-59/10 * * * *  root gip_record
 01 0-23/8 * * *   root DBPARAM_LOCATION=/etc/DBParam.xml gratia_voms_query
 01 0 * * *        root gip_subcluster_record
-59 0-23/8 * * *   rooot cms_storage_record
+59 0-23/8 * * *   root cms_storage_record
 #01 01 1,10,20 * * root wlcg_pledge_email
 #01 04 * * *       root ligo_summary
 #03 04 * * *       root cms_summary
+20 */2 * * *      root DBPARAM_LOCATION=/etc/DBParam.xml rsv_calc
