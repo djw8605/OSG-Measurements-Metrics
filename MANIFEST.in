@@ -1,1 +1,4 @@
 include setuptools-0.6c11-py2.4.egg
+include config/static_graphs
+include config/osg_graphs.conf
+include config/GratiaStaticGraphs.cron

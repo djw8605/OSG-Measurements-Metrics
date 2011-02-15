@@ -114,7 +114,10 @@ def generate(cp, entry=None):
     utcOffset = cp.getint("General", "UTCOffset")
     suffix = cp.get("General", "Suffix")
     replace = cp.getboolean("General", "Replace")
-    generate_hist_graphs = cp.getboolean("General", "GenerateHistoricalGraphs")
+    try:
+        generate_hist_graphs = cp.getboolean("General", "GenerateHistoricalGraphs")
+    except:
+        generate_hist_graphs = False
     variables = parse_variables(cp)
     
     today_date = datetime.date.today()
@@ -125,6 +128,8 @@ def generate(cp, entry=None):
     curDate = today
 
     while curDate >= firstDate:
+        if (today - curDate).days > 30:
+            continue
         timestamp = int(curDate.strftime('%s')) + 3600*utcOffset
         if curDate == today:
             dest = os.path.join(orig_dest, 'today')
@@ -213,15 +218,26 @@ def main():
     for config_file in config_files:
         if not os.path.exists(config_file):
             print >> sys.stderr, "Config file %s not found." % config_file
-            sys.exit(-1)
+            sys.exit(1)
+
+    if not config_files:
+        config_files = ["/etc/osg_graphs.conf"]
 
     cp = ConfigParser.ConfigParser()
-    try:
-        cp.readfp(resource_stream("gratia.config", "static_generator.cfg"))
-    except IOError:
-        pass
     cp.read(config_files)
-    
+   
+    try:
+        if not cp.getboolean("General", "Enabled"):
+            print "Config file %s does not have Enabled=true in [General]." % \
+                ", ".join(config_files)
+            print "Exiting 0 as requested."
+            sys.exit(0)
+    except SystemExit:
+        raise
+    except:
+        print "Unable to determine if config file %s has been enabled." % ", ".join(config_files)
+        sys.exit(1)
+ 
     if 'entry' in kwArgs:
         generate(cp, entry=kwArgs['entry'])
     else:

@@ -1,0 +1,1 @@
+01 0-23/8 * * * nobody static_graphs -config /etc/osg_graphs.conf > /dev/null
