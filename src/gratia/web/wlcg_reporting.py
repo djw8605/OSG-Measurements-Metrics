@@ -7,6 +7,7 @@ import urllib
 import urllib2
 import calendar
 import datetime
+import json
 from xml.dom.minidom import parse
 from ConfigParser import ConfigParser
 
@@ -16,6 +17,7 @@ from pkg_resources import resource_stream
 from graphtool.base.xml_config import XmlConfig
 from auth import Authenticate
 from gratia.gip.cpu_normalizations import get_cpu_normalizations
+from wlcg_json_data import WLCGWebUtil
 
 def gratia_interval(year, month):
     info = {}
@@ -36,12 +38,12 @@ class WLCGReporter(Authenticate):
         for row in apel_data:
             if str(row['ExecutingSite']) != site:
                 continue
-            norm = float(row['NormFactor'])
+            norm = float(row['HS06Factor'])
             if row['LCGUserVO'].find(VOMoU) >= 0:
-                site_info['voNormWCT'] += int(row['NormSumWCT'])
-                site_info['voNormCPU'] += int(row['NormSumCPU'])
-            site_info['wlcgNormWCT'] += int(row['NormSumWCT'])
-            site_info['wlcgNormCPU'] += int(row['NormSumCPU'])
+                site_info['voNormWCT'] += int(row['HS06_WCT'])
+                site_info['voNormCPU'] += int(row['HS06_CPU'])
+            site_info['wlcgNormWCT'] += int(row['HS06_WCT'])
+            site_info['wlcgNormCPU'] += int(row['HS06_CPU'])
             site_info['norm'] = norm
         if norm:
             site_info['totalNormWCT'] += int(norm * gratia_data.get(site, 0))
@@ -49,7 +51,7 @@ class WLCGReporter(Authenticate):
                
 
     def make_pledge_format(self, year, month):
-        atlas_pledge, cms_pledge = self.wlcg_pledges(month, year)
+	atlas_pledge, cms_pledge,atlas_dict, cms_dict=WLCGWebUtil().wlcg_pledges(month, year)
         results = []
         for fed, info in atlas_pledge.items():
              for site in info['site_names']:
@@ -60,12 +62,6 @@ class WLCGReporter(Authenticate):
                  results.append((fed, info['pledge'], info['pledge'], 'cms',
                      '', fed, site))
         return results
-
-    def make_pledge_format_old(self, year, month):
-        lines = resource_stream('gratia.config', 'pledges.csv').read().\
-            splitlines()
-        lines = lines[1:]
-        return [i.split('\t')[:7] for i in lines]
 
     def t2_pledges(self, apel_data, year, month):
         # Get Gratia data
@@ -111,57 +107,6 @@ class WLCGReporter(Authenticate):
             pledge_info[vo] = refined_vo_info
         return pledge_info
 
-    # New pledge parsing mechanism - take it from WLCG web pages
-    def parse_json(self, input):
-        return eval(input, {'null': None}, {})
-        
-    def wlcg_pledges(self, month, year):
-        url = self.metadata.get('pledge_url', 'http://gridops.cern.ch/mou/accounting/json')
-        fp = urllib2.urlopen(url)
-        data = self.parse_json(fp.read())
-        current_datetime = datetime.datetime(year, month, 1, 0, 0, 0)
-        cms_pledge = {}
-        atlas_pledge = {}
-        for account_info in data:
-            site_names = [i['name'] for i in account_info['sites']]
-            accounting_name = account_info['accounting_name']
-            commitments = [i['vo'] for i in account_info['vo'] if i['commitment'] \
-                == 'MoU'] 
-            tier = account_info['tier']
-            if tier == 1 or tier == 0:
-                continue
-            max_endtime = datetime.datetime(1970, 1, 1)
-            max_pledge = None
-            my_pledge = None
-            for pledge in account_info['pledges']:
-                if pledge['units'] != 'kSI2K':
-                    continue
-                starttime = datetime.datetime(*time.strptime(pledge['start'], \
-                    "%Y-%m-%d")[:6])
-                endtime = datetime.datetime(*time.strptime(pledge['end'], \
-                    "%Y-%m-%d")[:6])
-                if endtime > max_endtime:
-                    max_endtime = endtime
-                    max_pledge = pledge
-                if starttime <= current_datetime and endtime >= current_datetime:
-                    my_pledge = pledge
-                    break
-            if my_pledge == None:
-                my_pledge = max_pledge
-            if my_pledge == None:
-                continue
-            try:
-                amt = int(my_pledge['amount'])
-                if 'ATLAS' in commitments:
-                    atlas_pledge[accounting_name] = {'pledge': amt,
-                        'site_names': site_names}
-                if 'CMS' in commitments:
-                    cms_pledge[accounting_name] = {'pledge': amt,
-                        'site_names': site_names}
-            except:
-                continue
-
-        return atlas_pledge, cms_pledge
 
     def site_normalization(self):
         data = {}
@@ -228,7 +173,7 @@ class WLCGReporter(Authenticate):
     def get_apel_data(self, year=datetime.datetime.now().year, month=datetime.datetime.now().month):
         year = int(year)
         month = int(month)
-        apel_url = self.metadata.get('apel_url', 'http://gratia-osg-prod-reports.opensciencegrid.org/gratia-data/interfaces/apel-lcg/%i-%02i.OSG_DATA.xml'\
+        apel_url = self.metadata.get('apel_url', 'http://gratia-osg-prod-reports.opensciencegrid.org/gratia-data/interfaces/apel-lcg/%i-%02i.HS06_OSG_DATA.xml'\
             % (year, month))
         xmldoc = urllib2.urlopen(apel_url)
         dom = parse(xmldoc)
@@ -304,7 +249,7 @@ class WLCGReporter(Authenticate):
         for row in apel_data:
             if row['ExecutingSite'] not in wlcg_sites:
                 wlcg_sites.append(row['ExecutingSite'])
-                wlcg_norm[row['ExecutingSite']] = row['NormFactor']
+                wlcg_norm[row['ExecutingSite']] = row['HS06Factor']
 
         # Determine site normalization:
         site_norm = {}
@@ -327,10 +272,10 @@ class WLCGReporter(Authenticate):
             for cores, si2k in info:
                 total_cores += cores
                 total_si2k += si2k*cores
-            gipnorm = int(total_si2k / total_cores) / 1000.
+            gipnorm = int(total_si2k / total_cores)*4 / 1000.#convert to HEPSPEC, no data for HEPSPEC Benchmarks in DB
             wlcgnorm = float(wlcg_norm[site])
             diff = int((gipnorm - wlcgnorm)/wlcgnorm * 100)
-            site_norm[site] = (gipnorm, wlcgnorm, diff, int(total_si2k/1000.))
+            site_norm[site] = (gipnorm, wlcgnorm, diff, int((4*total_si2k)/1000.))#convert to HEPSPEC,
 
         # Remove non-WLCG sites from the GIP data.
         new_subclusters = {}
@@ -456,8 +401,7 @@ class WLCGReporter(Authenticate):
             rsv_data):
         info = gratia_interval(year, month)
         print info
-        #gip_data, dummy = self.globals['GIPQueries'].subcluster_interval(**info)
-        gip_data, dummy = self.globals['StatusQueries'].status_subcluster_interval(**info)
+        gip_data, dummy = self.globals['GratiaStatusQueries'].status_subcluster_interval(**info)
         cur = info['starttime']
         end = min(info['endtime'], datetime.datetime.today())
         wlcg_sites = self.get_wlcg_sites(apel_data)
@@ -491,7 +435,11 @@ class WLCGReporter(Authenticate):
         for key, val in gip_data.items():
             #print key
             site = key[0]
-            date = datetime.datetime(*time.strptime(str(key[3]), '%Y-%m-%d')[:3])
+            try:
+                date = datetime.datetime(*time.strptime(str(key[3]), '%Y-%m-%d')[:3])
+            except:
+                raise
+                raise Exception("Invalid date: %s" % key[3])
             if site not in wlcg_sites:
                 continue
             pledge_vo = None

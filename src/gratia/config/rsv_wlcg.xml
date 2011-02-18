@@ -23,7 +23,7 @@
         </inputs>
         <sql>
         SELECT OIMR.Name, OIMM.name, from_unixtime(RSVM.timestamp), CASE WHEN OIMMS.metric_status_description = "WARNING" THEN "OK" ELSE OIMMS.metric_status_description END
-        FROM rsvprocess.metricdata RSVM FORCE INDEX (timestamp)
+        FROM rsvextra.metricdata RSVM FORCE INDEX (timestamp)
         JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
         JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
         JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
@@ -62,58 +62,28 @@
             <input name="metric" kind="sql">.*</input>
         </inputs>
         <sql>
-       SELECT 
-            OIMR_O.Name,
-            CASE 
-                WHEN RSVM_metric_id = 9999999 THEN "Maintenance" 
-                ELSE OIMM_O.name END as OIMM_name,  
-            start_time,
-            end_time,
-            CASE 
-                WHEN m_status_id = 9999999 THEN "MAINTENANCE" 
-                WHEN OIMMS.description = "WARNING" THEN "OK" 
-                ELSE OIMMS.description END as   OIMMS_description
-        FROM
-        (
-            SELECT
-                from_unixtime(RSVM.timestamp) as start_time, 
-                null as end_time,
-                RSVM.id as unique_id,
-                RSVM.metric_status_id as m_status_id,
-                RSVM.resource_id as resource_id,
-                RSVM.metric_id as RSVM_metric_id 
-            FROM rsvprocess.metricdata RSVM FORCE INDEX (timestamp) 
-                JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id 
-                JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id 
-                JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id 
-            WHERE 
-                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND 
-                RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND 
-                OIMR.fqdn regexp :facility AND
-                OIMM.name regexp :metric
-                 
-             UNION 
-             
-            SELECT
-                RD.start_time  as start_time, 
-                RD.end_time as end_time, 
-                RD.id as unique_id,
-                9999999 as m_status_id,
-                RD.resource_id as resource_id,
-                9999999 as RSVM_metric_id 
-            FROM oim.resource_downtime RD 
-                JOIN oim.resource OIMR on OIMR.id = RD.resource_id 
-                JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id 
-                WHERE 
-                     OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND 
-                     ((RD.end_time &gt;= from_unixtime(:starttime) AND RD.end_time &lt; from_unixtime(:endtime)) OR 
-                     (RD.start_time &gt;= from_unixtime(:starttime) AND RD.start_time &lt; from_unixtime(:endtime)) OR 
-                     (RD.start_time &lt;= from_unixtime(:starttime) AND RD.end_time &gt;= from_unixtime(:endtime))) AND 
-                     OIMR.fqdn regexp :facility 
-        ) as MERGEDTAB
-        LEFT JOIN oim.metric_status OIMMS on MERGEDTAB.m_status_id = OIMMS.id   
-        LEFT JOIN oim.resource OIMR_O on MERGEDTAB.resource_id=OIMR_O.id 
-        LEFT JOIN oim.metric OIMM_O on MERGEDTAB.RSVM_metric_id = OIMM_O.id
+        SELECT OIMR.Name, OIMM.name, from_unixtime(RSVM.timestamp), null, CASE WHEN OIMMS.description = "WARNING" THEN "OK" ELSE OIMMS.description END
+            FROM rsvextra.metricdata RSVM FORCE INDEX (timestamp)
+            JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
+            JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
+            JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
+            JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
+            WHERE
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
+            RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
+            OIMR.fqdn regexp :facility AND
+            OIMM.name regexp :metric
+        UNION
+        SELECT OIMR.Name, "Maintenance", RD.start_time, RD.end_time, "MAINTENANCE"
+            FROM oim.resource_downtime RD
+            JOIN oim.resource OIMR on OIMR.id = RD.resource_id
+            JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
+            WHERE
+                OIMR.active=1 AND OIMR.disable=0 AND OIMRG.osg_grid_type_id=1 AND
+                ((RD.end_time &gt;= from_unixtime(:starttime) AND RD.end_time &lt; from_unixtime(:endtime)) OR
+                (RD.start_time &gt;= from_unixtime(:starttime) AND RD.start_time &lt; from_unixtime(:endtime)) OR
+                (RD.start_time &lt;= from_unixtime(:starttime) AND RD.end_time &gt;= from_unixtime(:endtime))) AND
+                OIMR.fqdn regexp :facility
         </sql>
         <results module="gratia.database.query_handler" function="wlcg_availability"/>
         <attribute name="pivot_name">Site</attribute>
@@ -179,7 +149,7 @@
         <sql>
         SELECT OIMR.Name as SiteName, OIMM.name, from_unixtime(foo.Timestamp), CASE WHEN OIMMS.description = "WARNING" THEN "OK" ELSE OIMMS.description END
         FROM (SELECT OIMR.id AS resource_id, OIMM.id as metric_id, max(RSVM.timestamp) AS Timestamp
-              FROM rsvprocess.metricdata RSVM FORCE INDEX (timestamp)
+              FROM rsvextra.metricdata RSVM FORCE INDEX (timestamp)
 	      JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
               JOIN oim.resource OIMR on OIMR.id = RSVM.resource_id
               WHERE
@@ -188,7 +158,7 @@
                   OIMR.fqdn regexp :facility AND
                   OIMM.name regexp :metric
               GROUP BY OIMR.fqdn, OIMM.name) AS foo
-        JOIN rsvprocess.metricdata RSVM ON RSVM.resource_id=foo.resource_id AND RSVM.metric_id=foo.metric_id AND RSVM.timestamp=foo.timestamp
+        JOIN rsvextra.metricdata RSVM ON RSVM.resource_id=foo.resource_id AND RSVM.metric_id=foo.metric_id AND RSVM.timestamp=foo.timestamp
         JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
         JOIN oim.resource_group OIMRG on OIMR.resource_group_id= OIMRG.id
         JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id

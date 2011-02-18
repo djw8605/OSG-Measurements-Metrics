@@ -6,17 +6,18 @@ import urllib
 import urllib2
 import datetime
 import calendar
+import json
 
 from xml.dom.minidom import parse
 
 import cherrypy
 from pkg_resources import resource_stream
-
 from auth import Authenticate
-
 from gratia.database.metrics import NormalizationConstants
+from wlcg_json_data import WLCGWebUtil
 
 class JOTReporter(Authenticate):
+
 
     def uslhc_table(self, month=None, year=None, **kw):
         data = dict(kw)
@@ -81,6 +82,7 @@ class JOTReporter(Authenticate):
         #    avail_summary_monthly(**info)[0]
         gv_data = self.get_gridview(month, year, federations)
 
+	data['mou']={}
         data['reliability'] = {}
         data['availability'] = {}
         data['cpu'] = {}
@@ -89,9 +91,13 @@ class JOTReporter(Authenticate):
         data['lhc_cpu'] = {}
         data['lhc_wall'] = {}
         days_in_month =  calendar.monthrange(year, month)[1]
-        data['mou'] = self.pledges(month, year)
-        for key, val in data['mou'].items():
-            data['mou'][key] = int(days_in_month*.6*24*val)
+	atlas_pledge, cms_pledge,atlas_dict, cms_dict=WLCGWebUtil().wlcg_pledges(month, year)
+        #data['mou'] = self.pledges(month, year)
+	#int(days_in_month*.6*24*val)
+        for key in atlas_pledge:
+            data['mou'][key] = days_in_month*.6*24*int(atlas_pledge[key]['pledge'])
+        for key in cms_pledge:
+            data['mou'][key] = days_in_month*.6*24*int(cms_pledge[key]['pledge'])
         for resource, fed in federations.items():
             print "Resource %s associated with federation %s." % (resource, fed)
             #data['reliability'].setdefault(fed, 0)
@@ -119,9 +125,9 @@ class JOTReporter(Authenticate):
         all_feds = sets.Set(federations.values())
         for fed in all_feds:
             # TODO: OIM should provide ownership info.
-            if fed.startswith('T2_'):
+            if cms_dict.has_key(fed):
                 data['cms_feds'].append(fed)
-            elif fed.startswith('US-') and fed.find('BNL') < 0:
+            if atlas_dict.has_key(fed):
                 data['atlas_feds'].append(fed)
             data['availability'][fed] = gv_data.get(fed, [0, 0])[1]
             data['reliability'][fed] = gv_data.get(fed, [0, 0])[0]
@@ -148,76 +154,10 @@ class JOTReporter(Authenticate):
         endtime = datetime.datetime(next_year, next_month, 1, 0, 0, 0)
         return starttime, endtime, month, year
 
-#    def pledges(self, month, year):
-#        lines = resource_stream('gratia.config', 'pledges.csv').read().splitlines()
-#        pledge_info = {}
-#        # Pop off the headers
-#        lines = lines[1:]
-#        for line in lines:
-#            fed, pledge07, pledge08, VOMoU, VOaddl, accounting, site \
-#                = line.split('\t')[:7]
-#            if accounting != '':
-#                my_accounting = accounting
-#            if pledge07 != '':
-#                my_pledge07 = pledge07
-#            if pledge08 != '':
-#                my_pledge08 = pledge08
-#            fed_pledge = pledge_info.setdefault(accounting, 0)
-#            if (year == 2008 and month >= 4) or year > 2008:
-#                pledge_info[accounting] = my_pledge08
-#            else:
-#                pledge_info[accounting] = my_pledge07
-#            try:
-#                pledge_info[accounting] = int(pledge_info[accounting])
-#            except:
-#                del pledge_info[accounting]
-#        return pledge_info
 
-    # New pledge parsing mechanism - take it from WLCG web pages
-    def parse_json(self, input):
-        return eval(input, {'null': None}, {})
-
-    def pledges(self, month, year):
-        url = self.metadata.get('pledge_url', 'http://gridops.cern.ch/mou/accounting/json')
-        fp = urllib2.urlopen(url)
-        data = self.parse_json(fp.read())
-        site_pledge = {}
-        current_datetime = datetime.datetime(year, month, 1, 0, 0, 0)
-        for account_info in data:
-            site_names = [i['name'] for i in account_info['sites']]
-            accounting_name = account_info['accounting_name']
-            commitments = [i['vo'] for i in account_info['vo'] if i['commitment'] \
-                == 'MoU']
-            tier = account_info['tier']
-            max_endtime = datetime.datetime(1970, 1, 1)
-            max_pledge = None
-            my_pledge = None
-            for pledge in account_info['pledges']:
-                if pledge['units'] != 'kSI2K':
-                    continue
-                starttime = datetime.datetime(*time.strptime(pledge['start'], \
-                    "%Y-%m-%d")[:6])
-                endtime = datetime.datetime(*time.strptime(pledge['end'], \
-                    "%Y-%m-%d")[:6])
-                if endtime > max_endtime:
-                    max_endtime = endtime
-                    max_pledge = pledge
-                if starttime <= current_datetime and endtime >= current_datetime:
-                    my_pledge = pledge
-                    break
-            if my_pledge == None:
-                my_pledge = max_pledge
-            if my_pledge == None:
-                continue
-            try:
-                site_pledge[accounting_name] = int(my_pledge['amount'])
-            except:
-                continue
-
-        return site_pledge
 
     def get_apel_data_jot(self, month, year):
-        apel_url = self.metadata.get('apel_url', 'http://gratia-osg-prod-reports.opensciencegrid.org/gratia-data/interfaces/apel-lcg/%i-%02i.OSG_DATA.xml'\
+        apel_url = self.metadata.get('apel_url', 'http://gratia-osg-prod-reports.opensciencegrid.org/gratia-data/interfaces/apel-lcg/%i-%02i.HS06_OSG_DATA.xml'\
             % (year, month))
         xmldoc = urllib2.urlopen(apel_url)
         dom = parse(xmldoc)
@@ -266,6 +206,8 @@ class JOTReporter(Authenticate):
         for site_dom in dom.getElementsByTagName('Site'):
             name=site_dom.getAttribute('name')
             name = name.upper()
+            if name=="IU_OSG":
+                continue
             gridview_data.setdefault(name, [0, 0])
             val = None
             for value_dom in site_dom.getElementsByTagName('availability'):
@@ -294,7 +236,10 @@ class JOTReporter(Authenticate):
 
         fed_data = {}
         for resource, fed in federations.items():
+            print "FED = %s "%(fed)
             for gv_resource, data in gridview_data.items():
+              print "FED : %s, gv_resource=%s, resource=%s" %(fed, gv_resource, resource)
+              try:
                 if gv_resource == resource.upper():
                     val = fed_data.setdefault(fed, [0., 0., 0., 0.])
                     val[2] += 1
@@ -302,6 +247,8 @@ class JOTReporter(Authenticate):
                     if data[0] != None and data[0] >= 0:
                         val[0] += data[0]
                         val[3] += 1
+              except:
+                print "ERROR FED : %s, gv_resource=%s, resource=%s" %(fed, gv_resource, resource)
         results = {}
         for fed, data in fed_data.items():
             if data[3] == 0:
@@ -320,7 +267,7 @@ class JOTReporter(Authenticate):
             site = info.get('ExecutingSite', 'UNKNOWN')
             try:
                 wall = int(info.get('SumWCT', 0))
-                norm = float(info.get('NormFactor', 0))
+                norm = float(info.get('HS06Factor', 0))
             except:
                 continue
             norm_total += norm

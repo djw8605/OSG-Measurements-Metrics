@@ -23,10 +23,10 @@ my_data = {
   apel: [
   #if len($apel) > 0
     #for row in $apel[:-1]
-        {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor},
+        {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, HS06_CPU: $row.HS06_CPU, SumWCT: $row.SumWCT, HS06_WCT: $row.HS06_WCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.HS06Factor},
     #end for
         #set row=$apel[-1]
-        {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, NormSumCPU: $row.NormSumCPU, SumWCT: $row.SumWCT, NormSumWCT: $row.NormSumWCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.NormFactor}
+        {Site: '$row.ExecutingSite', VO: '$row.LCGUserVO', Njobs: $row.Njobs, SumCPU: $row.SumCPU, HS06_CPU: $row.HS06_CPU, SumWCT: $row.SumWCT, HS06_WCT: $row.HS06_WCT, Start: "$row.RecordStart", End: "$row.RecordEnd", Norm: $row.HS06Factor}
   #end if
   ],
 
@@ -35,11 +35,11 @@ my_data = {
     #set keys = sorted($subclusters.keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         #set val=$subclusters[key]
-        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), SI2K: $val[3], Ownership: '$val[4].replace("'", "")'},
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4, Ownership: '$val[4].replace("'", "")'},
     #end for
         #set key = keys[-1]
         #set val=$subclusters[key]
-        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), SI2K: $val[3], Ownership: '$val[4].replace("'", "")'}
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4, Ownership: '$val[4].replace("'", "")'}
   #end if
   ],
 
@@ -134,8 +134,8 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Njobs", label:"Number of Jobs", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"SumCPU", label:"CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"SumWCT", label:"Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"NormSumCPU", label:"Normalized CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
-            //{key:"NormSumWCT", label:"Normalized Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"HS06_CPU", label:"Normalized CPU Hours", sortable:true, resizeable:true, formatter:num_formatter},
+            //{key:"HS06_WCT", label:"Normalized Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
             //{key:"Start", label:"Start Date", sortable:true, resizeable:true},
             {key:"End", label:"End Date", sortable:true, resizeable:true},
             {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true, formatter:num_formatter}
@@ -145,7 +145,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"Site", sortable:true, resizeable:true},
             {key:"Subcluster", sortable:true, resizeable:true},
             {key:"Processor", label:"Processor Model", sortable:true, resizeable:true},
-            {key:"SI2K", label:"SI2K Score", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"HEPSPEC06", label:"HEPSPEC06 Score", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Cores", label:"Number of WN Cores", sortable:true, resizeable:true, formatter:num_formatter}
         ];
 
@@ -164,8 +164,8 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
         var cmsColumnDefs = [
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Pledge", label:"$pledge_year HEP-SPEC06 Pledge", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Actual", label:"Measured HEP-SPEC06", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Goal", label:"Month goal of Norm CPU hours", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"wlcgCPU", label:"Norm CPU hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"OwnedWCT", label:"Norm Wall hours for CMS", sortable:true, resizeable:true, formatter:num_formatter},
@@ -177,8 +177,8 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
         var atlasColumnDefs = [
             {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
-            {key:"Pledge", label:"$pledge_year KSI2K Pledge", sortable:true, resizeable:true, formatter:num_formatter},
-            {key:"Actual", label:"Measured KSI2K", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Pledge", label:"$pledge_year HEP-SPEC06 Pledge", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Actual", label:"Measured HEP-SPEC06", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"Goal", label:"Month goal of CPU hours", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"wlcgCPU", label:"Norm CPU hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
             {key:"OwnedWCT", label:"Norm Wall hours for ATLAS", sortable:true, resizeable:true, formatter:num_formatter},
@@ -197,13 +197,13 @@ YAHOO.util.Event.addListener(window, "load", function() {
         this.wlcgDataSource = new YAHOO.util.DataSource(my_data.apel);
         this.wlcgDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.wlcgDataSource.responseSchema = {
-            fields: ["Site", "VO", "Njobs", "SumCPU", "SumWCT", "NormSumCPU", "End", "Norm"]
+            fields: ["Site", "VO", "Njobs", "SumCPU", "SumWCT", "HS06_CPU", "End", "Norm"]
         };
 
         this.gipDataSource = new YAHOO.util.DataSource(my_data.gip);
         this.gipDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.gipDataSource.responseSchema = {
-            fields: ["Site", "Cluster", "Subcluster", "Timestamp", "Processor", "Cores", "SI2K", "Ownership"]
+            fields: ["Site", "Cluster", "Subcluster", "Timestamp", "Processor", "Cores", "HEPSPEC06", "Ownership"]
         };
 
         this.sitenormDataSource = new YAHOO.util.DataSource(my_data.sitenorm);
@@ -304,14 +304,14 @@ YAHOO.util.Event.addListener(window, "load", function() {
 <hr/>
 
 <h1>WLCG Pledge Information</h1>
-<p>Each WLCG site has pledged a certain amount of kSI2K for their site; in this section, we compare the amount of pledged KSI2K CPU hours to this month's accounting data.  The accounting data is measured in KSI2K-hours, which is the number of hours recorded by the accounting system multiplied by the site normalization factor (shown above).  We show data using both CPU hours and Wall (elapsed) hours.  Each WLCG site should attempt to hit this month's goal, which is the KSI2K pledge amount times the number of hours in the month times a CPU efficiency factor.  The CPU efficiency factor is currently 60%.
+<p>Each WLCG site has pledged a certain amount of HEP-SPEC06 for their site; in this section, we compare the amount of pledged HEP-SPEC06 CPU hours to this month's accounting data.  The accounting data is measured in HEP-SPEC06-hours, which is the number of hours recorded by the accounting system multiplied by the site normalization factor (shown above).  We show data using both CPU hours and Wall (elapsed) hours.  Each WLCG site should attempt to hit this month's goal, which is the HEP-SPEC06 pledge amount times the number of hours in the month times a CPU efficiency factor.  The CPU efficiency factor is currently 60%.
   The table below shows:
 <ul>
-  <li><strong>$pledge_year KSI2K Pledge:</strong> $pledge_year KSI2K pledge in the WLCG MoU</li>
+  <li><strong>$pledge_year HEP-SPEC06 Pledge:</strong> $pledge_year HEP-SPEC06 pledge in the WLCG MoU</li>
   <li><strong>Month goal of CPU hours:</strong> The corresponding number of CPU hours which should be achieved this month (assumes a CPU efficiency of 60% from the pledged amount).</li>
   <li><strong>Normalized CPU hours for all WLCG</strong> The number of normalized CPU hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
-  <li><strong>Measured KSI2K</strong>The measured KSI2K size from the GIP.</li>
-  <li><strong>Owner VO's KSI2K-Availability</strong> <a href="#availability">Explained below</a>.  For each day of the month, multiply that day's available KSI2K times the owner VO's ownership percentage times the RSV-measured availability, then sum them up.</li>
+  <li><strong>Measured HEP-SPEC06</strong>The measured HEP-SPEC06 size from the GIP.</li>
+  <li><strong>Owner VO's HEP-SPEC06-Availability</strong> <a href="#availability">Explained below</a>.  For each day of the month, multiply that day's available HEP-SPEC06 times the owner VO's ownership percentage times the RSV-measured availability, then sum them up.</li>
   <li><strong>Normalized wall hours for owner</strong> The number of normalized wall hours contributed to the VO which owns the site.</li>
   <li><strong>Normalized wall hours for all WLCG</strong> The number of normalized wall hours contributed to all WLCG VOs (atlas, cms, alice, lhcb).</li>
   <li><strong>Normalized wall hours for all VOs</strong> The number of normalized wall hours contributed to all VOs.</li>
@@ -340,14 +340,14 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
       <li>Subcluster name (must be unique)</li>
       <li>CPU Processor model</li>
       <li>Number of cores per subcluster</li>
-      <li>(Optional override using alter-attributes.conf) The SI2K score per
+      <li>(Optional override using alter-attributes.conf) The HEPSPEC06 score per
           core.
       </li>
    </ul>
-   The normalization factor is the average SI2K score, weighted by number of
+   The normalization factor is the average HEPSPEC06 score, weighted by number of
    cores, then divided by 1000.
 </p>
-<p> The process of changing the SI2K score per core through the 
+<p> The process of changing the HEPSPEC06 score per core through the 
     alter-attributes.conf is <a href="https://twiki.grid.iu.edu/twiki/bin/view/InformationServices/GipSi2k">documented here</a>
 </p>
 <p> The lookup table for CPU normalization <a href="$base_url/cpu_normalization">is posted here</a>.

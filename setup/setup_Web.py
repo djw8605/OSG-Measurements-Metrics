@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 try:
     import ez_setup
     ez_setup.use_setuptools()
@@ -5,8 +6,9 @@ except:
     pass
 
 from setuptools import setup, find_packages
+
 setup(name="OSG-Measurements-Metrics-Web",
-      version="0.5",
+      version="0.6",
       author="Brian Bockelman",
       author_email="bbockelm@cse.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
@@ -51,7 +53,7 @@ setup(name="OSG-Measurements-Metrics-Web",
 
       data_files=[('/etc/init.d', ['config/GratiaWeb']),
           ('/etc/', ['config/wlcg_email.conf.rpmnew',
-                     'config/access.db']),
+                     'config/access.db','config/osg_graphs.conf']),
           ('/usr/share/GratiaWeb/', ['config/gip_schema',
                                      'config/registration_schema']),
           ('/etc/cron.d/', ['config/gratia_data.cron']),

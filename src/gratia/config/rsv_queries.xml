@@ -64,7 +64,7 @@ select
   SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
   SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  rsvprocess.metricdata RSVM
+  rsvextra.metricdata RSVM
 join
   oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
@@ -110,11 +110,11 @@ SELECT
   from_unixtime(RSVM.timestamp) as timestamp,
   RSVMD.detail as details
 FROM
-  rsvprocess.metricdata as RSVM
+  rsvextra.metricdata as RSVM
 JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
 JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
 JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
-JOIN rsvprocess.metricdetail RSVMD on RSVM.id = RSVMD.id
+JOIN rsvextra.metricdetail RSVMD on RSVM.id = RSVMD.id
 WHERE
      RSVM.timestamp &gt;= :starttime AND RSVM.timestamp &lt; :endtime AND
      OIMR.fqdn regexp :facility AND
@@ -153,7 +153,7 @@ select
   SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
   SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  rsvprocess.metricdata RSVM
+  rsvextra.metricdata RSVM
 join
   oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
@@ -198,7 +198,7 @@ select
   SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
   SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  rsvprocess.metricdata RSVM
+  rsvextra.metricdata RSVM
 join
   oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
@@ -242,7 +242,7 @@ select
   SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
   SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN 0 ELSE 1 END)
 from
-  rsvprocess.metricdata RSVM
+  rsvextra.metricdata RSVM
 join
   oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
@@ -348,9 +348,9 @@ group by
             (SELECT
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn as fqdn
-            FROM rsvprocess.metricdata RSVM
+            FROM rsvextra.metricdata RSVM
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
-            JOIN rsvprocess.metricdetail RSVMD on RSVMD.id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -386,11 +386,11 @@ group by
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn,
                 OIMGT.name as grid
-            FROM rsvprocess.metricdata RSVM
+            FROM rsvextra.metricdata RSVM
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
             JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
-            JOIN rsvprocess.metricdetail RSVMD on RSVMD.id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -430,11 +430,11 @@ group by
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn,
                 left(RSVMD.detail, 9) as version
-            FROM rsvprocess.metricdata RSVM
+            FROM rsvextra.metricdata RSVM
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
             JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
-            JOIN rsvprocess.metricdetail RSVMD on RSVMD.id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -475,11 +475,11 @@ group by
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn,
                 concat('VDT-',substring(RSVMD.detail from 44 for 7)) as version
-            FROM rsvprocess.metricdata RSVM
+            FROM rsvextra.metricdata RSVM
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
             JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
-            JOIN rsvprocess.metricdetail RSVMD on RSVMD.id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -519,11 +519,11 @@ group by
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn,
                 concat('RSV-', substring(RSVMD.detail, locate('OSG Resource and Service Validation (RSV)', RSVMD.detail)+42, 6)) as version
-            FROM rsvprocess.metricdata RSVM
+            FROM rsvextra.metricdata RSVM
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
             JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
-            JOIN rsvprocess.metricdetail RSVMD on RSVMD.id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id 
             WHERE
                 RSVMD.detail regexp :version AND
@@ -563,11 +563,11 @@ group by
                 truncate( RSVM.timestamp / :span, 0 ) * :span as time,
                 OIMR.fqdn,
                 concat('GIP-', substring(RSVMD.detail, locate('Generic Information Provider', RSVMD.detail)+29, 7)) as version
-            FROM rsvprocess.metricdata RSVM
+            FROM rsvextra.metricdata RSVM
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
             JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
             JOIN oim.osg_grid_type OIMGT on OIMRG.osg_grid_type_id = OIMGT.id
-            JOIN rsvprocess.metricdetail RSVMD on RSVMD.id = RSVM.id
+            JOIN rsvextra.metricdetail RSVMD on RSVMD.id = RSVM.id
             JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
             WHERE
                 RSVMD.detail regexp :version AND
@@ -608,7 +608,7 @@ SELECT
   SUM(CASE OIMMS.description WHEN "OK" THEN 1 ELSE 0 END),
   SUM(CASE OIMMS.description WHEN "OK" THEN 0 WHEN "UNKNOWN" THEN :countunknown ELSE 1 END)
 from
-  rsvprocess.metricdata RSVM
+  rsvextra.metricdata RSVM
 join
   oim.resource OIMR on RSVM.resource_id=OIMR.id
 join
@@ -651,7 +651,7 @@ select
   from_unixtime(truncate(RSVM.timestamp/:span, 0)*:span) as time,
   COUNT(*)
 from
-  rsvprocess.metricdata RSVM
+  rsvextra.metricdata RSVM
 join
   oim.resource OIMR on RSVM.resource_id=OIMR.id
 where
@@ -687,7 +687,7 @@ select
   OIMMS.description,
   COUNT(*)
 from
-  rsvprocess.metricdata RSVM
+  rsvextra.metricdata RSVM
 join oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
 join oim.resource OIMR on RSVM.resource_id=OIMR.id
 where

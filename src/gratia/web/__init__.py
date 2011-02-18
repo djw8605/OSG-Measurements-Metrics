@@ -220,8 +220,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
             #               'facility_transfer_rate', 'main', 'facility')
             self.image_map(token, data, 'GratiaBarQueries',
                 'facility_hours_bar_smry', 'main', 'facility')
-            #self.image_map(token, data, 'GratiaBarQueries', 
-            #               'facility_quality', 'main', 'facility')
+            self.image_map(token, data, 'GratiaBarQueries', 
+                           'facility_quality', 'main', 'facility')
                            
             #self.image_map(token, data, 'GratiaBarQueries',
             #               'facility_transfer_volume', 'main', 'facility')

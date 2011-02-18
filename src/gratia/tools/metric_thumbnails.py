@@ -145,6 +145,7 @@ def dojobstats(now):
     info_dict['facility'] = '|'.join(ATLAS_owned)
     info = urllib.urlencode(info_dict)
     url = vo_hours + '?' + info
+    print url
     atotal_hours = simple_results_parser(parse(urllib2.urlopen(url)))['usatlas']
     owned_sites['usatlas'] = 100*atotal_hours/float(hours_data['usatlas'])
     info_dict['vo'] = 'cms'
