@@ -235,7 +235,7 @@ def main():
     except SystemExit:
         raise
     except:
-        print "Unable to determine if config file %s has been enabled." % ", ".join(config_files)
+        print sys.stderr, "Unable to determine if config file %s has been enabled." % ", ".join(config_files)
         sys.exit(1)
  
     if 'entry' in kwArgs:
