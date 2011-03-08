@@ -57,6 +57,7 @@ setup(name="OSG-Measurements-Metrics-Web",
           ('/usr/share/GratiaWeb/', ['config/gip_schema',
                                      'config/registration_schema']),
           ('/etc/cron.d/', ['config/gratia_data.cron']),
+          ('/etc/logrotate.d/', ['config/gratia_logrotate.conf']),
       ],
 
       namespace_packages = ['gratia']
