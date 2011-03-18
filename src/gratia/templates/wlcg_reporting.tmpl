@@ -35,11 +35,11 @@ my_data = {
     #set keys = sorted($subclusters.keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         #set val=$subclusters[key]
-        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4, Ownership: '$val[4].replace("'", "")'},
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4/1000, Ownership: '$val[4].replace("'", "")'},
     #end for
         #set key = keys[-1]
         #set val=$subclusters[key]
-        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4, Ownership: '$val[4].replace("'", "")'}
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4/1000, Ownership: '$val[4].replace("'", "")'}
   #end if
   ],
 
