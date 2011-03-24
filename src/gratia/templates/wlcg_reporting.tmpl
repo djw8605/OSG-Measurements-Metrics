@@ -35,11 +35,11 @@ my_data = {
     #set keys = sorted($subclusters.keys(), $getVar('key_sorter', '', False))
     #for key in keys[:-1]
         #set val=$subclusters[key]
-        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4/1000, Ownership: '$val[4].replace("'", "")'},
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: '$val[5]$float($val[3])', Ownership: '$val[4].replace("'", "")'},
     #end for
         #set key = keys[-1]
         #set val=$subclusters[key]
-        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: $int($val[3])*4/1000, Ownership: '$val[4].replace("'", "")'}
+        {Site: '$key[0]', Cluster: '$key[1]', Subcluster: '$key[2]', Timestamp: '$val[0]', Processor: '$val[1]', Cores: $int($val[2]), HEPSPEC06: '$val[5]$float($val[3])', Ownership: '$val[4].replace("'", "")'}
   #end if
   ],
 
@@ -138,7 +138,7 @@ YAHOO.util.Event.addListener(window, "load", function() {
             //{key:"HS06_WCT", label:"Normalized Wall Hours", sortable:true, resizeable:true, formatter:num_formatter},
             //{key:"Start", label:"Start Date", sortable:true, resizeable:true},
             {key:"End", label:"End Date", sortable:true, resizeable:true},
-            {key:"Norm", label:"Site normalization constant", sortable:true, resizeable:true, formatter:num_formatter}
+            {key:"Norm", label:"HEP-SPEC06 Factor", sortable:true, resizeable:true, formatter:num_formatter}
         ];
 
         var gipColumnDefs = [
@@ -157,8 +157,8 @@ YAHOO.util.Event.addListener(window, "load", function() {
  
         var sitenormColumnDefs = [
             {key:"Site", sortable:true, resizeable:true},
-            {key:"GIPNorm", label:"Normalization Calculated by the GIP", sortable:true, resizeable:true},
-            {key:"WLCGNorm", label:"Normalization Reported to WLCG", sortable:true, resizeable:true},
+            {key:"GIPNorm", label:"HEP-SPEC06 factor Calculated by the GIP", sortable:true, resizeable:true},
+            {key:"WLCGNorm", label:"HEP-SPEC06 factor reported to WLCG", sortable:true, resizeable:true},
             {key:"Diff", label:"GIP Percent Difference", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
@@ -332,7 +332,7 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 <hr/>
 <h1>GIP Subcluster Information</h1>
 
-<p>In order to generate an accurate normalization factor, the site must 
+<p>In order to generate an accurate HEP-SPEC06 factor, the site must 
    advertise the make-up of each cluster using the GIP.  Each cluster is 
    divided into heterogeneous (in terms of CPU model) subclusters.  When the
    GIP configuration is run, the site admin specifies, for each subcluster:
@@ -344,7 +344,7 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
           core.
       </li>
    </ul>
-   The normalization factor is the average HEPSPEC06 score, weighted by number of
+   The HEP-SPEC06 factor is the average HEPSPEC06 score, weighted by number of
    cores, then divided by 1000.
 </p>
 <p> The process of changing the HEPSPEC06 score per core through the 
@@ -353,6 +353,7 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 <p> The lookup table for CPU normalization <a href="$base_url/cpu_normalization">is posted here</a>.
 </p>
 <p>The table below shows the GIP-recorded subcluster information for each site.
+<strong>HEPSPEC Score with prefixed with '*' is calculated based on normalization constant</strong>
 </p>
 #if $gip_report_time
 <p>This data was reported at $gip_report_time.</p>
@@ -361,11 +362,11 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 
 <br/>
 <hr/>
-<h1>Site Normalization Calculation</h1>
-<p>The table below shows the calculated normalization constant (using the above
-   table), the normalization constant reported to the WLCG, and the percent
+<h1>Site HEP-SPEC06 Calculation</h1>
+<p>The table below shows the calculated HEP-SPEC06 factor (using the above
+   table), the HEP-SPEC06 factor reported to the WLCG, and the percent
    difference.  Nominally, all WLCG sites should focus on switching to the 
-   GIP-based normalization constant from the manually-update one.
+   GIP-based HEP-SPEC06 factor from the manually-update one.
 </p>
 <div id="sitenorm"></div>
 

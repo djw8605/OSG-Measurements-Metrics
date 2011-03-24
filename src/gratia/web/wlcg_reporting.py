@@ -49,6 +49,28 @@ class WLCGReporter(Authenticate):
             site_info['totalNormWCT'] += int(norm * gratia_data.get(site, 0))
             site_info['totalNormCPU'] += int(norm * gratia_cpu_data.get(site,0))
                
+    def getText(self, nodelist):
+	    rc = ""
+	    for node in nodelist:
+	        if node.nodeType == node.TEXT_NODE:
+	            rc = rc + node.data
+	    return rc
+
+    def getcpuinfodictionary(self):
+	urlcpuinfo='http://myosg.grid.iu.edu/misccpuinfo/xml?count_sg_1&count_active=on&count_enabled=on&datasource=cpuinfo'
+	xmldoc = urllib2.urlopen(urlcpuinfo)
+	dom = parse(xmldoc)
+	hepspecCpuDict = {}
+	normconstCpuDict = {}
+	for rowDom in dom.getElementsByTagName('CPUInfo'):
+	    cpuname=self.getText((rowDom.getElementsByTagName("Name")[0]).childNodes).upper().replace(' ', '')
+	    hepspec=self.getText((rowDom.getElementsByTagName("HEPSPEC")[0]).childNodes)
+            normconstant = self.getText((rowDom.getElementsByTagName("NormalizationConstant")[0]).childNodes) 
+	    hepspecCpuDict[cpuname]=hepspec
+	    normconstCpuDict[cpuname]=normconstant
+        return hepspecCpuDict,normconstCpuDict
+ 
+
 
     def make_pledge_format(self, year, month):
 	atlas_pledge, cms_pledge,atlas_dict, cms_dict=WLCGWebUtil().wlcg_pledges(month, year)
@@ -251,6 +273,28 @@ class WLCGReporter(Authenticate):
                 wlcg_sites.append(row['ExecutingSite'])
                 wlcg_norm[row['ExecutingSite']] = row['HS06Factor']
 
+
+        # replace with hepspec numbers from  non-WLCG sites from CPUInfo.
+        new_subclusters = {}
+	hepspecCpuDict,normconstCpuDict = self.getcpuinfodictionary()
+        for key, val in data['subclusters'].items():
+	    cpukey=val[1].upper().replace(' ', '')
+	    valcopy=[val[0],val[1],val[2],val[3],val[4],'']
+	    try:
+	            if float(hepspecCpuDict[cpukey]) > 0:
+			valcopy[3]=(hepspecCpuDict[cpukey])
+		    else:
+			valcopy[3]=str(float(val[3])*4 / 1000)
+			valcopy[5]='*'
+	    except:
+		valcopy[3]=str(float(val[3])*4 / 1000)
+		valcopy[5]='*'
+
+            new_subclusters[key] = valcopy
+            print key, val, '----------'
+        data['subclusters'] = new_subclusters
+
+
         # Determine site normalization:
         site_norm = {}
         data['site_norm'] = site_norm
@@ -271,8 +315,8 @@ class WLCGReporter(Authenticate):
             total_si2k = 0
             for cores, si2k in info:
                 total_cores += cores
-                total_si2k += si2k*cores
-            gipnorm = int(total_si2k / total_cores)*4 / 1000.#convert to HEPSPEC, no data for HEPSPEC Benchmarks in DB
+                total_si2k += float(si2k)*cores
+            gipnorm = float(int((float(total_si2k) / total_cores)*100))/100
             wlcgnorm = float(wlcg_norm[site])
             diff = int((gipnorm - wlcgnorm)/wlcgnorm * 100)
             site_norm[site] = (gipnorm, wlcgnorm, diff, int((4*total_si2k)/1000.))#convert to HEPSPEC,
@@ -284,6 +328,7 @@ class WLCGReporter(Authenticate):
                 new_subclusters[key] = val
                 print key, val
         data['subclusters'] = new_subclusters
+
 
         # Add in the pledge data
         data['pledge'] = self.t2_pledges(apel_data, year, month)
