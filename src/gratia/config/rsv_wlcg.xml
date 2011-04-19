@@ -23,7 +23,7 @@
         </inputs>
         <sql>
         SELECT OIMR.Name, OIMM.name, from_unixtime(RSVM.timestamp), CASE WHEN OIMMS.metric_status_description = "WARNING" THEN "OK" ELSE OIMMS.metric_status_description END
-        FROM rsvextra.metricdata RSVM FORCE INDEX (timestamp)
+        FROM rsvprocess.metricdata RSVM FORCE INDEX (timestamp)
         JOIN oim.resource OIMR on RSVM.resource_id=OIMR.resource_id
         JOIN oim.resource_resource_group OIMRRG on OIMRRG.resource_id = OIMR.resource_id
         JOIN oim.resource_group OIMRG on OIMRRG.resource_group_id = OIMRG.resource_group_id
@@ -63,7 +63,7 @@
         </inputs>
         <sql>
         SELECT OIMR.Name, OIMM.name, from_unixtime(RSVM.timestamp), null, CASE WHEN OIMMS.description = "WARNING" THEN "OK" ELSE OIMMS.description END
-            FROM rsvextra.metricdata RSVM FORCE INDEX (timestamp)
+            FROM rsvprocess.metricdata RSVM FORCE INDEX (timestamp)
             JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
             JOIN oim.resource_group OIMRG on OIMR.resource_group_id = OIMRG.id
             JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
@@ -149,7 +149,7 @@
         <sql>
         SELECT OIMR.Name as SiteName, OIMM.name, from_unixtime(foo.Timestamp), CASE WHEN OIMMS.description = "WARNING" THEN "OK" ELSE OIMMS.description END
         FROM (SELECT OIMR.id AS resource_id, OIMM.id as metric_id, max(RSVM.timestamp) AS Timestamp
-              FROM rsvextra.metricdata RSVM FORCE INDEX (timestamp)
+              FROM rsvprocess.metricdata RSVM FORCE INDEX (timestamp)
 	      JOIN oim.metric OIMM on OIMM.id = RSVM.metric_id
               JOIN oim.resource OIMR on OIMR.id = RSVM.resource_id
               WHERE
@@ -158,7 +158,7 @@
                   OIMR.fqdn regexp :facility AND
                   OIMM.name regexp :metric
               GROUP BY OIMR.fqdn, OIMM.name) AS foo
-        JOIN rsvextra.metricdata RSVM ON RSVM.resource_id=foo.resource_id AND RSVM.metric_id=foo.metric_id AND RSVM.timestamp=foo.timestamp
+        JOIN rsvprocess.metricdata RSVM ON RSVM.resource_id=foo.resource_id AND RSVM.metric_id=foo.metric_id AND RSVM.timestamp=foo.timestamp
         JOIN oim.resource OIMR on RSVM.resource_id=OIMR.id
         JOIN oim.resource_group OIMRG on OIMR.resource_group_id= OIMRG.id
         JOIN oim.metric_status OIMMS on RSVM.metric_status_id = OIMMS.id
