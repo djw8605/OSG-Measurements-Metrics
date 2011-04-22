@@ -11,9 +11,11 @@ class WLCGWebUtil:
 
         cms_fed = {}
         atlas_fed = {}
+        alice_fed = {}
 
         cms_pledge = {}
         atlas_pledge = {}
+        alice_pledge = {}
 
         url = 'http://gstat-wlcg.cern.ch/apps/topology/2/json'
         response  = urllib2.urlopen(url)
@@ -32,6 +34,8 @@ class WLCGWebUtil:
 		cms_fed[obj[3]]=1;
 	    if('USA'==obj[0] and obj[1].find('ATLAS') >= 0):  
 		atlas_fed[obj[3]]=1;
+	    if('USA'==obj[0] and obj[1].find('ALICE') >= 0):  
+		alice_fed[obj[3]]=1;
 
 
         url = 'http://gstat-wlcg.cern.ch/apps/pledges/resources/'+thisyear+'/2/json'
@@ -52,7 +56,14 @@ class WLCGWebUtil:
                    cms_pledge[fednames_and_accounts[obj[1]]] = {'pledge': obj[12], 'site_names': sites_per_accountname[fednames_and_accounts[obj[1]]]}
 		except:
 		   None
-        return atlas_pledge, cms_pledge, atlas_fed, cms_fed
+
+		try:
+		   int(obj[4]) #alice number exists
+                   alice_pledge[fednames_and_accounts[obj[1]]] = {'pledge': obj[4], 'site_names': sites_per_accountname[fednames_and_accounts[obj[1]]]}
+		except:
+		   None
+
+        return atlas_pledge, cms_pledge, atlas_fed, cms_fed, alice_pledge, alice_fed
 
 
 

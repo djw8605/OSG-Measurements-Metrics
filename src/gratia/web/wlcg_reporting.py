@@ -73,7 +73,7 @@ class WLCGReporter(Authenticate):
 
 
     def make_pledge_format(self, year, month):
-	atlas_pledge, cms_pledge,atlas_dict, cms_dict=WLCGWebUtil().wlcg_pledges(month, year)
+	atlas_pledge, cms_pledge,atlas_dict, cms_dict, alice_pledge, alice_dict=WLCGWebUtil().wlcg_pledges(month, year)
         results = []
         for fed, info in atlas_pledge.items():
              for site in info['site_names']:
@@ -82,6 +82,10 @@ class WLCGReporter(Authenticate):
         for fed, info in cms_pledge.items():
              for site in info['site_names']:
                  results.append((fed, info['pledge'], info['pledge'], 'cms',
+                     '', fed, site))
+        for fed, info in alice_pledge.items():
+             for site in info['site_names']:
+                 results.append((fed, info['pledge'], info['pledge'], 'alice',
                      '', fed, site))
         return results
 
@@ -96,6 +100,7 @@ class WLCGReporter(Authenticate):
         # Pop off the headers
         for line in self.make_pledge_format(year, month):
             fed, pledge07, pledge08, VOMoU, VOaddl, accounting, site = line
+
             if accounting != '':
                 my_accounting = accounting
             if pledge07 != '':
@@ -291,7 +296,7 @@ class WLCGReporter(Authenticate):
 		valcopy[5]='*'
 
             new_subclusters[key] = valcopy
-            print key, val, '----------'
+            #print key, val, '----------'
         data['subclusters'] = new_subclusters
 
 
@@ -326,7 +331,7 @@ class WLCGReporter(Authenticate):
         for key, val in data['subclusters'].items():
             if key[0] in wlcg_sites:
                 new_subclusters[key] = val
-                print key, val
+                #print key, val
         data['subclusters'] = new_subclusters
 
 
@@ -445,7 +450,7 @@ class WLCGReporter(Authenticate):
     def get_ksi2k_availability(self, year, month, apel_data, pledge_data, \
             rsv_data):
         info = gratia_interval(year, month)
-        print info
+        #print info
         gip_data, dummy = self.globals['GratiaStatusQueries'].status_subcluster_interval(**info)
         cur = info['starttime']
         end = min(info['endtime'], datetime.datetime.today())
@@ -461,6 +466,9 @@ class WLCGReporter(Authenticate):
             if 'sites' in val:
                 site_map[act_site] = val['sites']
         for act_site, val in pledge_data['atlas'].items():
+            if 'sites' in val:
+                site_map[act_site] = val['sites']
+        for act_site, val in pledge_data['alice'].items():
             if 'sites' in val:
                 site_map[act_site] = val['sites']
         wlcg_act_sites = site_map.keys()
@@ -492,6 +500,8 @@ class WLCGReporter(Authenticate):
                 if site in sites:
                     if act_site in pledge_data['atlas']:
                         pledge_vo = 'atlas'
+                    elif act_site in pledge_data['alice']:
+                        pledge_vo = 'alice'
                     else:
                         pledge_vo = 'cms'
             if pledge_vo == None:

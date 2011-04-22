@@ -94,6 +94,25 @@ my_data = {
   #end if
   ],
 
+  alice_pledge: [
+  #if $pledge.has_key('alice') and len($pledge['alice']) > 0
+    #set keys = sorted($pledge['alice'].keys(), $getVar('key_sorter', '', False))
+    #for key in keys[:-1]
+        #set val=$pledge['alice'][key]
+        #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
+        #set delivered=int($val.wlcgNormCPU/float($goal)*100)
+        #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU},
+    #end for
+        #set key = keys[-1]
+        #set val=$pledge['alice'][key]
+        #set goal=int(float($val.pledge)*$val.efficiency*$val.days_in_month*24)
+        #set delivered=int($val.wlcgNormCPU/float($goal)*100)
+        #set nonwlcg=int(($val.totalNormWCT-$val.wlcgNormWCT)/float($val.totalNormWCT)*100)
+        {WLCGSite: '$key', Pledge: $val.pledge, Actual: $val.actual, Goal: $goal, OwnedWCT: $val.voNormWCT, wlcgWCT: $val.wlcgNormWCT, totalWCT: $val.totalNormWCT, delivered: $delivered, nonwlcg: $nonwlcg, wlcgCPU: $val.wlcgNormCPU}
+  #end if
+  ],
+
   summary: [
   #if len($summary) > 0
     #set keys = sorted($summary.keys(), $getVar('key_sorter', '', False))
@@ -188,6 +207,19 @@ YAHOO.util.Event.addListener(window, "load", function() {
             {key:"nonwlcg", label:"Percent of site's time delivered to non-WLCG VOs", sortable:true, resizeable:true, formatter:perc_formatter}
         ];
 
+        var aliceColumnDefs = [
+            {key:"WLCGSite", label:"WLCG Accounting Name", sortable:true, resizeable:true},
+            {key:"Pledge", label:"$pledge_year HEP-SPEC06 Pledge", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Actual", label:"Measured HEP-SPEC06", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"Goal", label:"Month goal of CPU hours", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgCPU", label:"Norm CPU hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"OwnedWCT", label:"Norm Wall hours for ALICE", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"wlcgWCT", label:"Norm Wall hours for all WLCG", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"totalWCT", label:"Norm Wall hours for all VOs", sortable:true, resizeable:true, formatter:num_formatter},
+            {key:"delivered", label:"Percent of WLCG goal achieved", sortable:true, resizeable:true, formatter:perc_formatter},
+            {key:"nonwlcg", label:"Percent of site's time delivered to non-WLCG VOs", sortable:true, resizeable:true, formatter:perc_formatter}
+        ];
+
         var summaryColumnDefs = [
             {key:"Site", label:"OSG Site name", sortable:true, resizeable:true},
             {key:"WLCGAccounting", label:"WLCG Accounting Site", sortable:true, resizeable:true},
@@ -224,6 +256,12 @@ YAHOO.util.Event.addListener(window, "load", function() {
             fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
         };
 
+        this.aliceDataSource = new YAHOO.util.DataSource(my_data.alice_pledge);
+        this.aliceDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.aliceDataSource.responseSchema = {
+            fields: ["WLCGSite", "Pledge", "Actual", "Goal", "wlcgCPU", "OwnedWCT", "wlcgWCT", "totalWCT", "delivered", "nonwlcg"]
+        };
+
         this.summaryDataSource = new YAHOO.util.DataSource(my_data.summary);
         this.summaryDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
         this.summaryDataSource.responseSchema = {
@@ -244,6 +282,9 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
         this.myDataTable = new YAHOO.widget.DataTable("atlas",
                 atlasColumnDefs, this.atlasDataSource, {sortedBy:{key:"WLCGSite"}});
+
+        this.myDataTable = new YAHOO.widget.DataTable("alice",
+                aliceColumnDefs, this.aliceDataSource, {sortedBy:{key:"WLCGSite"}});
 
         this.myDataTable = new YAHOO.widget.DataTable("availability",
                 availabilityColumnDefs, this.availabilityDataSource, {sortedBy:{key:"Site"}});
@@ -327,6 +368,8 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 <div id="atlas"></div>
 <h2>CMS Sites</h2>
 <div id="cms"></div>
+<h2>ALICE Sites</h2>
+<div id="alice"></div>
 
 <br/>
 <hr/>
@@ -353,7 +396,7 @@ known as "T2_US_Nebraska" to the WLCG, or AGLT2 is "US-AGLT2".
 <p> The lookup table for CPU normalization <a href="$base_url/cpu_normalization">is posted here</a>.
 </p>
 <p>The table below shows the GIP-recorded subcluster information for each site.
-<strong>HEPSPEC Score with prefixed with '*' is calculated based on normalization constant</strong>
+<strong>HEPSPEC Score with prefixed with '*' is calculated based on kSI2K constant</strong> 
 </p>
 #if $gip_report_time
 <p>This data was reported at $gip_report_time.</p>

@@ -44,7 +44,7 @@ class JOTReporter(Authenticate):
         wall_hours = self.globals['GratiaPieQueries'].osg_facility_hours(\
             **info)[0]
 
-        info['vo'] = 'atlas|cms'
+        info['vo'] = 'atlas|cms|alice'
         lhc_cpu_hours = self.globals['GratiaPieQueries'].\
             osg_facility_cpu_hours(**info)[0]
         lhc_wall_hours = self.globals['GratiaPieQueries'].\
@@ -91,13 +91,15 @@ class JOTReporter(Authenticate):
         data['lhc_cpu'] = {}
         data['lhc_wall'] = {}
         days_in_month =  calendar.monthrange(year, month)[1]
-	atlas_pledge, cms_pledge,atlas_dict, cms_dict=WLCGWebUtil().wlcg_pledges(month, year)
+	atlas_pledge, cms_pledge,atlas_dict, cms_dict, alice_pledge, alice_dict=WLCGWebUtil().wlcg_pledges(month, year)
         #data['mou'] = self.pledges(month, year)
 	#int(days_in_month*.6*24*val)
         for key in atlas_pledge:
             data['mou'][key] = days_in_month*.6*24*int(atlas_pledge[key]['pledge'])
         for key in cms_pledge:
             data['mou'][key] = days_in_month*.6*24*int(cms_pledge[key]['pledge'])
+        for key in alice_pledge:
+            data['mou'][key] = days_in_month*.6*24*int(alice_pledge[key]['pledge'])
         for resource, fed in federations.items():
             print "Resource %s associated with federation %s." % (resource, fed)
             #data['reliability'].setdefault(fed, 0)
@@ -122,6 +124,7 @@ class JOTReporter(Authenticate):
 
         data['cms_feds'] = []
         data['atlas_feds'] = []
+        data['alice_feds'] = []
         all_feds = sets.Set(federations.values())
         for fed in all_feds:
             # TODO: OIM should provide ownership info.
@@ -129,6 +132,8 @@ class JOTReporter(Authenticate):
                 data['cms_feds'].append(fed)
             if atlas_dict.has_key(fed):
                 data['atlas_feds'].append(fed)
+            if alice_dict.has_key(fed):
+                data['alice_feds'].append(fed)
             data['availability'][fed] = gv_data.get(fed, [0, 0])[1]
             data['reliability'][fed] = gv_data.get(fed, [0, 0])[0]
 
@@ -199,7 +204,7 @@ class JOTReporter(Authenticate):
             'Region_name': 'OpenScienceGrid',
         }
         full_url = url + '?' + urllib.urlencode(params)
-        print full_url
+        print "FEDERATION ----- %s",(full_url)
         data = urllib2.urlopen(full_url)
         dom = parse(data)
         gridview_data = {}
