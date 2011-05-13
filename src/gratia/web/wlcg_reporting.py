@@ -118,7 +118,7 @@ class WLCGReporter(Authenticate):
                 site_info['pledge'] = my_pledge08
             else:
                 site_info['pledge'] = my_pledge07
-            site_info['efficiency'] = .6
+            site_info['efficiency'] = .67
             site_info['days_in_month'] = last_day
             self.add_effort(site_info, site, VOMoU, apel_data, gratia_data, \
                 gratia_cpu_data)

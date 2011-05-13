@@ -93,13 +93,13 @@ class JOTReporter(Authenticate):
         days_in_month =  calendar.monthrange(year, month)[1]
 	atlas_pledge, cms_pledge,atlas_dict, cms_dict, alice_pledge, alice_dict=WLCGWebUtil().wlcg_pledges(month, year)
         #data['mou'] = self.pledges(month, year)
-	#int(days_in_month*.6*24*val)
+	#int(days_in_month*.67*24*val)
         for key in atlas_pledge:
-            data['mou'][key] = days_in_month*.6*24*int(atlas_pledge[key]['pledge'])
+            data['mou'][key] = days_in_month*.67*24*int(atlas_pledge[key]['pledge'])
         for key in cms_pledge:
-            data['mou'][key] = days_in_month*.6*24*int(cms_pledge[key]['pledge'])
+            data['mou'][key] = days_in_month*.67*24*int(cms_pledge[key]['pledge'])
         for key in alice_pledge:
-            data['mou'][key] = days_in_month*.6*24*int(alice_pledge[key]['pledge'])
+            data['mou'][key] = days_in_month*.67*24*int(alice_pledge[key]['pledge'])
         for resource, fed in federations.items():
             print "Resource %s associated with federation %s." % (resource, fed)
             #data['reliability'].setdefault(fed, 0)
