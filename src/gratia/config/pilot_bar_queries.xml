@@ -2,9 +2,9 @@
 
   <import module="gratia.config" data_file="generic_queries.xml" />
 
-  <class type="SqlQueries" name="GratiaBarQueries">
+  <class type="SqlQueries" name="GratiaBarQueries2">
 
-    <attribute name="display_name"> Bar Graphs </attribute>
+    <attribute name="display_name"> Bar Graphs 2</attribute>
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
     <query name="vo_hours_bar_smry" base="GratiaGenericQuery.master_summary">
@@ -318,14 +318,18 @@
       </results>
     </query>
 
-    <query name="glidein_hours_bar_smry" base="GratiaGenericQuery.glidein_master_summary">
+    <query name="glidein_hours_bar_smry" base="GratiaGenericQuery.master_summary">
+      <inputs>
+        <input name="resource-type" kind="sql">BatchPilot</input>
+        <input name="facility" kind="sql">Nebraska Glide-In</input>
+      </inputs>
       <sql>
         <filler name="group"> IF(length(R.HostDescription) > 0, R.HostDescription, "UNKNOWN") </filler>
         <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
         <filler name="where"> AND WallDuration > 0 </filler>
       </sql>
       <attribute name="pivot_name">Facility</attribute>
-      <attribute name="title">WMS Hours Spent on Jobs By Facility (Glidein)</attribute>
+      <attribute name="title">Glide-In WMS Hours Spent on Jobs By Facility</attribute>
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
@@ -1092,34 +1096,17 @@
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
-    <query name="glidein_dn_hours_bar" base="GratiaGenericQuery.glidein_master_summary">
-        <sql>
-            <filler name="group"> COALESCE(R.CommonName, VO.VOName) </filler>
-            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
-            <filler name="where"> AND WallDuration > 0 </filler>
-        </sql>
-        <results module="graphtool.database.query_handler" function="results_parser">
-            <inputs>
-                <input name="pivots"> 0 </input>
-                <input name="grouping"> 1 </input>
-                <input name="results"> 2 </input>
-                <input name="pivot_transform">displayName</input>
-            </inputs>
-        </results>
-        <attribute name="pivot_name">User</attribute>
-        <attribute name="grouping_name">Time</attribute>
-        <attribute name="title">Daily Hours By User (Glidein)</attribute>
-        <attribute name="column_names">Wall Time</attribute>
-        <attribute name="column_units">Hours</attribute>
-        <attribute name="graph_type">GratiaStackedBar</attribute>
-    </query>
 
-    <query name="glidein_dn_site_hours_bar" base="GratiaGenericQuery.glidein_master_summary">
+    <query name="glidein_dn_site_hours_bar" base="GratiaGenericQuery.master_summary">
         <sql>
             <filler name="group"> R.CommonName, R.HostDescription </filler>
             <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
             <filler name="where"> AND WallDuration > 0 </filler>
         </sql>
+        <inputs>
+            <input name="resource-type" > BatchPilot </input>
+	    <input name="exclude-facility" kind="sql"> NONE </input>
+        </inputs>
         <results module="graphtool.database.query_handler" function="results_parser">
             <inputs>
                 <input name="pivots"> 0,1 </input>
@@ -1136,29 +1123,6 @@
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
-    <query name="glidein_exitcode_bar" base="GratiaGenericQuery.glidein_master_summary">
-        <inputs>
-            <!--<input name="includeSuccessful" type="int" kind="sql">1</input>-->
-        </inputs>
-        <sql>
-            <filler name="group"> R.ApplicationExitCode </filler>
-            <filler name="column"> sum(Njobs) </filler>
-            <!--<filler name="where"> AND CASE WHEN :includeSuccessful!=1 THEN R.ApplicationExitCode!=0 ELSE true END </filler>-->
-        </sql>
-        <results module="graphtool.database.query_handler" function="results_parser">
-            <inputs>
-                <input name="pivots"> 0 </input>
-                <input name="grouping"> 1 </input>
-                <input name="results"> 2 </input>
-            </inputs>
-        </results>
-        <attribute name="pivot_name">Exit Code</attribute>
-        <attribute name="grouping_name">Time</attribute>
-        <attribute name="title">Exit Code Count by VO: $vo  (Glidein)</attribute>
-        <attribute name="column_names">Exit Code Count</attribute>
-        <attribute name="column_units">Jobs</attribute>
-        <attribute name="graph_type">GratiaStackedBar</attribute>
-    </query>
 
 
     <query name="dn_hours_bar" base="GratiaGenericQuery.master_summary">
