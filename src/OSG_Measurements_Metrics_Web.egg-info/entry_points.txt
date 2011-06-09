@@ -1,0 +1,21 @@
+[console_scripts]
+metric_thumbnails = gratia.tools.metric_thumbnails:main
+static_graphs = gratia.tools.static_graphs:main
+gratia_web = gratia.tools.gratia_web:main
+site_normalization = gratia.tools.site_normalization:main
+gridscan_download = gratia.tools.gridscan_download:main
+gip_subcluster_record = gratia.tools.gip_subcluster_record:main
+cms_storage_record = gratia.tools.cms_storage_record:main
+ligo_summary = gratia.summary.ligo_query:main
+gratia_web_dev = gratia.tools.gratia_web_dev:main
+make_daemon_gratia = gratia.other.make_daemon:main
+gip_record = gratia.tools.gip_record:main
+rsv_calc = gratia.tools.rsv_calc:main
+wlcg_pledge_email = gratia.tools.wlcg_pledge_email:main
+gip_count = gratia.tools.gip_count:main
+gratia_voms_query = gratia.tools.gratia_voms_query:main
+cms_summary = gratia.summary.dashboard_slurp:main
+
+[setuptools.installation]
+eggsecutable = gratia.tools.gratia_web:main
+

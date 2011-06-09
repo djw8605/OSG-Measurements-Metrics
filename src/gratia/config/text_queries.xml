@@ -1,5 +1,6 @@
 <graphtool-config>
 
+  <import module="gratia.config" data_file="gratia_glidein_bar_queries.xml" />
   <import module="gratia.config" data_file="gratia_pie_queries.xml" />
   <import module="gratia.config" data_file="gratia_realtime_queries.xml" />
   <import module="gratia.config" data_file="gratia_bar_queries.xml" />
@@ -25,6 +26,7 @@
     <queryobj> GratiaEventsQueries </queryobj>
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
+    <queryobj> GratiaGlideinBarQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>
     <queryobj> GratiaRTQueries </queryobj>
     <queryobj> GratiaTransferQueries </queryobj>
