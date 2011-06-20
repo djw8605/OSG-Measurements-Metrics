@@ -25,7 +25,7 @@
         <input name="exclude-facility" kind="sql"> NONE </input>
         <input name="exclude-user" kind="sql"> NONE </input>
         <input name="exclude-probe" kind="sql"> NONE </input>
-        <input name="record_type" kind="sql"> Batch </input>
+        <input name="record_type" kind="sql"> ^Batch$ </input>
       </inputs>
       <sql>
         SELECT

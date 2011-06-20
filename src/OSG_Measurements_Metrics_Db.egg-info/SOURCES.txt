@@ -1,4 +1,5 @@
 MANIFEST.in
+README_MAINT_NOTES.txt
 access.db
 buildrpms.sh
 setup.cfg
@@ -22,6 +23,12 @@ config/static_graphs
 config/wlcg_email.conf.rpmnew
 ez_setup/README.txt
 ez_setup/__init__.py
+gratiamonitor/buildgratiamonitor.sh
+gratiamonitor/RPMS/noarch/gratiagraph-monitor-rpm-1.0-1.noarch.rpm
+gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.cron
+gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.sh
+gratiamonitor/SPECS/gratiagraph-monitor.spec
+gratiamonitor/SRPMS/gratiagraph-monitor-rpm-1.0-1.src.rpm
 setup/setup.cfg
 setup/setup.py
 setup/setup_Db.cfg

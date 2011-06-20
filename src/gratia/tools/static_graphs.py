@@ -7,10 +7,14 @@ import time
 import urllib2
 import ConfigParser
 from xml.dom.minidom import parse
+import socket
+socket.setdefaulttimeout(300)
 
 from pkg_resources import resource_stream
 
 from gratia.graphs.animated_thumbnail import animated_gif
+
+timestr = str(datetime.datetime.now())
 
 def parseOpts( args ):
   # Stupid python 2.2 on SLC3 doesn't have optparser...
@@ -88,23 +92,26 @@ def generateImages(cp, timestamp, src, dest, replace=False, variables={},
 def generateImage(filename, image_path, timestamp, src, dest, replace):
         source = src + image_path
         source = source.replace(':today', str(timestamp))
+        erroroccured=False
+        stopwatch = -time.time()
         if os.path.exists(filename) and not replace:
-            print "Not overwritting", filename
+            print "%s Not overwritting %s " %(timestr, filename)
             return
         try:
-            print "Saving image %s to %s." % (source, filename)
-            stopwatch = -time.time()
             input = urllib2.urlopen(source)
             output = open(filename, 'w')
             output.write(input.read())
             input.close()
             output.close()
-            print " - Took %.2f seconds." % (stopwatch + time.time())
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception, e:
-            print >> sys.stderr, "Exception occurred while making static " \
-                "copy: %s" % str(e)
+            erroroccured=True
+            print >> sys.stderr, "%s Exception occurred while making static " \
+                "copy of %s : %s" % (timestr, source, str(e))
+        if(not erroroccured):
+            print "%s Created image %s to %s - Took %.2f seconds." % (timestr, source, filename, stopwatch + time.time())
+
 
 def generate(cp, entry=None):
 
@@ -142,7 +149,7 @@ def generate(cp, entry=None):
             generateImages(cp, timestamp, src, dest, replace=True, \
                 variables=variables, entry=entry)
         if  not generate_hist_graphs:
-            print "Historical graph parameter not set exiting now...\n"
+            print "%s Historical graph parameter not set exiting now...\n"%(timestr)
             break
             
         dest = os.path.join(orig_dest, curDate.strftime('%Y/%m/%d'))
@@ -176,8 +183,8 @@ def get_variable_values(url):
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception, e:
-        print >> sys.stderr, "Exception occurred while getting variable " \
-            "values: %s" % str(e)
+        print >> sys.stderr, "%s Exception occurred while getting variable " \
+            "values: %s" % (timestr, str(e))
         return retval
     dom = parse(xmldoc)
     for pivot in dom.getElementsByTagName('pivot'):
@@ -211,13 +218,14 @@ def generate_thumbnails(cp, dest=None):
 
 def main():
     kwArgs, passed, given = parseOpts(sys.argv[1:])
+    global timestr
     
     config_files = kwArgs.get('config', '').split(',')
     config_files = [os.path.expandvars(i) for i in config_files \
                     if len(i.strip()) > 0]
     for config_file in config_files:
         if not os.path.exists(config_file):
-            print >> sys.stderr, "Config file %s not found." % config_file
+            print >> sys.stderr, "%s Config file %s not found." % (timestr, config_file)
             sys.exit(1)
 
     if not config_files:
@@ -228,14 +236,14 @@ def main():
    
     try:
         if not cp.getboolean("General", "Enabled"):
-            print "Config file %s does not have Enabled=true in [General]." % \
-                ", ".join(config_files)
-            print "Exiting 0 as requested."
+            print "%s Config file %s does not have Enabled=true in [General]." % \
+                (timestr, ", ".join(config_files))
+            print "%s Exiting 0 as requested." % (timestr)
             sys.exit(0)
     except SystemExit:
         raise
     except:
-        print sys.stderr, "Unable to determine if config file %s has been enabled." % ", ".join(config_files)
+        print sys.stderr, "%s Unable to determine if config file %s has been enabled." % (timestr, ", ".join(config_files))
         sys.exit(1)
  
     if 'entry' in kwArgs:

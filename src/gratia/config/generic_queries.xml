@@ -72,7 +72,7 @@
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
             <input name="exclude-user" kind="sql"> NONE </input>
-            <input name="resource-type" kind="sql"> Batch </input>
+            <input name="resource-type" kind="sql"> ^Batch$ </input>
         </inputs>
         <sql>
             SELECT
@@ -208,7 +208,7 @@
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-user" kind="sql"> NONE </input>
             <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
-            <input name="resource-type" kind="sql"> Batch </input>
+            <input name="resource-type" kind="sql"> ^Batch$ </input>
         </inputs>
         <sql>
             SELECT
@@ -277,7 +277,7 @@
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
             <input name="exclude-user" kind="sql"> NONE </input>
-            <input name="resource-type" kind="sql"> Batch </input>
+            <input name="resource-type" kind="sql"> ^Batch$ </input>
         </inputs>
         <sql>
             SELECT
@@ -340,7 +340,7 @@
             <input name="vo" kind="sql"> .* </input>
             <input name="exclude-vo" kind="sql"> unknown|other </input>
             <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
-            <input name="resource-type" kind="sql"> Batch </input>
+            <input name="resource-type" kind="sql"> ^Batch$ </input>
         </inputs>
         <sql>
             SELECT
@@ -456,7 +456,7 @@
         <input name="exclude-vo" kind="sql"> unknown|other </input>
         <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
         <input name="probe" kind="sql"> .* </input>
-        <input name="resource-type" kind="sql"> Batch </input>
+        <input name="resource-type" kind="sql"> ^Batch$ </input>
       </inputs>
       <sql>
        SELECT
@@ -521,7 +521,7 @@
         <input name="exclude-facility" kind="sql"> NONE|Generic|Obsolete </input>
         <input name="exclude-user" kind="sql"> NONE </input>
         <input name="probe" kind="sql"> .* </input>
-        <input name="resource-type" kind="sql"> Batch </input>
+        <input name="resource-type" kind="sql"> ^Batch$ </input>
       </inputs>
       <sql>
        SELECT
