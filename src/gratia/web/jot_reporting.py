@@ -136,7 +136,9 @@ class JOTReporter(Authenticate):
                 data['alice_feds'].append(fed)
             data['availability'][fed] = gv_data.get(fed, [0, 0])[1]
             data['reliability'][fed] = gv_data.get(fed, [0, 0])[0]
-
+        for key in data['atlas_feds']:
+		print "lllllllllllllll= %s %s "% (key, data['wall'][key])
+        print "lllllllllllllll"
         data['round'] = round
         return data
 
