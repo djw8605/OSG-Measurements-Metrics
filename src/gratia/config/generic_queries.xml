@@ -598,7 +598,7 @@
           <slot name="group"/>,
           <slot name="column"/>
         FROM
-          MasterTransferSummary R
+          MasterTransferSummary R FORCE INDEX (index01)
         JOIN
           Probe P on R.ProbeName = P.probename
         JOIN
@@ -634,7 +634,7 @@
       <attribute name="column_units" />
     </query>
 
-    <query name="summary">
+    <query name="summary"> <!-- TRACE This is the base query for facility_transfer_volume -->
       <inputs>
         <input name="span" type="int" kind="sql">86400</input>
         <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
@@ -651,7 +651,7 @@
           truncate( unix_timestamp(StartTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
-          MasterTransferSummary R
+          MasterTransferSummary R FORCE INDEX (index01)
         JOIN
           Probe P on R.ProbeName = P.probename
         JOIN
@@ -706,7 +706,7 @@
        SELECT
           <slot name="column"/>
         FROM
-          MasterTransferSummary R
+          MasterTransferSummary R FORCE INDEX (index01)
         JOIN
           Probe P on R.ProbeName = P.probename
         JOIN
@@ -749,7 +749,7 @@
           truncate( unix_timestamp(StartTime) / :span, 0 ) * :span as time,
           <slot name="column"/>
         FROM
-          MasterTransferSummary R
+          MasterTransferSummary R FORCE INDEX (index01)
         JOIN
           Probe P on R.ProbeName = P.probename
         JOIN
