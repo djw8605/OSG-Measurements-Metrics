@@ -6,7 +6,7 @@ Summary: Gratia Graph Monitor RPMs
 Group: Development/System          
 License: GPL        
 URL: http://hcc.unl.edu/ 
-Source0: gratiagraph-monitor      
+Source: gratiagraph-monitor.tar      
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
 
@@ -15,10 +15,11 @@ Gratia Graph Monitor RPMs
 
 %install
 rm -rf $RPM_BUILD_ROOT
+tar -xvf $RPM_SOURCE_DIR/gratiagraph-monitor.tar
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/
 mkdir -p $RPM_BUILD_ROOT/%{_sbindir}/
-cp %{SOURCE0}/gratiagraph-monitor.cron $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/
-cp %{SOURCE0}/gratiagraph-monitor.sh $RPM_BUILD_ROOT/%{_sbindir}/
+cp gratiagraph-monitor/gratiagraph-monitor.cron $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/
+cp gratiagraph-monitor/gratiagraph-monitor.sh $RPM_BUILD_ROOT/%{_sbindir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT

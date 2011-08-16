@@ -44,7 +44,7 @@ class PeriodicUpdater(object):
             else:
                 my_results = self.last_results
         else:
-            if age > self.negative_ttl:
+            if age > self.negative_ttl or self.last_results == None:
                 my_results = self.parse(self.fetch())
             else:
                 my_results = self.last_results
