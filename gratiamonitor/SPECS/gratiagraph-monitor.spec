@@ -1,6 +1,6 @@
 Name: gratiagraph-monitor-rpm          
 Version: 1.0        
-Release: 1
+Release: 2
 Summary: Gratia Graph Monitor RPMs        
 
 Group: Development/System          
@@ -31,6 +31,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Aug 16 2011  Ashu Guru <aguru2@unl.edu> 1.02
+- Logs written to stdout
 * Mon Jun 13 2011  Ashu Guru <aguru2@unl.edu> 1.01
 - Initial version of the package
 
