@@ -101,7 +101,7 @@ class JOTReporter(Authenticate):
         for key in alice_pledge:
             data['mou'][key] = days_in_month*.67*24*int(alice_pledge[key]['pledge'])
         for resource, fed in federations.items():
-            print "TRACE Resource %s associated with federation %s with wall hours %s. Norm factor %s " % (resource, fed, wall_hours.get(resource, 0)*norms[resource], norms[resource])
+            print "TRACE Resource %s associated with federation %s, resource %s with wall hours %s. Norm factor %s " % (resource, fed, resource, wall_hours.get(resource, 0)*norms[resource], norms[resource])
             #data['reliability'].setdefault(fed, 0)
             #data['reliability'][fed] +=resource_reliability.get(resource, {}).\
             #    get(datetime.datetime(year, month, 1, 0, 0, 0), (0, ))[0]

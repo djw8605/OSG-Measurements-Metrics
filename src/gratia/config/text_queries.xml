@@ -64,6 +64,7 @@
     <queryobj> GratiaEventsQueries </queryobj>
     <queryobj> GratiaDataQueries </queryobj>
     <queryobj> GratiaPieQueries </queryobj>
+    <queryobj> GratiaGlideinBarQueries </queryobj>
     <queryobj> GratiaBarQueries </queryobj>
     <queryobj> GratiaRTQueries </queryobj>
     <queryobj> GratiaTransferQueries </queryobj>

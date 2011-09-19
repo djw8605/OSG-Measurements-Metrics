@@ -24,7 +24,6 @@ config/wlcg_email.conf.rpmnew
 ez_setup/README.txt
 ez_setup/__init__.py
 gratiamonitor/buildgratiamonitor.sh
-gratiamonitor/RPMS/noarch/gratiagraph-monitor-rpm-1.0-1.noarch.rpm
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.cron
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.sh
 gratiamonitor/SPECS/gratiagraph-monitor.spec
