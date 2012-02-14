@@ -45,6 +45,8 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.bysite = self.template('bysite.tmpl')(self.bysite)
         self.byvo = self.template('byvo.tmpl')(self.byvo)
         self.monbyvo = self.template('monbyvo.tmpl')(self.monbyvo)
+        self.monbyvo_running_graphsonly = self.plain_template('monbyvo_running_graphsonly.tmpl')(self.monbyvo_running_graphsonly)
+        self.monbyvo_waiting_graphsonly = self.plain_template('monbyvo_waiting_graphsonly.tmpl')(self.monbyvo_waiting_graphsonly)
         self.monbysite = self.template('monbysite.tmpl')(self.monbysite)
         self.wlcg_reporting = self.template('wlcg_reporting.tmpl')(\
             self.apel_data)
@@ -341,13 +343,39 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         else:
             data['title'] = "OSG Job Accounting Information By VO"
         return data
+    def monbyvo_running_graphsonly(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = dict(kw)
+        self.user_auth(data)
+        # Handle the refine variables
+        self.refine(data, data, dn=False, hours=False)
+        token = self.start_image_maps()
+        # Generate image maps:
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_vo', 'monbyvo_running_graphsonly', '')
+        self.finish_image_maps(token)
+        return data
+
+    def monbyvo_waiting_graphsonly(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = dict(kw)
+        self.user_auth(data)
+        # Handle the refine variables
+        self.refine(data, data, dn=False, hours=False)
+        token = self.start_image_maps()
+        # Generate image maps:
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_vo_waiting', 'monbyvo_waiting_graphsonly', '')
+        self.finish_image_maps(token)
+        return data
+
 
     def monbyvo(self, *args, **kw):
         data = dict(kw)
         data['given_kw'] = dict(kw)
         self.user_auth(data)
         filter_dict = {}
-        
+        #filter_dict['title']=title
         # Handle the refine variables
         self.refine(data, filter_dict, dn=False, hours=False)
         token = self.start_image_maps()

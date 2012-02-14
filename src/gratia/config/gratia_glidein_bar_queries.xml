@@ -4,7 +4,7 @@
 
   <class type="SqlQueries" name="GratiaGlideinBarQueries">
 
-    <attribute name="display_name"> Glidein Bar Graphs </attribute>
+    <attribute name="display_name"> Glidein and Campus Grid Bar Graphs </attribute>
     <attribute name="connection_manager"> GratiaConnMan </attribute>
 
 

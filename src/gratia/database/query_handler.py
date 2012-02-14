@@ -1017,7 +1017,8 @@ def table_parser(results, columns="column1, column2", **kw):
     return retval, kw
 
 def get_vo_listing(globals):
-    old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    old_vo_listing=voownership()
     vo_listing = []
     for vo, site in old_vo_listing:
         vo_listing.append((vo.lower(), site))
@@ -1142,12 +1143,32 @@ def get_gratia_ownership(globals):
     filtered.append(('HEPGRID_UERJ_OSG64', 'cms'))
     return filtered, dummy
 
+
+def voownership():
+    urltofetch='https://myosg.grid.iu.edu/rgsummary/xml?datasource=summary&summary_attrs_showvoownership=on&gip_status_attrs_showtestresults=on&downtime_attrs_showpast=&account_type=cumulative_hours&ce_account_type=gip_vo&se_account_type=vo_transfer_volume&bdiitree_type=total_jobs&bdii_object=service&bdii_server=is-osg&start_type=7daysago&start_date=02%2F02%2F2012&end_type=now&end_date=02%2F02%2F2012&all_resources=on&facility_10009=on&gridtype=on&gridtype_1=on&active_value=1&disable_value=1'
+    try:
+       f = urllib2.urlopen(urltofetch)
+    except:
+       print "Unable to fetch OIM Data for VO Resource Allocations"
+       raise    
+    dom = xml.dom.minidom.parse(f)
+    allresources=[]
+    for node in dom.getElementsByTagName('Resource'):
+        resourcename= (node.getElementsByTagName("Name"))
+        for innernode in node.getElementsByTagName('Ownership'):
+            voname= (innernode.getElementsByTagName("VO")) 
+            t = voname[0].firstChild.nodeValue.encode("utf8"),resourcename[0].firstChild.nodeValue.encode("utf8")
+            allresources.append(t)
+    #print "All Resources  %s"%(allresources)
+    return allresources
+
 def opportunistic_usage_parser(sql_results, vo="Unknown", globals=globals(), **kw):
     """
     For a given VO, filter out any "Owned" usage, and return the sites where the
     opportunistic usage occurred.
     """
-    vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    vo_listing=voownership()
+    #vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
     ownership = []
     for v, site in vo_listing:
         if vo.lower() == v.lower():
@@ -1168,7 +1189,8 @@ def opportunistic_usage_parser2(sql_results, vo="Unknown", globals=globals(), **
     """
     For a given VO, turn the pivots into "Usage Type" - opportunistic or owned.
     """
-    vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    vo_listing=voownership()
+    #vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
     ownership = []
     for v, site in vo_listing:
         if vo.lower() == v.lower():
@@ -1298,17 +1320,21 @@ def opportunistic_usage_parser4(sql_results, globals=globals(), **kw):
     Does not restrict you to a certain VO.
     """
     old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing=voownership()
     vo_listing = [] 
     for vo, site in old_vo_listing:
         vo_listing.append((vo.lower(), site))
     def pivot_transform(*arg, **kw):
         if arg in vo_listing:
+            #print "ARG %s "%(type(arg))
             return None
         return "Opportunistic"
+        #print "ARGO %s "%(type(arg))
     try:
         kw.pop('pivot_transform')
     except:
         pass
+    #print "VOLISTING: %s "%(vo_listing)
     return results_parser(sql_results, pivot_transform=pivot_transform,\
         globals=globals, **kw)
 
@@ -1316,7 +1342,8 @@ def opportunistic_usage_parser5(sql_results, globals=globals(), **kw):
     """
     Filter out any owned usage and return the opportunistic usage by VO.
     """
-    old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    old_vo_listing=voownership()
     vo_listing = [] 
     for vo, site in old_vo_listing:
         vo_listing.append((vo.lower(), site))
@@ -1335,7 +1362,8 @@ def opportunistic_usage_parser_sites(sql_results, globals=globals(), **kw):
     """
     Filter out any owned usage and return the opportunistic usage by site.
     """
-    old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    old_vo_listing=voownership()
     vo_listing = []
     for vo, site in old_vo_listing:
         vo_listing.append((vo.lower(), site))
@@ -1354,7 +1382,8 @@ def opportunistic_usage_parser_sites_perc(sql_results, globals=globals(), **kw):
     """
     Return the percent of opportunistic usage by site.
     """
-    old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    old_vo_listing=voownership()
     vo_listing = []
     for vo, site in old_vo_listing:
         vo_listing.append((vo.lower(), site))
@@ -1377,7 +1406,8 @@ def opportunistic_usage_parser_vos_perc(sql_results, globals=globals(), **kw):
     """
     Return the percent of opportunistic usage by VO.
     """
-    old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    #old_vo_listing, dummy = globals['RegistrationQueries'].ownership_query()
+    old_vo_listing=voownership()
     vo_listing = []
     for vo, site in old_vo_listing:
         vo_listing.append((vo.lower(), site))

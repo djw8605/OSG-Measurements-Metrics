@@ -123,6 +123,7 @@ src/gratia/summary/__init__.py
 src/gratia/summary/dashboard_slurp.py
 src/gratia/summary/ligo_query.py
 src/gratia/templates/__init__.py
+src/gratia/templates/__init__.pyc
 src/gratia/templates/bysite.tmpl
 src/gratia/templates/byvo.tmpl
 src/gratia/templates/email_lookup.tmpl
@@ -135,6 +136,8 @@ src/gratia/templates/jot_uslhc.tmpl
 src/gratia/templates/main.tmpl
 src/gratia/templates/monbysite.tmpl
 src/gratia/templates/monbyvo.tmpl
+src/gratia/templates/monbyvo_running_graphsonly.tmpl
+src/gratia/templates/monbyvo_waiting_graphsonly.tmpl
 src/gratia/templates/overview.tmpl
 src/gratia/templates/refine.tmpl
 src/gratia/templates/site.tmpl

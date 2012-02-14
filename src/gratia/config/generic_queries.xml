@@ -139,6 +139,7 @@
             <input name="exclude-user" kind="sql"> NONE </input>
             <input name="exclude-facility" kind="sql"> NONE  </input>
             <input name="resource-type" kind="sql"> BatchPilot </input>
+            <input name="grid" kind="sql"> .* </input>
         </inputs>
         <sql>
             SELECT
@@ -160,6 +161,7 @@
                 R.EndTime &gt;= :starttime AND
                 R.EndTime &lt; :endtime AND
                 R.HostDescription regexp :facility AND
+                R.Grid regexp :grid AND
                 VO.VOName regexp :vo AND
                 VC.VOName regexp :role AND
                 (NOT (VC.VOName regexp :exclude-role)) AND
