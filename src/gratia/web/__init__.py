@@ -165,7 +165,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
             except:
                 raise ValueError("Unknown facility set: %s." % \
                     filter_dict['facility_set'])
-        print filter_dict
+        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s "%filter_dict
         if len(filter_dict.get('vo', '')) == 0 and 'vo_set' in \
                 filter_dict:
             try:

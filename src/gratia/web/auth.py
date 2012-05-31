@@ -1,5 +1,6 @@
 
 import cherrypy
+import libxml2
 
 from graphtool.web.security import DenyAll
 from graphtool.base.xml_config import XmlConfig
@@ -43,6 +44,35 @@ class Authenticate(XmlConfig):
             data['auth_count'] = 0
             return
         dn = data['dn']
+        data['vo_membership'] =[]
+        data['vo_ownership']=[]
+        data['site_ownership']=[]
+        data['user_ownership']=[]
+        try:
+            doc = libxml2.parseFile("/tmp/myosg.cache.xml") #updated by cron defined in GratiaStaticGraphs.cron
+            #types:
+            #Submitter Contact
+            #Administrative Contact
+            #VO Manager
+            #Security Contact
+            #Miscellaneous Contact
+            for vo in doc.xpathEval("//VO[ContactTypes//DN='%s']"%dn):
+                currvo=(vo.xpathEval("Name")[0]).content
+                data['vo_membership'].append(currvo)
+                for voin in vo.xpathEval("ContactTypes/ContactType[Contacts/Contact/DN='%s']"%dn):
+                    typeof=(voin.xpathEval("Type")[0]).content
+                    if('VO Manager'==typeof):
+                    #if('Miscellaneous Contact'==typeof):  #Testing
+                        data['vo_ownership'].append(currvo)
+                        for site in vo.xpathEval("MemeberResources/Resource/Name"):
+                            data['site_ownership'].append(site.content)
+                        for dn in vo.xpathEval("ContactTypes/ContactType/Contacts/Contact/DN"):
+                            data['user_ownership'].append(dn.content)
+        except:
+            pass                  
+
+        """
+        #obsolted now
         data['vo_ownership'] = self.vo_security_obj.list_roles("vo_ownership",
             dn)
         data['site_ownership'] = self.site_security_obj.list_roles( \
@@ -50,6 +80,7 @@ class Authenticate(XmlConfig):
         data['user_ownership'] = self.user_security_obj.list_roles("users", dn)
         data['vo_membership'] = self.user_security_obj.list_roles( \
             "vo_membership", dn)
+        """
         auth_count = 0
         if len(data['vo_ownership']) > 0:
             data['is_vo_owner'] = True

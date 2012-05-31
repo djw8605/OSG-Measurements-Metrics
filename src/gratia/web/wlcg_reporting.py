@@ -197,9 +197,54 @@ class WLCGReporter(Authenticate):
             status_subcluster_times()
         return subclusters, time_list
 
+    def get_apel_data_since201203(self, month, year):
+        apel_url = self.metadata.get('apel_url', 'http://gr7x3.fnal.gov:8880/gratia-data/interfaces/apel-lcg/%i-%02i.summary.dat'\
+            % (year, month))
+        usock = urllib2.urlopen(apel_url)
+        data = usock.read()
+        usock.close()
+        apel_data = []
+        datafields = []
+        numcells=11
+        report_time = None
+        for i in range(numcells):
+            datafields.append(0)
+        datafields[0]="ExecutingSite"
+        datafields[1]="HS06Factor"
+        datafields[2]="LCGUserVO"
+        datafields[3]="Njobs"
+        datafields[4]="SumCPU"
+        datafields[5]="SumWCT"
+        datafields[6]="HS06_CPU"
+        datafields[7]="HS06_WCT"
+        datafields[8]="RecordStart"
+        datafields[9]="RecordEnd"
+        datafields[10]="MeasurementDate"
+        linesrec=data.split('\n')
+        for line in linesrec:
+            eachfield=line.split('\t')
+            count=0
+            info = {}
+            for field in eachfield:
+                if(field.strip() == ""):
+                    continue
+                if(count<numcells):
+                    info[datafields[count]]=field
+                if count<numcells and datafields[count] == 'MeasurementDate' and report_time == None:
+                    report_time = field
+                count=count+1
+            if(not info):
+                continue
+            info['month']=month
+            info['year']=year
+            apel_data.append(info)
+        return apel_data, report_time
+
     def get_apel_data(self, year=datetime.datetime.now().year, month=datetime.datetime.now().month):
         year = int(year)
         month = int(month)
+        if(year >=2012 and month >= 3):
+            return self.get_apel_data_since201203(month, year)
         apel_url = self.metadata.get('apel_url', 'http://gratia-osg-prod-reports.opensciencegrid.org/gratia-data/interfaces/apel-lcg/%i-%02i.HS06_OSG_DATA.xml'\
             % (year, month))
         xmldoc = urllib2.urlopen(apel_url)
@@ -229,6 +274,7 @@ class WLCGReporter(Authenticate):
                         report_time = val
             apel_data.append(info)
         return apel_data, report_time
+
 
     def apel_data(self, gip_time=None, year=datetime.datetime.now().year, 
             month=datetime.datetime.now().month, **kw):

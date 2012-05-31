@@ -1,1 +1,2 @@
 01 0-23/8 * * * nobody static_graphs -config /etc/osg_graphs.conf > /dev/null
+01 */2 * * * root /usr/bin/curl "https://myosg.grid.iu.edu/vosummary/xml?datasource=summary&summary_attrs_showdesc=on&summary_attrs_showmember_resource=on&summary_attrs_showreporting_group=on&summary_attrs_showcontact=on&start_type=7daysago&start_date=04%2F05%2F2012&end_type=now&end_date=04%2F05%2F2012&all_vos=on&active=on&active_value=1&sort_key=name" --cert /etc/grid-security/hostcert.pem --key /etc/grid-security/hostkey.pem > /tmp/myosg.cache.xml 

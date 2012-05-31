@@ -1,0 +1,26 @@
+
+SSLCACertificatePath /etc/grid-security/certificates
+SSLCARevocationPath /etc/grid-security/certificates
+SSLVerifyClient require
+SSLVerifyDepth  10
+RequestHeader set SSL_CLIENT_CERT %{SSL_CLIENT_CERT}e
+RequestHeader set SSL_CLIENT_S_DN %{SSL_CLIENT_S_DN}e
+RequestHeader set SSL_CLIENT_VERIFY %{SSL_CLIENT_VERIFY}e
+RequestHeader set HTTPS %{HTTPS}e
+<Location "/" >
+  SSLRequireSSL
+  SSLVerifyDepth 10
+  SSLVerifyClient require
+  SSLOptions +StdEnvVars +StrictRequire +ExportCertData
+  SSLRequire %{SSL_CIPHER_USEKEYSIZE} >= 128
+  Options +FollowSymlinks
+</Location>
+
+RewriteEngine  on
+
+RewriteCond %{LA-U:ENV:SSL_CLIENT_VERIFY} (SUCCESS)
+RewriteRule ^/gratia/(.*)$ http://localhost:8100/gratia/$1 [P,L]
+
+
+
+

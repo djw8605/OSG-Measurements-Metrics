@@ -1,0 +1,8 @@
+%changelog
+* Thu Apr 5 2012 Ashu Guru <aguru2@unl.edu>
+- Top Pull Downs on the Gratia Web Interface 
+- (http://jira.opensciencegrid.org/browse/GRATIAWEB-14)
+
+* Wed Apr 4 2012 Ashu Guru <aguru2@unl.edu>
+- Gratia/WLCG interface/reporting of Tier1/2 sites changes required due to new APEL SSM interface 
+- (https://jira.opensciencegrid.org/browse/METRICS-10)

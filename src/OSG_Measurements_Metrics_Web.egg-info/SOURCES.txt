@@ -2,6 +2,7 @@ MANIFEST.in
 README_MAINT_NOTES.txt
 access.db
 buildrpms.sh
+changelog.txt
 setup.cfg
 setup.py
 setup.sh
@@ -17,6 +18,7 @@ config/gip_password.conf
 config/gip_schema
 config/gratia_data.cron
 config/gratia_logrotate.conf
+config/gratia_mon.cron
 config/osg_graphs.conf
 config/registration_schema
 config/static_graphs
