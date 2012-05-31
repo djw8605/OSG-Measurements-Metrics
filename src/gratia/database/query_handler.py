@@ -429,6 +429,14 @@ def displayNameSite(*args, **kw):
         return
     return "%s @ %s" % (dn, site)
 
+def displayNameExitSite(*args, **kw):
+    exitcode = args[1]
+    site = args[2]
+    dn = displayName(*args, **kw)
+    if not dn:
+        return
+    return "%s: %s @ %s" % (dn, exitcode, site)
+
 model_re = re.compile("model='(.*)'")
 def model_parser(pivot, **kw):
     m = model_re.search(pivot)
