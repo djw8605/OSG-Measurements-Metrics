@@ -185,7 +185,7 @@ group by
     <query name="rsv_reliability_daily">
       <inputs>
         <input name="span" type="eval">86400</input>
-        <input name="starttime" type="timestamp" kind="sql">time.time()-14*86400</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-13*86400</input>
         <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>
@@ -229,7 +229,7 @@ group by
 
     <query name="rsv_reliability_total">
       <inputs>
-        <input name="starttime" type="timestamp" kind="sql">time.time()-14*86400</input>
+        <input name="starttime" type="timestamp" kind="sql">time.time()-13*86400</input>
         <input name="endtime" type="timestamp" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="metric" kind="sql">.*</input>

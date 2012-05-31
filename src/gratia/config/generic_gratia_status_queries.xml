@@ -148,7 +148,7 @@ GROUP BY
 
     <query name="ts_daily">
       <inputs>
-        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-13*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="vo" kind="sql">.*</input>
         <input name="span" kind="sql">86400</input>
@@ -216,7 +216,7 @@ GROUP BY
       <inputs>
           <input name="span" kind="sql">86400</input>
           <input name="facility" kind="sql">.*</input>
-          <input name="starttime" kind="sql" type="datetime">time.time()-14*86400</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-13*86400</input>
           <input name="endtime" kind="sql" type="datetime">time.time()</input>
           <input name="spacetype" kind="sql">SE</input>
           <input name="spacename" kind="sql">.*</input>

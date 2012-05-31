@@ -293,7 +293,7 @@
       <inputs>
           <input name="span" kind="sql">86400</input>
           <input name="facility" kind="sql">.*</input>
-          <input name="starttime" kind="sql" type="datetime">time.time()-14*86400</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-13*86400</input>
           <input name="endtime" kind="sql" type="datetime">time.time()</input>
           <input name="sekind" kind="sql">srm</input>
       </inputs>
@@ -324,7 +324,7 @@
       <inputs>
           <input name="span" kind="sql">86400</input>
           <input name="facility" kind="sql">.*</input>
-          <input name="starttime" kind="sql" type="datetime">time.time()-14*86400</input>
+          <input name="starttime" kind="sql" type="datetime">time.time()-13*86400</input>
           <input name="endtime" kind="sql" type="datetime">time.time()</input>
           <input name="sekind" kind="sql">srm</input>
       </inputs>

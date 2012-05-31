@@ -311,10 +311,11 @@ YAHOO.util.Event.addListener(window, "load", function() {
 
 <div>
 <form action="$base_url/wlcg_reporting" method="get">
-<p>Select a different month's data:</p>
+<p>Select a different month's data - :</p>
 <p><label for="year">Year:</label>
 <select name="year">
-    #for i in range(2007, $year+1)
+    #import datetime
+    #for i in range(2007, datetime.datetime.now().year+1)
         #if $i == $year
             <option selected value="$i">$i</option>
         #else

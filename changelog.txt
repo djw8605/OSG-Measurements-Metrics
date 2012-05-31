@@ -1,4 +1,8 @@
 %changelog
+* Mon May 31 2012 Ashu Guru <aguru2@unl.edu>
+- Updated for fixing the number of bins and days of bar chart report issue
+- (https://jira.opensciencegrid.org/browse/GRATIAWEB-17)
+
 * Thu Apr 5 2012 Ashu Guru <aguru2@unl.edu>
 - Top Pull Downs on the Gratia Web Interface 
 - (http://jira.opensciencegrid.org/browse/GRATIAWEB-14)

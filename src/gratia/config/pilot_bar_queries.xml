@@ -1483,7 +1483,7 @@
     <query name="unique_user_count">
         <inputs>
             <input name="span" type="eval" kind="sql">86400</input>
-            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-13*86400</input>
             <input name="endtime" partial="up" type="datetime" kind="sql">time.time()</input>
             <input name="includeFailed" kind="sql"> true </input>
             <input name="includeSuccess" kind="sql"> true </input>

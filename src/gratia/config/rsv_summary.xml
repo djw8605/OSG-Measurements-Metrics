@@ -156,7 +156,7 @@ order by starttime asc
     <query name="reli_summary_daily">
       <inputs> 
         <input name="span" kind="sql">86400</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-13*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="kind" kind="sql">Resource</input>
@@ -196,7 +196,7 @@ order by starttime asc
     <query name="avail_summary_daily">
       <inputs>
         <input name="span">86400</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-13*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">.*</input>
         <input name="kind" kind="sql">Resource</input>
@@ -276,7 +276,7 @@ order by starttime asc
     <query name="site_avail_summary_daily">
       <inputs>
         <input name="span">86400</input>
-        <input name="starttime" type="datetime" kind="sql">time.time()-14*86400</input>
+        <input name="starttime" type="datetime" kind="sql">time.time()-13*86400</input>
         <input name="endtime" type="datetime" kind="sql">time.time()</input>
         <input name="facility" kind="sql">Nebraska</input>
         <input name="kind" kind="sql">Resource</input>
