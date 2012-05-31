@@ -22,5 +22,3 @@ RewriteCond %{LA-U:ENV:SSL_CLIENT_VERIFY} (SUCCESS)
 RewriteRule ^/gratia/(.*)$ http://localhost:8100/gratia/$1 [P,L]
 
 
-
-
