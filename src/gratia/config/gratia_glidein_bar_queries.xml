@@ -96,7 +96,26 @@
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
-
+    <query name="glidein_dn_efficiency_summary" base="GratiaGenericQuery.simple_glidein_master_summary">
+      <inputs>
+          <input name="vo" kind="sql">cms</input>
+          <input name="fixed-height">False</input>
+          <input name="min_hours" kind="sql" type="eval">0</input>
+      </inputs>
+      <sql>
+        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="column"> sum(case when ApplicationExitCode = 0 then CpuUserDuration + CpuSystemDuration else 0 end)/sum(Cores*WallDuration) </filler>
+        <filler name="where"> AND WallDuration > 0 AND WallDuration > 3600*:min_hours </filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="title">CPU Efficiency Quality Map by User for $vo</attribute>
+      <attribute name="graph_type">QualityBarGraph</attribute>
+    </query>
 
   </class>
 
