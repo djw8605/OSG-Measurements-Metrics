@@ -1,4 +1,8 @@
 %changelog
+* Mon Jun 28 2012 Ashu Guru <aguru2@unl.edu>
+- Updated for fixing number of days in pie chart
+- (https://jira.opensciencegrid.org/browse/GRATIAWEB-17)
+
 * Mon May 31 2012 Ashu Guru <aguru2@unl.edu>
 - Updated for fixing the number of bins and days of bar chart report issue
 - (https://jira.opensciencegrid.org/browse/GRATIAWEB-17)
