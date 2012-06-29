@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+'/setuptools-0.6c11-py2.4.egg')
+
+
 try:
     import ez_setup
     ez_setup.use_setuptools()

@@ -1,5 +1,4 @@
 MANIFEST.in
-README_MAINT_NOTES.txt
 SSLConfExample.txt
 access.db
 buildrpms.sh
@@ -24,8 +23,6 @@ config/osg_graphs.conf
 config/registration_schema
 config/static_graphs
 config/wlcg_email.conf.rpmnew
-ez_setup/README.txt
-ez_setup/__init__.py
 gratiamonitor/buildgratiamonitor.sh
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.cron
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.sh
@@ -114,10 +111,7 @@ src/gratia/gip/ldap.py
 src/gratia/graphs/__init__.py
 src/gratia/graphs/animated_thumbnail.py
 src/gratia/graphs/gratia_graphs.py
-src/gratia/gratiamonitor/__init__.py
 src/gratia/nagios/check_gip_subcluster_record.py
-src/gratia/other/__init__.py
-src/gratia/other/make_daemon.py
 src/gratia/summary/CmsProbeConfigItb
 src/gratia/summary/CmsProbeConfigProd
 src/gratia/summary/Gratia.py
@@ -189,7 +183,6 @@ src/gratia/web/jot_reporting.py
 src/gratia/web/navigate.py
 src/gratia/web/subcluster_report.py
 src/gratia/web/template.py
-src/gratia/web/test.py
 src/gratia/web/thumbnails.py
 src/gratia/web/vo_installed_capacity.py
 src/gratia/web/wlcg_json_data.py
