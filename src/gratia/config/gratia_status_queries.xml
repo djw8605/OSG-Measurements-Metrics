@@ -151,6 +151,49 @@
       <attribute name="column_names">Running Jobs</attribute>
     </query>
 
+
+    <query name="status_voidle" base="GratiaStatusGeneric.ts_hourly">
+      <sql>
+        <filler name="column">TotalJobs - RunningJobs</filler>
+        <filler name="group">VOName</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Count of Requested Idle by VO Frontend</attribute>
+      <attribute name="column_names">Idle Jobs</attribute>
+    </query>
+
+    <query name="status_vo_dailyidle" base="GratiaStatusGeneric.ts_daily">
+      <sql>
+        <filler name="column">TotalJobs - RunningJobs</filler>
+        <filler name="group">VOName</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Count of Requested Idle by VO Frontend</attribute>
+      <attribute name="column_names">Idle Jobs</attribute>
+    </query>
+
+    <query name="status_vowaiting" base="GratiaStatusGeneric.ts_hourly_max">
+      <sql>
+        <filler name="column">WaitingJobs</filler>
+        <filler name="group">VOName</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Count of Waiting Jobs by VO Frontend</attribute>
+      <attribute name="column_names">Total Waiting Jobs</attribute>
+    </query>
+
+    <query name="status_sitesused" base="GratiaStatusGeneric.ts_hourly">
+      <sql>
+        <filler name="column">1</filler>
+        <filler name="group">VOName</filler>
+      </sql>
+      <results/>
+      <attribute name="title">Count of Sites used by VO Frontend</attribute>
+      <attribute name="column_names">Idle Jobs</attribute>
+    </query>
+
+
+
     <query name="status_queue" base="GratiaStatusGeneric.ts_hourly">
       <sql>
         <filler name="column">RunningJobs</filler>

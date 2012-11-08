@@ -78,7 +78,75 @@ GROUP BY
       <attribute name="graph_type"> GratiaPie </attribute>
       <attribute name="pivot_name">VO</attribute>
       <attribute name="column_units"/>
-    </query>    
+    </query>  
+
+  
+    <query name="ts_hourly_max">
+      <inputs>
+        <input name="starttime" type="datetime" kind="sql">time.time()-2*86400</input>
+        <input name="endtime" type="datetime" kind="sql">time.time()</input>
+        <input name="vo" kind="sql">.*</input>
+        <input name="span" kind="sql">3600</input>
+        <input name="host" kind="sql">.*</input>
+        <input name="facility" kind="sql">.*</input>
+        <input name="excludefacility" kind="sql">ITB</input>
+        <input name="excludehost" kind="sql">NONE</input>
+        <input name="excludevo" kind="sql">NONE</input>
+      </inputs>
+      <sql>
+SELECT
+  <slot name="group"/>,
+  unix_timestamp(Timestamp),
+  max(MyColumn)
+FROM
+( SELECT
+  MSS.SiteName,
+  VO.VOName,
+  MSS.CEName,
+  Cluster.Name,
+  Timestamp,
+  (CASE CNC.type WHEN 1 THEN SUM(<slot name="column"/>) WHEN 2 THEN MAX(<slot name="column"/>) WHEN 3 THEN SUM(<slot name="column"/>) END) AS MyColumn
+  FROM
+    MasterServiceSummaryHourly MSS
+  JOIN VONameCorrection VNC on VNC.corrid=MSS.VOcorrid
+  JOIN VO on VO.void=VNC.void
+  JOIN ClusterNameCorrection CNC on CNC.corrid=MSS.Clustercorrid
+  JOIN Cluster on Cluster.clusterid=CNC.clusterid
+  WHERE
+        Timestamp >= :starttime
+    AND Timestamp &lt; :endtime
+    AND (MSS.SiteName regexp :facility)
+    AND NOT (MSS.SiteName regexp :excludefacility)
+    AND (MSS.HostName regexp :host)
+    AND NOT (MSS.HostName regexp :excludehost)
+    AND (VO.VOName regexp :vo)
+    AND NOT (VO.VOName regexp :excludevo)
+<slot name="where"/>
+GROUP BY
+VO.VOName,
+Cluster.Name,
+MSS.CEName,
+Timestamp
+) as foo
+GROUP BY
+  <slot name="group"/>,
+  Timestamp
+<slot name="having"/>
+      </sql>
+      <results module="gratia.database.query_handler" function="results_parser_fillin">
+        <inputs>
+          <input name="pivots"> 0 </input>
+          <input name="grouping"> 1 </input>
+          <input name="results"> 2 </input>
+          <input name="grouping_transform"> make_int </input>
+        </inputs>
+      </results>
+      <attribute name="graph_type"> GratiaStackedLine </attribute>
+      <attribute name="pivot_name">VO.VOName</attribute>
+      <attribute name="grouping_name">Time</attribute>
+      <attribute name="column_units"/>
+    </query>
+
 
     <query name="ts_hourly">
       <inputs>
