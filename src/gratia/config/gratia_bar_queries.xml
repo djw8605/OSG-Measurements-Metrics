@@ -369,14 +369,18 @@
       </results>
     </query>
 
+
     <query name="monthly_project_hours" base="GratiaGenericQuery.monthly_master_summary">
+      <inputs>
+          <input name="exclude-projectname" kind="sql"> unknown|other </input>
+      </inputs>
       <sql>
-        <filler name="join"> JOIN ProjectNameCorrection PC ON (PC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
-        <filler name="group"> PC.ReportableProjectName </filler>
+      <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+      <filler name="group"> PNC.ReportableProjectName </filler>
         <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
+        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname)) </filler>
       </sql>
-      <attribute name="pivot_name">VO</attribute>
+      <attribute name="pivot_name">ReportableProjectName</attribute>
       <attribute name="title">Monthly Wall Hours per Project</attribute>
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
@@ -641,6 +645,31 @@
       <attribute name="title">User Non-zero exit code count for VO $vo</attribute>
       <attribute name="graph_type">GratiaHorizontalBar</attribute>
     </query>
+
+    <query name="projectname_nonzero_exit" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+          <input name="projectname" kind="sql"> .* </input>
+      </inputs>
+      <sql>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="column"> cast(sum(Njobs) AS UNSIGNED) </filler>
+        <filler name="where"> AND WallDuration > 0 AND ApplicationExitCode!=0 AND PNC.ReportableProjectName regexp :projectname</filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="fixed-height">False</attribute>
+      <attribute name="title">User Non-zero exit code count for Project $projectname</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
+
+
+
 
     <query name="dn_zero_exit" base="GratiaGenericQuery.simple_master_summary">
       <inputs>
