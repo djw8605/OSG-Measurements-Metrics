@@ -372,13 +372,14 @@
 
     <query name="monthly_project_hours" base="GratiaGenericQuery.monthly_master_summary">
       <inputs>
+          <input name="resource-type" kind="sql"> .* </input>
           <input name="exclude-projectname" kind="sql"> unknown|other </input>
       </inputs>
       <sql>
-      <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
-      <filler name="group"> PNC.ReportableProjectName </filler>
+        <filler name="group"> PNC.ReportableProjectName </filler>
         <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
-        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname)) </filler>
+        <filler name="where"> AND WallDuration > 0 </filler>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
       </sql>
       <attribute name="pivot_name">ReportableProjectName</attribute>
       <attribute name="title">Monthly Wall Hours per Project</attribute>
@@ -649,10 +650,11 @@
     <query name="projectname_nonzero_exit" base="GratiaGenericQuery.simple_master_summary">
       <inputs>
           <input name="projectname" kind="sql"> .* </input>
+          <input name="resource-type" kind="sql"> .* </input>
       </inputs>
       <sql>
         <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
-        <filler name="group"> COALESCE(R.CommonName, "UNKNOWN") </filler>
+        <filler name="group"> COALESCE(PNC.ReportableProjectName, "UNKNOWN") </filler>
         <filler name="column"> cast(sum(Njobs) AS UNSIGNED) </filler>
         <filler name="where"> AND WallDuration > 0 AND ApplicationExitCode!=0 AND PNC.ReportableProjectName regexp :projectname</filler>
       </sql>
