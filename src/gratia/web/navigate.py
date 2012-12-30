@@ -52,6 +52,7 @@ class Navigation(Authenticate, Template):
                 "Monitoring By Site": "monbysite",
                 "Monitoring By VO":   "monbyvo",
                 "Opportunistic Usage": "vo_opp",
+                "Pilot / Campus Accounting": "pilot",
                }
         data['navigation']['Grid-wide'] = info
 
