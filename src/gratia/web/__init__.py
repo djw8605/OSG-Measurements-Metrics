@@ -328,11 +328,11 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         filter_dict = {}
 
         # Handle the refine variables
-        self.refine(data, filter_dict, dn=False, hours=False)
-        #token = self.start_image_maps()
+        self.refine(data, filter_dict)
+        token = self.start_image_maps()
         # Generate image maps:
-        #self.image_map(token, data, 'GratiaStatusQueries',
-        #    'status_facility', 'site', 'facility')
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_facility', 'site', 'facility')
         #self.image_map(token, data, 'GratiaStatusQueries',
         #    'status_facility_pie', 'site', 'facility')
         #self.image_map(token, data, 'GIPQueries',
@@ -344,7 +344,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         #self.image_map(token, data, 'GratiaStatusQueries',
         #    'status_facility_waiting_pie', 'site', 'facility')
 
-        #self.finish_image_maps(token)
+        self.finish_image_maps(token)
 
         data['title'] = "OSG Pilot and Campus Accounting"
         return data

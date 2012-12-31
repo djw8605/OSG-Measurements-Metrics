@@ -52,7 +52,6 @@ class Navigation(Authenticate, Template):
                 "Monitoring By Site": "monbysite",
                 "Monitoring By VO":   "monbyvo",
                 "Opportunistic Usage": "vo_opp",
-                "Pilot / Campus Accounting": "pilot",
                }
         data['navigation']['Grid-wide'] = info
 
@@ -85,6 +84,7 @@ class Navigation(Authenticate, Template):
                     page = 'byvo'
                 info['%s by site' % site] = '%s?set=%s&facility=%s' % (page,
                     site, set_info)
+        info['Pilot & Campus Accounting']  = "pilot"
 
     def defaultData(self, data):
         x = XmlConfig()
