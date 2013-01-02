@@ -84,6 +84,7 @@ class Navigation(Authenticate, Template):
                     page = 'byvo'
                 info['%s by site' % site] = '%s?set=%s&facility=%s' % (page,
                     site, set_info)
+        info['Pilot & Campus Accounting']  = "pilot"
 
     def defaultData(self, data):
         x = XmlConfig()
