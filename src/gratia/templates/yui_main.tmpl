@@ -1,174 +1,60 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
     <head>
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/reset-fonts-grids/reset-fonts-grids.css"> 
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/base/base.css"> 
-        <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/treeview/assets/skins/sam/treeview.css">
-        <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.3.1/build/autocomplete/assets/skins/sam/autocomplete.css"> 
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/button/assets/skins/sam/button.css" />
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/container/assets/skins/sam/container.css" />
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.1/build/datatable/assets/skins/sam/datatable.css"> 
-        <script src = "http://yui.yahooapis.com/2.5.1/build/yahoo/yahoo-min.js" ></script> 
-        <script src = "http://yui.yahooapis.com/2.5.1/build/event/event-min.js" ></script>
-        <script src = "http://yui.yahooapis.com/2.5.1/build/treeview/treeview-min.js" ></script>
-        <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.5.1/build/treeview/assets/treeview-menu.css">
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/connection/connection-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/dom/dom-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/element/element-beta-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/button/button-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/dragdrop/dragdrop-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/container/container-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/element/element-beta-min.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/datasource/datasource-beta-min.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.1/build/datatable/datatable-beta-min.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.3.1/build/animation/animation-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.3.1/build/autocomplete/autocomplete-min.js"></script>
-
-        <style>
-            #expandcontractdiv {border:1px dotted #dedede; background-color:#EBE4F2; margin:0 0 .5em 0; padding:0.4em;}
-            #treeDiv1 { background: #fff; padding:1em; margin-top:1em; }
-        </style>
-
-<script type="text/javascript">
-(function() {
-	var tree; //will hold our TreeView instance
-	
-	function treeInit() {
-
-		//instantiate the tree:
-		tree = new YAHOO.widget.TreeView("treeDiv1");
-                var pageInfo = {label:"Home", href:"$base_url/"};
-                var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
-		#for viewer, pages in $navigation.items()
-                    var viewNode = new YAHOO.widget.TextNode("$viewer View", tree.getRoot(), true);
-                    #for $pagename, $url in $pages.items()
-                        var pageInfo = {label:"$pagename", href:"$base_url/$url"}
-                        var pageNode = new YAHOO.widget.TextNode(pageInfo, viewNode, false);
-                    #end for
-                #end for
-                var pageInfo = {label:"WLCG Reporting (overview)", href:"$base_url/jot_reporting"};
-                var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
-                var pageInfo = {label:"WLCG Reporting (detailed)", href:"$base_url/wlcg_reporting"};
-                var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
-                var pageInfo = {label:"Developer Pages", href:"$base_url/xml"};
-                var viewNode = new YAHOO.widget.TextNode(pageInfo, tree.getRoot(), true);
-                var viewNode = new YAHOO.widget.HTMLNode('<div><button id="show">Custom View</button></div>',
-                    tree.getRoot(), true);
-		tree.draw();		
-	}
-
-        function autoCompleteInit() {
-            var voArray = [
-                #for vo in $vo_list
-                    "$vo",
-                #end for
-            ];
-            var siteArray = [
-                #for site in $site_list
-                    "$site",
-                #end for
-            ];
-            // Instantiate JS Array DataSource
-            voDS = new YAHOO.widget.DS_JSArray(voArray);
-            voDS.responseSchema = {fields: ["VO"]};
-            facilityDS = new YAHOO.widget.DS_JSArray(siteArray);
-            facilityDS.responseSchema = {fields: ["Facility"]};
-            oAutoComp2 = new YAHOO.widget.AutoComplete('customVoInput','customVoDiv', voDS);
-            oAutoComp2.prehighlightClassName = "yui-ac-prehighlight";
-            oAutoComp2.typeAhead = true;
-            oAutoComp2.useShadow = true;
-            oAutoComp2.forceSelection = true;
-            /*oAutoComp2.formatResult = function(oResultItem, sQuery) {
-            var sMarkup = oResultItem[0] + " (" + oResultItem[1] + ")";
-                return (sMarkup);
-            };*/
-            oAutoComp2 = new YAHOO.widget.AutoComplete('customFacilityInput','customFacilityDiv', facilityDS);
-            oAutoComp2.prehighlightClassName = "yui-ac-prehighlight";
-            oAutoComp2.typeAhead = true;
-            oAutoComp2.useShadow = true;
-            oAutoComp2.forceSelection = true;
-            /*oAutoComp2.formatResult = function(oResultItem, sQuery) {
-            var sMarkup = oResultItem[0];
-                return (sMarkup);
-            };*/
-        }
-
-YAHOO.namespace("gratia.customize");
-
-function dialogInit() {
-        
-        // Define various event handlers for Dialog
-        var handleSubmit = function() {
-                this.submit();
-        };
-        var handleCancel = function() {
-                this.cancel();
-        };
-        var handleFailure = function(o) {
-                alert("Submission failed: " + o.status);
-        };
-        var handleSuccess = function(o) {
-        };
-
-        // Instantiate the Dialog
-        YAHOO.gratia.customize.dialog1 = new YAHOO.widget.Dialog("dialog1", 
-                                                        { width : "40em",
-                                                          fixedcenter : true,
-                                                          visible : false, 
-                                                          constraintoviewport : true,
-                                                          buttons : [ { text:"Submit", handler:handleSubmit, isDefault:true },
-                                                                      { text:"Cancel", handler:handleCancel } ],
-                                                          postmethod: "form",
-                                                          hideaftersubmit: false
-                                                        });
-
-        // Wire up the success and failure handlers
-        YAHOO.gratia.customize.dialog1.callback = { failure: handleFailure };
-        
-        // Render the Dialog
-        YAHOO.gratia.customize.dialog1.render();
-        YAHOO.util.Event.addListener("show", "click", YAHOO.gratia.customize.dialog1.show, YAHOO.gratia.customize.dialog1, true);
-}
-
-        function allInit() {
-            treeInit();
-            dialogInit();
-            //autoCompleteInit();
-        }
-
-	YAHOO.util.Event.onDOMReady(allInit);
-})();
-
+        <script src="$static_site_url/bootstrap/js/jquery-1.8.3.min.js"></script> 
+        <link href="$static_site_url/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+        <script src="$static_site_url/bootstrap/js/bootstrap.min.js"></script> 
 </script>
 <title>$title</title>
 
     </head>
-    <body class="yui-skin-sam">
-    <div id="doc2" class="yui-t4">
-        <div id="hd"><!-- header -->
-            <h1 style="text-align:center"><a href="http://www.opensciencegrid.org"><img src="http://www.opensciencegrid.org/tmpl_images/template_02.gif" width="174" height="81" alt="Open Science Grid" border="0" /></a> </h1>
-        </div>
-        <div id="bd"><!-- body -->
-            <div id="yui-main">
-                <div class="yui-b">
-                    #include $main_tmpl
-                </div>
-            </div>
-            <div class="yui-b" id='navigationtree'>
-                <h2>Navigation</h2>
-                <div id="treeDiv1"></div> 
-            </div>
-        </div>  
-        <div id="ft"><!-- footer -->
-            <img src="http://www.opensciencegrid.org/tmpl_images/template_21.gif" style="margin: 0px 10px 0px 0px;" width="84" height="40" alt="" usemap="#template_21167c2a2" align="left" border="0" /><map name="template_21167c2a2" id="template_21167c2a2"><area shape="rect" coords="40,8,76,34" href="http://www.sc.doe.gov/" alt="" target="_blank"></area><area shape="rect" coords="3,5,31,34" href="http://www.nsf.gov/" alt="" target="_blank"></area></map>Supported by the National Science Foundation and the U.S. Department of Energy's Office of Science</td>
+    <body>
+    <div class="container-fluid">
+    <div id="doc2" class="row-fluid">
+        <div id="hd" class="offset1 span10"><!-- header -->
+           <div class="page-header">
+            <h1><a href="http://www.opensciencegrid.org"><img src="http://repo.grid.iu.edu/web/logo_osg.gif" alt="Open Science Grid" border="0" /></a>Open Science Grid Accounting</h1>
         </div>
     </div>
+    <div id="bd" class="row-fluid"><!-- body -->
+        <div id="yui-main" class="offset1 span8">
+            <div>
+                #include $main_tmpl
+            </div>
+         </div> <!-- body (span9) -->
+        <div class="span2" id='navigationtree'>
+                <!-- <div id="treeDiv1"></div> -->
+                <div class="well" style="padding: 8px 0;">
+                <ul class="nav nav-list">
+                #for viewer, pages in $navigation.items()
+                    <li class="nav-header">$viewer View</li>
+                    #for $pagename, $url in $pages.items()
+                        <li><a href="$base_url/$url">$pagename</a></li>
+                    #end for
+                #end for
+                <li class="divider"></li>
+                <li><a href="$base_url/jot_reporting">WLCG Reporting (overview)</a></li>
+                <li><a href="$base_url/wlcg_reporting">WLCG Reporting (detailed)</a></li>
+                <li><a href="$base_url/xml">Developer Pages</a></li>
+                <a href="#CustomModal" role="button" class="btn" data-toggle="modal">Custom View</a>
+                </ul>
+                </div> <!-- end well -->
+            </div> <!-- end span3 -->
+        </div> <!-- end row --> 
+        <div id="ft" class="row-fluid"><!-- footer -->
+          <div class="offset1 span10">
+            <hr>
+             <p>Supported by the National Science Foundation and the U.S. Department of Energy's Office of Science</p>
+             <p><img src="$static_site_url/images/nsf.png"><img src="$static_site_url/images/doe.png"></p>
+        </div> <!-- end span12 -->
+    </div> <!-- end row-fluid -->
 
-<div id="dialog1">
-<div class="hd">Custom Gratia Query</div>
-<div class="bd">
-    <form method="GET" action="$base_url/bysite">
+<div id="CustomModal" class="modal hide fade" role="dialog" aria-labelledby="CustomModalLabel" aria-hidden="true">
+<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+<h3>Custom Gratia Query</h3>
+</div>
+    <form method="GET" action="$base_url/bysite" style="margin: 0 0 0">
+<div class="modal-body">
         <p>Specify a site, or pick a set of sites.</p>
 	<label for="facility">Site Filter: </label><input type="textbox" name="facility" id="customFacilityInput"/>
         <label for="facility_set">Facility Sets:</label>
@@ -193,13 +79,16 @@ function dialogInit() {
 	<label for="grouping">Grouping:</label>
 	<input type="radio" name="grouping[]" value="site" checked/> By Site
 	<input type="radio" name="grouping[]" value="vo" /> By VO
-	
-	<div class="clear"></div>
+        </div> <!-- end body -->
+     <div class="modal-footer">
+         <button data-dismiss="modal" class="btn" >Close</button>
+         <button type="submit" class="btn btn-primary">Submit</button>
+         
+     </div>	
 
     </form>
-</div>
-</div>
-
+</div> <!-- end modal -->
+</div> <!-- end container -->
     </body>
 </html>
 
