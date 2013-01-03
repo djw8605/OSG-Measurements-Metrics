@@ -63,6 +63,10 @@ setup(name="OSG-Measurements-Metrics-Web",
                                      'config/registration_schema']),
           ('/etc/cron.d/', ['config/gratia_data.cron']),
           ('/etc/logrotate.d/', ['config/gratia_logrotate.conf']),
+          ('/usr/share/GratiaWeb/static/bootstrap/css', ['static/bootstrap/css/bootstrap.min.css']),
+          ('/usr/share/GratiaWeb/static/bootstrap/js', ['static/bootstrap/js/bootstrap.min.js', 'static/bootstrap/js/jquery-1.8.3.min.js']),
+          ('/usr/share/GratiaWeb/static/bootstrap/img', ['static/bootstrap/img/glyphicons-halflings-white.png', 'static/bootstrap/img/glyphicons-halflings.png']),
+          ('/usr/share/GratiaWeb/static/images',['static/images/nsf.png', 'static/images/doe.png']),
       ],
 
       namespace_packages = ['gratia']
