@@ -13,7 +13,7 @@ except:
 from setuptools import setup, find_packages
 
 setup(name="OSG-Measurements-Metrics-Web",
-      version="0.9",
+      version="1.0",
       author="Brian Bockelman",
       author_email="bbockelm@cse.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
@@ -56,7 +56,8 @@ setup(name="OSG-Measurements-Metrics-Web",
           ]
       },
 
-      data_files=[('/etc/init.d', ['config/GratiaWeb']),
+      data_files=[
+          ('/etc/init.d', ['config/GratiaWeb']),
           ('/etc/', ['config/wlcg_email.conf.rpmnew',
                      'config/access.db','config/osg_graphs.conf']),
           ('/usr/share/GratiaWeb/', ['config/gip_schema',

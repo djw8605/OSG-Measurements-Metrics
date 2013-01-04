@@ -1,3 +1,4 @@
+.gitignore
 MANIFEST.in
 SSLConfExample.txt
 access.db
@@ -24,8 +25,10 @@ config/registration_schema
 config/static_graphs
 config/wlcg_email.conf.rpmnew
 gratiamonitor/buildgratiamonitor.sh
+gratiamonitor/RPMS/noarch/gratiagraph-monitor-rpm-1.0-1.noarch.rpm
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.cron
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.sh
+gratiamonitor/SPECS/InstalledCapacityReport.spec
 gratiamonitor/SPECS/gratiagraph-monitor.spec
 gratiamonitor/SRPMS/gratiagraph-monitor-rpm-1.0-1.src.rpm
 setup/setup.cfg
@@ -137,6 +140,8 @@ src/gratia/templates/monbyvo.tmpl
 src/gratia/templates/monbyvo_running_graphsonly.tmpl
 src/gratia/templates/monbyvo_waiting_graphsonly.tmpl
 src/gratia/templates/overview.tmpl
+src/gratia/templates/pilot.tmpl
+src/gratia/templates/project.tmpl
 src/gratia/templates/refine.tmpl
 src/gratia/templates/site.tmpl
 src/gratia/templates/site_owner.tmpl
@@ -187,3 +192,10 @@ src/gratia/web/thumbnails.py
 src/gratia/web/vo_installed_capacity.py
 src/gratia/web/wlcg_json_data.py
 src/gratia/web/wlcg_reporting.py
+static/bootstrap/css/bootstrap.min.css
+static/bootstrap/img/glyphicons-halflings-white.png
+static/bootstrap/img/glyphicons-halflings.png
+static/bootstrap/js/bootstrap.min.js
+static/bootstrap/js/jquery-1.8.3.min.js
+static/images/doe.png
+static/images/nsf.png

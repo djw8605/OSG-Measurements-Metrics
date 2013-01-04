@@ -1,4 +1,8 @@
 %changelog
+* Wed Jan 01 2013 Ashu Guru <aguru2@unl.edu>
+- Added new charts for XSEDE Project Names
+- (https://jira.opensciencegrid.org/browse/GRATIA-71)
+
 * Mon Jun 28 2012 Ashu Guru <aguru2@unl.edu>
 - Updated for gratia_data.cron emitting error email on gratiaweb-itb.grid.iu.edu
 - (https://jira.opensciencegrid.org/browse/SOFTWARE-684)

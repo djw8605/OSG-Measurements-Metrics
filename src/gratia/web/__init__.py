@@ -61,6 +61,7 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
         self.site_report = self.template('gratia_site_report.tmpl')\
             (self.site_report)    
         self.pilot = self.template('pilot.tmpl')(self.pilot)
+        self.project = self.template('project.tmpl')(self.project)
         configfile=''
         try:
             configfile=os.environ["DBPARAM_LOCATION"]                 
@@ -320,6 +321,21 @@ class Gratia(ImageMap, SubclusterReport, JOTReporter, VOInstalledCapacity, \
             data['title'] = "OSG Monitoring Information By Site"
         return data
 
+
+    def project(self, *args, **kw):
+        data = dict(kw)
+        data['given_kw'] = dict(kw)
+        self.user_auth(data)
+        filter_dict = {}
+        # Handle the refine variables
+        self.refine(data, filter_dict)
+        token = self.start_image_maps()
+        # Generate image maps:
+        self.image_map(token, data, 'GratiaStatusQueries',
+            'status_facility', 'site', 'facility')
+        self.finish_image_maps(token)
+        data['title'] = "OSG Project Accounting"
+        return data
 
     def pilot(self, *args, **kw):
         data = dict(kw)

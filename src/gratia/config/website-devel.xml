@@ -25,6 +25,7 @@
       <attribute name="vo_security">OIMSecurity</attribute>
       <attribute name="site_security">OIMSecurity</attribute>
       <attribute name="static_url">http://t2.unl.edu/store/gratia/</attribute>
+      <attribute name="static_site_url">/gratia/static-site</attribute>
       <attribute name="vos_url">http://t2.unl.edu/gratia/xml/vo_corrected_table</attribute>
       <attribute name="registered_vos_url">http://t2.unl.edu/gratia/xml/vo</attribute>
       <attribute name="keep_vos">gpn, mipp, Unknown, hypercp, tigre, dteam</attribute>

@@ -85,6 +85,7 @@ class Navigation(Authenticate, Template):
                 info['%s by site' % site] = '%s?set=%s&facility=%s' % (page,
                     site, set_info)
         info['Pilot & Campus Accounting']  = "pilot"
+        info['Project Accounting']  = "project"
 
     def defaultData(self, data):
         x = XmlConfig()
