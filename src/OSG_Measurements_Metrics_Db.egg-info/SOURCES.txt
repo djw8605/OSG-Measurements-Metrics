@@ -129,6 +129,7 @@ src/gratia/templates/bysite.tmpl
 src/gratia/templates/byvo.tmpl
 src/gratia/templates/email_lookup.tmpl
 src/gratia/templates/email_lookup_xml.tmpl
+src/gratia/templates/factoryfrontend.tmpl
 src/gratia/templates/focus.tmpl
 src/gratia/templates/gratia_site_report.tmpl
 src/gratia/templates/image_map.tmpl

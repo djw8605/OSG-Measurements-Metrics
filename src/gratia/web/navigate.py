@@ -55,6 +55,13 @@ class Navigation(Authenticate, Template):
                }
         data['navigation']['Grid-wide'] = info
 
+    def pilotNav(self, data):
+        info = {}
+        info['Pilot & Campus Accounting']  = "pilot"
+        info['Project Accounting']  = "project"
+        info['Factory & Frontend Monitoring']  = "factoryfrontend"
+        data['navigation']['Campus & Pilot'] = info
+
     def otherNav(self, data):
         info = {}
         data['navigation']['Other'] = info
@@ -84,8 +91,6 @@ class Navigation(Authenticate, Template):
                     page = 'byvo'
                 info['%s by site' % site] = '%s?set=%s&facility=%s' % (page,
                     site, set_info)
-        info['Pilot & Campus Accounting']  = "pilot"
-        info['Project Accounting']  = "project"
 
     def defaultData(self, data):
         x = XmlConfig()
@@ -100,5 +105,6 @@ class Navigation(Authenticate, Template):
         self.navFromRoles(data)
         self.gridNav(data)
         self.otherNav(data)
+        self.pilotNav(data)
         return data
 

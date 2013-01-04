@@ -27,12 +27,18 @@
                 <div class="well" style="padding: 8px 0;">
                 <ul class="nav nav-list">
                 <li><a href="$base_url/">Home</a></li>
-                #for viewer, pages in $navigation.items()
-                    <li class="nav-header">$viewer View</li>
-                    #for $pagename, $url in $pages.items()
-                        <li><a href="$base_url/$url">$pagename</a></li>
-                    #end for
+
+                #set $viewerOrderList=['Site Owner', 'VO Owner', 'VO Membership','Grid-wide', 'Campus & Pilot', 'Other' ]
+                #for viewer in $viewerOrderList
+                        #if $viewer in $navigation
+                                #set $pages=$navigation[$viewer]
+                                <li class="nav-header">$viewer View</li>
+                                #for $pagename, $url in $pages.items()
+                                    <li><a href="$base_url/$url">$pagename</a></li>
+                                #end for
+                        #end if
                 #end for
+
                 <li class="divider"></li>
                 <li><a href="$base_url/jot_reporting">WLCG Reporting (overview)</a></li>
                 <li><a href="$base_url/wlcg_reporting">WLCG Reporting (detailed)</a></li>
