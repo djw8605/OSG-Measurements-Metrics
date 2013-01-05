@@ -16,6 +16,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
 
+
 BuildRequires:  python-setuptools
 Requires:       graphtool >= 0.6.4 
 Requires:	MySQL-python 
@@ -25,10 +26,6 @@ Requires:	/usr/bin/ldapsearch
 Requires:	python-cherrypy >= 3.1.2 
 Requires:	python-ZSI 
 Requires: 	python-setuptools 
-Requires: 	OSG-Measurements-Metrics-Db 
-Requires:	python-json gratia-probe-common   
-Requires:	gratia-probe-services
-
 
 
 
