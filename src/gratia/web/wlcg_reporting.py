@@ -243,7 +243,7 @@ class WLCGReporter(Authenticate):
     def get_apel_data(self, year=datetime.datetime.now().year, month=datetime.datetime.now().month):
         year = int(year)
         month = int(month)
-        if(year >=2012) or (year == 2012 and month >= 3):
+        if(year > 2012) or (year == 2012 and month >= 3):
             return self.get_apel_data_since201203(month, year)
         apel_url = self.metadata.get('apel_url', 'http://gratia-osg-prod-reports.opensciencegrid.org/gratia-data/interfaces/apel-lcg/%i-%02i.HS06_OSG_DATA.xml'\
             % (year, month))
