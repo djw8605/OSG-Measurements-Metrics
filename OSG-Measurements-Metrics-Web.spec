@@ -4,8 +4,8 @@
 %endif
 
 Name:           OSG-Measurements-Metrics-Web
-Version:        1.0
-Release:        1%{?dist}
+Version:        1.1
+Release:        3%{?dist}
 Summary:        OSG Measurements and Metrics web and database
 
 Group:          Applications/System
@@ -26,7 +26,10 @@ Requires:	python-cherrypy >= 3.1.2
 Requires:	python-ZSI 
 Requires: 	python-setuptools 
 Requires: 	OSG-Measurements-Metrics-Db 
-Requires:	python-json gratia-probe-common   
+%if 0%{?el5}
+Requires:	python-json 
+%endif
+Requires:	gratia-probe-common   
 Requires:	gratia-probe-services
 
 
@@ -48,7 +51,12 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
 %install
 rm -rf $RPM_BUILD_ROOT
 
+
 %{__python} setup.py install --skip-build --root %{buildroot}
+
+install -d %{buildroot}/%{_initddir}
+mv %{buildroot}/etc/init.d/GratiaWeb %{buildroot}/%{_initddir}
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -57,14 +65,30 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_bindir}/*
-%{_datarootdir}/GratiaWeb/*
-%config %{_sysconfdir}/*
+%{_datadir}/GratiaWeb/*
+%config %{_sysconfdir}/wlcg_email.conf.rpmnew
+%config %{_sysconfdir}/access.db
+%config %{_sysconfdir}/osg_graphs.conf
+%{_sysconfdir}/cron.d/*
+%{_sysconfdir}/logrotate.d/*
+%{_initddir}/*
+
+
 %{python_sitelib}/*
 
 
 
 
 %changelog
+* Thu Jan 10 2013 Derek Weitzel <dweitzel@cse.unl.edu> - 1.1-3
+- Fixing sysconfdir in the spec file
+
+* Thu Jan 10 2013 Derek Weitzel <dwetizel@cse.unl.edu> - 1.1-2
+- Updating datarootdir to multi-platform version datadir
+
+* Thu Jan 10 2013 Derek Weitzel <dweitzel@cse.unl.edu> - 1.1-1
+- Update to 1.1
+
 * Mon Jun 28 2012 Ashu Guru <aguru2@unl.edu>
 - Updated for gratia_data.cron emitting error email on gratiaweb-itb.grid.iu.edu
 - (https://jira.opensciencegrid.org/browse/SOFTWARE-684)
