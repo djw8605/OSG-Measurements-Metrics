@@ -4,7 +4,7 @@
 %endif
 
 Name:           OSG-Measurements-Metrics-Db
-Version:        1.0
+Version:        1.1
 Release:        1%{?dist}
 Summary:        OSG Measurements and Metrics web and database
 
@@ -60,6 +60,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Jan 10 2013 Derek Weitzel <dweitzel@cse.unl.edu> - 1.1-1
+- Update to 1.1
+
 * Mon Jun 28 2012 Ashu Guru <aguru2@unl.edu>
 - Updated for gratia_data.cron emitting error email on gratiaweb-itb.grid.iu.edu
 - (https://jira.opensciencegrid.org/browse/SOFTWARE-684)
