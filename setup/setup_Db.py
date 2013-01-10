@@ -10,7 +10,7 @@ except:
 from setuptools import setup, find_packages
 
 setup(name="OSG-Measurements-Metrics-Db",
-      version="1.0",
+      version="1.1",
       author="Brian Bockelman",
       author_email="bbockelm@cse.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
