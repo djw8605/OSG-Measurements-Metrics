@@ -3,3 +3,5 @@ include config/static_graphs
 include config/osg_graphs.conf
 include config/GratiaStaticGraphs.cron
 recursive-include static *.css *.js *.png
+recursive-include config *
+recursive-include src/gratia/config *
