@@ -5,7 +5,7 @@
 
 Name:           OSG-Measurements-Metrics-Web
 Version:        1.1
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        OSG Measurements and Metrics web and database
 
 Group:          Applications/System
@@ -54,8 +54,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %{__python} setup.py install --skip-build --root %{buildroot}
 
-install -d %{buildroot}/%{_initddir}
-mv %{buildroot}/etc/init.d/GratiaWeb %{buildroot}/%{_initddir}
+install -d %{buildroot}/%{_initrddir}
+mv %{buildroot}/etc/init.d/GratiaWeb %{buildroot}/%{_initrddir}
 
 
 %clean
@@ -71,7 +71,7 @@ rm -rf $RPM_BUILD_ROOT
 %config %{_sysconfdir}/osg_graphs.conf
 %{_sysconfdir}/cron.d/*
 %{_sysconfdir}/logrotate.d/*
-%{_initddir}/*
+%{_initrddir}/*
 
 
 %{python_sitelib}/*
@@ -80,6 +80,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Jan 10 2013 Derek Weitzel <dwetizel@cse.unl.edu> - 1.1-4
+- Fixing initrd dir
+
 * Thu Jan 10 2013 Derek Weitzel <dweitzel@cse.unl.edu> - 1.1-3
 - Fixing sysconfdir in the spec file
 
