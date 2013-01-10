@@ -25,6 +25,29 @@
       <attribute name="graph_type"> GratiaStackedBar </attribute>
     </query>
 
+    <query name="project_job_cnt" base="GratiaGenericQuery.master_summary">
+      <inputs>
+          <input name="resource-type" kind="sql"> .* </input>
+          <input name="projectname" kind="sql"> .* </input>
+      </inputs>
+      <sql>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+        <filler name="group"> PNC.ReportableProjectName </filler>
+        <filler name="column"> sum(Njobs) </filler>
+        <filler name="where"> AND PNC.ReportableProjectName regexp :projectname </filler>
+      </sql>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+      <attribute name="pivot_name"> ReportableProjectName </attribute>
+      <attribute name="title"> Job Count by Project </attribute>
+      <attribute name="column_names"> Number of Jobs </attribute>
+      <attribute name="column_units"/>
+      <attribute name="graph_type"> GratiaStackedBar </attribute>
+    </query>
+
     <query name="vo_job_cnt" base="GratiaGenericQuery.master_summary">
       <sql>
         <filler name="group"> VO.VOName </filler>
@@ -369,6 +392,28 @@
       </results>
     </query>
 
+
+    <query name="monthly_project_hours" base="GratiaGenericQuery.monthly_master_summary">
+      <inputs>
+          <input name="resource-type" kind="sql"> .* </input>
+          <input name="exclude-projectname" kind="sql"> unknown|other </input>
+      </inputs>
+      <sql>
+        <filler name="group"> PNC.ReportableProjectName </filler>
+        <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname))</filler>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+      </sql>
+      <attribute name="pivot_name">ReportableProjectName</attribute>
+      <attribute name="title">Monthly Wall Hours per Project</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
     <query name="monthly_vo_hours" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
       <filler name="group"> VO.VOName </filler>
@@ -377,6 +422,27 @@
       </sql>
       <attribute name="pivot_name">VO</attribute>
       <attribute name="title">Monthly Wall Hours per VO</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
+    <query name="monthly_project_cpu_hours" base="GratiaGenericQuery.monthly_master_summary">
+      <inputs>
+          <input name="resource-type" kind="sql"> .* </input>
+          <input name="exclude-projectname" kind="sql"> unknown|other </input>
+      </inputs>
+      <sql>
+      <filler name="group"> PNC.ReportableProjectName </filler>
+        <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/3600 </filler>
+        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname))</filler>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+      </sql>
+      <attribute name="pivot_name">ReportableProjectName</attribute>
+      <attribute name="title">Monthly CPU Hours per Project</attribute>
       <attribute name="graph_type">GratiaStackedBar</attribute>
       <results>
         <inputs>
@@ -400,6 +466,28 @@
         </inputs>
       </results>
     </query>
+
+    <query name="monthly_project_job_count" base="GratiaGenericQuery.monthly_master_summary">
+      <inputs>
+          <input name="resource-type" kind="sql"> .* </input>
+         <input name="exclude-projectname" kind="sql"> unknown|other </input>
+      </inputs>
+      <sql>
+        <filler name="group"> PNC.ReportableProjectName </filler>
+        <filler name="column"> sum(Njobs) </filler>
+        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname))</filler>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+      </sql>
+      <attribute name="pivot_name">PNC.ReportableProjectName</attribute>
+      <attribute name="title">Monthly Job Count per Project</attribute>
+      <attribute name="graph_type">GratiaStackedBar</attribute>
+      <results>
+        <inputs>
+          <input name="grouping_transform">make_int</input>
+        </inputs>
+      </results>
+    </query>
+
    
     <query name="monthly_vo_job_count" base="GratiaGenericQuery.monthly_master_summary">
       <sql>
@@ -624,6 +712,32 @@
       <attribute name="title">User Non-zero exit code count for VO $vo</attribute>
       <attribute name="graph_type">GratiaHorizontalBar</attribute>
     </query>
+
+    <query name="projectname_nonzero_exit" base="GratiaGenericQuery.simple_master_summary">
+      <inputs>
+          <input name="projectname" kind="sql"> .* </input>
+          <input name="resource-type" kind="sql"> .* </input>
+      </inputs>
+      <sql>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+        <filler name="group"> COALESCE(PNC.ReportableProjectName, "UNKNOWN") </filler>
+        <filler name="column"> cast(sum(Njobs) AS UNSIGNED) </filler>
+        <filler name="where"> AND WallDuration > 0 AND ApplicationExitCode!=0 AND PNC.ReportableProjectName regexp :projectname</filler>
+      </sql>
+        <results>
+            <inputs>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+      <attribute name="pivot_name">User</attribute>
+      <attribute name="fixed-height">False</attribute>
+      <attribute name="title">User Non-zero exit code count for Project $projectname</attribute>
+      <attribute name="graph_type">GratiaHorizontalBar</attribute>
+    </query>
+
+
+
+
 
     <query name="dn_zero_exit" base="GratiaGenericQuery.simple_master_summary">
       <inputs>
@@ -1053,6 +1167,33 @@
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
+
+    <query name="project_site_hours_bar" base="GratiaGenericQuery.master_summary">
+      <inputs>
+          <input name="resource-type" kind="sql"> .* </input>
+      </inputs>
+        <sql>
+            <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+            <filler name="group"> COALESCE(PNC.ReportableProjectName, "UNKNOWN"), S.SiteName </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0,1 </input>
+                <input name="grouping"> 2 </input>
+                <input name="results"> 3 </input>
+                <input name="pivot_transform">displayNameSite</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">ReportableProjectName</attribute> 
+        <attribute name="grouping_name">Time</attribute>
+        <attribute name="title">Daily Hours By Project and Site</attribute>
+        <attribute name="column_names">Wall Time</attribute>
+        <attribute name="column_units">Hours</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
+
     <query name="dn_site_hours_bar" base="GratiaGenericQuery.master_summary">
         <sql>
             <filler name="group"> COALESCE(R.CommonName, VO.VOName), S.SiteName </filler>
@@ -1075,6 +1216,31 @@
         <attribute name="graph_type">GratiaStackedBar</attribute>
     </query>
 
+    <query name="project_hours_bar" base="GratiaGenericQuery.master_summary">
+      <inputs>
+          <input name="resource-type" kind="sql"> .* </input>
+      </inputs>
+        <sql>
+            <filler name="group"> COALESCE(PNC.ReportableProjectName, "UNKNOWN") </filler>
+            <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
+            <filler name="where"> AND WallDuration > 0 </filler>
+            <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+        </sql>
+        <results module="graphtool.database.query_handler" function="results_parser">
+            <inputs>
+                <input name="pivots"> 0 </input>
+                <input name="grouping"> 1 </input>
+                <input name="results"> 2 </input>
+                <input name="pivot_transform">displayName</input>
+            </inputs>
+        </results>
+        <attribute name="pivot_name">PNC.ReportableProjectName</attribute>
+        <attribute name="grouping_name">Time</attribute>
+        <attribute name="title">Daily Hours By Project </attribute>
+        <attribute name="column_names">Wall Time</attribute>
+        <attribute name="column_units">Hours</attribute>
+        <attribute name="graph_type">GratiaStackedBar</attribute>
+    </query>
 
     <query name="dn_hours_bar" base="GratiaGenericQuery.master_summary">
         <sql>

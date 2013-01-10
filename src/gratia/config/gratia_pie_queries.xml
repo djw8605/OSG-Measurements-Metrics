@@ -39,11 +39,30 @@
       <attribute name="title"> Computational Hours by VO </attribute>
     </query>
 -->
+    <query name="osg_project_hours" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input name="resource-type" kind="sql"> .* </input>
+            <input kind="sql" type="float" name="min_hours"> 10 </input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
+      <sql>
+        <filler name="group"> ReportableProjectName </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+      </sql>
+      <attribute name="pivot_name"> PNC </attribute>
+      <attribute name="column_names"> WallHours </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Wall Hours by VO </attribute>
+    </query>
+
 
     <query name="osg_vo_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
-        </inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
@@ -58,7 +77,8 @@
     <query name="job_size_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 0 </input>
-        </inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> CASE R.Cores WHEN 1 THEN "1 Core" ELSE concat(R.Cores, " Cores") END </filler>
         <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
@@ -117,7 +137,8 @@
     <query name="non_hep_vo_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
-        </inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
@@ -223,7 +244,8 @@
     <query name="osg_facility_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
-        </inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
@@ -243,7 +265,8 @@
     <query name="osg_facility_cpu_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
-        </inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(R.CpuUserDuration + R.CpuSystemDuration)/3600 as CpuHours </filler>
@@ -263,7 +286,8 @@
     <query name="osg_probe_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>
             <input kind="sql" type="float" name="min_hours"> 10 </input>
-        </inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> R.ProbeName </filler>
         <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
@@ -276,6 +300,9 @@
     </query>
 
     <query name="osg_vo_count" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> VO.VOName </filler>
         <filler name="column"> sum(R.Njobs) </filler>
@@ -287,6 +314,9 @@
     </query>
 
     <query name="osg_facility_count" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> S.SiteName </filler>
         <filler name="column"> sum(R.Njobs) </filler>
@@ -303,6 +333,9 @@
     </query>
 
     <query name="osg_sharing_sites_pie_perc" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
       <sql>
         <filler name="group"> VO.VOName, S.SiteName </filler>
         <filler name="column"> sum(Cores*WallDuration)/3600 </filler>

@@ -1,0 +1,34 @@
+#from urllib import quote
+#from gratia.database.query_handler import displayName
+
+<h2>Project Accounting</h2>
+#include $image_maps
+<h5>CPU hours per Project (Pie) (<a href="$base_url/xml/osg_project_hours$filter_url">Analyze</a>)</h5>
+<img src="$base_url/pie_graphs/osg_project_hours$filter_url" usemap="#map"></p>
+
+<h5>Monthly CPU hours per Project (<a href="$base_url/xml/monthly_project_cpu_hours$filter_url">Analyze</a>)</h5>
+<img src="$base_url/bar_graphs/monthly_project_cpu_hours$filter_url" usemap="#map"></p>
+
+<h5>Monthly wall hours per Project (<a href="$base_url/xml/monthly_project_hours$filter_url">Analyze</a>)</h5>
+<img src="$base_url/bar_graphs/monthly_project_hours$filter_url" usemap="#map"></p>
+
+<h5>Monthly Job Count per Project (<a href="$base_url/xml/monthly_project_job_count$filter_url">Analyze</a>)</h5>
+<img src="$base_url/bar_graphs/monthly_project_job_count$filter_url" usemap="#map"></p>
+
+<h5>Daily Hours by Project (<a href="$base_url/xml/project_hours_bar$filter_url">Analyze</a>)</h5>
+<p><img src="$base_url/bar_graphs/project_hours_bar$filter_url" usemap="#map"></p>
+
+<h5>Daily Hours by Project and Site (<a href="$base_url/xml/project_site_hours_bar$filter_url">Analyze</a>)</h5>
+<p><img src="$base_url/bar_graphs/project_site_hours_bar$filter_url" usemap="#map"></p>
+
+<h5>User Non-zero exit code (<a href="$base_url/xml/projectname_nonzero_exit$filter_url">Analyze</a>)</h5>
+<p><img src="$base_url/bar_graphs/projectname_nonzero_exit$filter_url" usemap="#map"></p>
+
+<h5>Job Count by Project (<a href="$base_url/xml/project_job_cnt$filter_url">Analyze</a>)</h5>
+<p><img src="$base_url/bar_graphs/project_job_cnt$filter_url" usemap="#map"></p>
+
+<!-- Controls for filtering sites / VOs / dates / etc -->
+#include $refine
+
+
+

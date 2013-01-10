@@ -1,5 +1,5 @@
+.gitignore
 MANIFEST.in
-README_MAINT_NOTES.txt
 SSLConfExample.txt
 access.db
 buildrpms.sh
@@ -24,11 +24,11 @@ config/osg_graphs.conf
 config/registration_schema
 config/static_graphs
 config/wlcg_email.conf.rpmnew
-ez_setup/README.txt
-ez_setup/__init__.py
 gratiamonitor/buildgratiamonitor.sh
+gratiamonitor/RPMS/noarch/gratiagraph-monitor-rpm-1.0-1.noarch.rpm
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.cron
 gratiamonitor/SOURCES/gratiagraph-monitor/gratiagraph-monitor.sh
+gratiamonitor/SPECS/InstalledCapacityReport.spec
 gratiamonitor/SPECS/gratiagraph-monitor.spec
 gratiamonitor/SRPMS/gratiagraph-monitor-rpm-1.0-1.src.rpm
 setup/setup.cfg
@@ -115,8 +115,6 @@ src/gratia/graphs/__init__.py
 src/gratia/graphs/animated_thumbnail.py
 src/gratia/graphs/gratia_graphs.py
 src/gratia/nagios/check_gip_subcluster_record.py
-src/gratia/other/__init__.py
-src/gratia/other/make_daemon.py
 src/gratia/summary/CmsProbeConfigItb
 src/gratia/summary/CmsProbeConfigProd
 src/gratia/summary/Gratia.py
@@ -131,6 +129,7 @@ src/gratia/templates/bysite.tmpl
 src/gratia/templates/byvo.tmpl
 src/gratia/templates/email_lookup.tmpl
 src/gratia/templates/email_lookup_xml.tmpl
+src/gratia/templates/factoryfrontend.tmpl
 src/gratia/templates/focus.tmpl
 src/gratia/templates/gratia_site_report.tmpl
 src/gratia/templates/image_map.tmpl
@@ -142,6 +141,8 @@ src/gratia/templates/monbyvo.tmpl
 src/gratia/templates/monbyvo_running_graphsonly.tmpl
 src/gratia/templates/monbyvo_waiting_graphsonly.tmpl
 src/gratia/templates/overview.tmpl
+src/gratia/templates/pilot.tmpl
+src/gratia/templates/project.tmpl
 src/gratia/templates/refine.tmpl
 src/gratia/templates/site.tmpl
 src/gratia/templates/site_owner.tmpl
@@ -192,3 +193,10 @@ src/gratia/web/thumbnails.py
 src/gratia/web/vo_installed_capacity.py
 src/gratia/web/wlcg_json_data.py
 src/gratia/web/wlcg_reporting.py
+static/bootstrap/css/bootstrap.min.css
+static/bootstrap/img/glyphicons-halflings-white.png
+static/bootstrap/img/glyphicons-halflings.png
+static/bootstrap/js/bootstrap.min.js
+static/bootstrap/js/jquery-1.8.3.min.js
+static/images/doe.png
+static/images/nsf.png

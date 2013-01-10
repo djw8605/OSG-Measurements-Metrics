@@ -1,4 +1,20 @@
 %changelog
+* Thu Jan 10 2013 Ashu Guru <aguru2@unl.edu>
+- Added Pie chart for XSEDE Project Names and fixed exclude project
+- (https://jira.opensciencegrid.org/browse/GRATIA-71)
+
+* Wed Jan 01 2013 Ashu Guru <aguru2@unl.edu>
+- Added new charts for XSEDE Project Names
+- (https://jira.opensciencegrid.org/browse/GRATIA-71)
+
+* Mon Jun 28 2012 Ashu Guru <aguru2@unl.edu>
+- Updated for gratia_data.cron emitting error email on gratiaweb-itb.grid.iu.edu
+- (https://jira.opensciencegrid.org/browse/SOFTWARE-684)
+
+* Mon Jun 28 2012 Ashu Guru <aguru2@unl.edu>
+- Updated for fixing number of days in pie chart
+- (https://jira.opensciencegrid.org/browse/GRATIAWEB-17)
+
 * Mon May 31 2012 Ashu Guru <aguru2@unl.edu>
 - Updated for fixing the number of bins and days of bar chart report issue
 - (https://jira.opensciencegrid.org/browse/GRATIAWEB-17)

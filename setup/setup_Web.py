@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+'/setuptools-0.6c11-py2.4.egg')
+
+
 try:
     import ez_setup
     ez_setup.use_setuptools()
@@ -8,7 +13,7 @@ except:
 from setuptools import setup, find_packages
 
 setup(name="OSG-Measurements-Metrics-Web",
-      version="0.9",
+      version="1.1",
       author="Brian Bockelman",
       author_email="bbockelm@cse.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",
@@ -51,13 +56,18 @@ setup(name="OSG-Measurements-Metrics-Web",
           ]
       },
 
-      data_files=[('/etc/init.d', ['config/GratiaWeb']),
+      data_files=[
+          ('/etc/init.d', ['config/GratiaWeb']),
           ('/etc/', ['config/wlcg_email.conf.rpmnew',
                      'config/access.db','config/osg_graphs.conf']),
           ('/usr/share/GratiaWeb/', ['config/gip_schema',
                                      'config/registration_schema']),
           ('/etc/cron.d/', ['config/gratia_data.cron']),
           ('/etc/logrotate.d/', ['config/gratia_logrotate.conf']),
+          ('/usr/share/GratiaWeb/static/bootstrap/css', ['static/bootstrap/css/bootstrap.min.css']),
+          ('/usr/share/GratiaWeb/static/bootstrap/js', ['static/bootstrap/js/bootstrap.min.js', 'static/bootstrap/js/jquery-1.8.3.min.js']),
+          ('/usr/share/GratiaWeb/static/bootstrap/img', ['static/bootstrap/img/glyphicons-halflings-white.png', 'static/bootstrap/img/glyphicons-halflings.png']),
+          ('/usr/share/GratiaWeb/static/images',['static/images/nsf.png', 'static/images/doe.png']),
       ],
 
       namespace_packages = ['gratia']

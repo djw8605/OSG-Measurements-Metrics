@@ -24,6 +24,7 @@
       <attribute name="vo_security">OIMSecurity</attribute>
       <attribute name="site_security">OIMSecurity</attribute>
       <attribute name="static_url">http://red-web.unl.edu/gratiagraphs/</attribute>
+      <attribute name="static_site_url">/gratia/static-site</attribute>
       <attribute name="vos_url">http://localhost/gratia/xml/vo_corrected_table</attribute>
       <attribute name="registered_vos_url">http://localhost/gratia/xml/vo</attribute>
       <attribute name="keep_vos">gpn, mipp, hypercp, tigre</attribute>
@@ -33,6 +34,10 @@
 
   <class name="static" type="StaticContent">
     <module name="content"> graphtool.static_content </module>
+  </class>
+
+  <class name="static-site" type="StaticContent">
+    <directory location="/gratia/static-site" name="/gratia/static-site">/usr/share/GratiaWeb/static/</directory>
   </class>
 
   <class name="web" type="WebHost">
@@ -59,6 +64,7 @@
     <mount location="/gratia/user_graphs" content="image/png"> <instance name="gratia_user_grapher"/> </mount>
     <instance name="static" location="/gratia/static" />
     <config module="gratia.config">prod.conf</config>
+    <instance name="static-site" location="/gratia/static-site" />
     <instance name="GratiaWeb" location="/gratia"/>
   </class>
 

@@ -17,7 +17,9 @@ class Template(XmlConfig):
 
     def defaultData(self, data):
         base_url = self.metadata.get('base_url', '')
+        static_site_url = self.metadata.get('static_site_url', '')
         data['base_url'] = base_url
+        data['static_site_url'] = static_site_url
 
     def plain_template(self, name=None, content_type='text/html'):
         template_fp = resource_stream("gratia.templates", name)

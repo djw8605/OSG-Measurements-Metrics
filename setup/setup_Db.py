@@ -1,3 +1,6 @@
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+'/setuptools-0.6c11-py2.4.egg')
+
 try:
     import ez_setup
     ez_setup.use_setuptools()
@@ -7,7 +10,7 @@ except:
 from setuptools import setup, find_packages
 
 setup(name="OSG-Measurements-Metrics-Db",
-      version="0.9",
+      version="1.1",
       author="Brian Bockelman",
       author_email="bbockelm@cse.unl.edu",
       url="http://t2.unl.edu/documentation/gratia_graphs",

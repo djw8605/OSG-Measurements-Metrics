@@ -117,7 +117,6 @@
       <attribute name="graph_type">QualityBarGraph</attribute>
     </query>
 
-
     <query name="glidein_exitcode_user_bar" base="GratiaGenericQuery.glidein_master_summary">
         <inputs>
             <!--<input name="includeSuccessful" type="int" kind="sql">1</input>-->
