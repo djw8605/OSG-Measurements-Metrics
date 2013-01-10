@@ -39,6 +39,24 @@
       <attribute name="title"> Computational Hours by VO </attribute>
     </query>
 -->
+    <query name="osg_project_hours" base="GratiaGenericQuery.simple_master_summary">
+        <inputs>
+            <input name="resource-type" kind="sql"> .* </input>
+            <input kind="sql" type="float" name="min_hours"> 10 </input>
+            <input name="starttime" partial="down" type="datetime" kind="sql">time.time()-14*86400</input>
+         </inputs>
+      <sql>
+        <filler name="group"> ReportableProjectName </filler>
+        <filler name="column"> sum(R.Cores*R.WallDuration)/3600 as WallHours </filler>
+        <filler name="having"> HAVING sum(R.Cores*R.WallDuration)/3600 >= :min_hours </filler>
+        <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
+      </sql>
+      <attribute name="pivot_name"> PNC </attribute>
+      <attribute name="column_names"> WallHours </attribute>
+      <attribute name="column_units"> Hours </attribute>
+      <attribute name="title"> Wall Hours by VO </attribute>
+    </query>
+
 
     <query name="osg_vo_hours" base="GratiaGenericQuery.simple_master_summary">
         <inputs>

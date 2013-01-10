@@ -1,4 +1,8 @@
 %changelog
+* Thu Jan 10 2013 Ashu Guru <aguru2@unl.edu>
+- Added Pie chart for XSEDE Project Names and fixed exclude project
+- (https://jira.opensciencegrid.org/browse/GRATIA-71)
+
 * Wed Jan 01 2013 Ashu Guru <aguru2@unl.edu>
 - Added new charts for XSEDE Project Names
 - (https://jira.opensciencegrid.org/browse/GRATIA-71)

@@ -34,7 +34,7 @@
         <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
         <filler name="group"> PNC.ReportableProjectName </filler>
         <filler name="column"> sum(Njobs) </filler>
-        <filler name="where"> </filler>
+        <filler name="where"> AND PNC.ReportableProjectName regexp :projectname </filler>
       </sql>
       <results>
         <inputs>
@@ -401,7 +401,7 @@
       <sql>
         <filler name="group"> PNC.ReportableProjectName </filler>
         <filler name="column"> sum(Cores*WallDuration)/3600 </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
+        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname))</filler>
         <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
       </sql>
       <attribute name="pivot_name">ReportableProjectName</attribute>
@@ -438,7 +438,7 @@
       <sql>
       <filler name="group"> PNC.ReportableProjectName </filler>
         <filler name="column"> sum(CpuUserDuration + CpuSystemDuration)/3600 </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
+        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname))</filler>
         <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
       </sql>
       <attribute name="pivot_name">ReportableProjectName</attribute>
@@ -470,11 +470,12 @@
     <query name="monthly_project_job_count" base="GratiaGenericQuery.monthly_master_summary">
       <inputs>
           <input name="resource-type" kind="sql"> .* </input>
+         <input name="exclude-projectname" kind="sql"> unknown|other </input>
       </inputs>
       <sql>
         <filler name="group"> PNC.ReportableProjectName </filler>
         <filler name="column"> sum(Njobs) </filler>
-        <filler name="where"> AND WallDuration > 0 </filler>
+        <filler name="where"> AND WallDuration > 0 AND (NOT (PNC.ReportableProjectName regexp :exclude-projectname))</filler>
         <filler name="join"> JOIN ProjectNameCorrection PNC ON (PNC.ProjectNameCorrid=R.ProjectNameCorrid) </filler>
       </sql>
       <attribute name="pivot_name">PNC.ReportableProjectName</attribute>
